@@ -2,7 +2,7 @@
 #   tensorflow, numpy
 
 import wandb
-from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
+from keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import random
 import numpy as np
