@@ -5,9 +5,9 @@ import random
 
 import numpy as np
 import tensorflow as tf
+import wandb
 from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
-import wandb
 
 # Start a run, tracking hyperparameters
 wandb.init(
@@ -62,10 +62,7 @@ history = model.fit(
     epochs=config.epoch,
     batch_size=config.batch_size,
     validation_data=(x_test, y_test),
-    callbacks=[
-        WandbMetricsLogger(log_freq=5),
-        WandbModelCheckpoint("artifacts/models"),
-    ],
+    callbacks=[WandbMetricsLogger(log_freq=5), WandbModelCheckpoint("artifacts/models")],
 )
 
 # [optional] finish the wandb run, necessary in notebooks

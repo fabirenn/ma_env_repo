@@ -1,0 +1,37 @@
+{
+    "os": "macOS-14.0-arm64-arm-64bit",
+    "python": "3.10.13",
+    "heartbeatAt": "2024-03-13T09:59:31.039282",
+    "startedAt": "2024-03-13T09:59:30.079968",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/fabiorenn/Desktop/Master/code/ma_env_repo/src/wandb_test.py",
+    "codePathLocal": "src/wandb_test.py",
+    "codePath": "src/wandb_test.py",
+    "git": {
+        "remote": "https://github.com/fabirenn/ma_env_repo.git",
+        "commit": "88537467aa9508994601152fb0b3ad8da1444155"
+    },
+    "email": "fabio.renn@outlook.de",
+    "root": "/Users/fabiorenn/Desktop/Master/code/ma_env_repo",
+    "host": "MacBook-Air-von-Fabio.local",
+    "username": "fabiorenn",
+    "executable": "/opt/miniconda3/envs/ma_env/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "disk": {
+        "/": {
+            "total": 460.4317207336426,
+            "used": 288.80297470092773
+        }
+    },
+    "gpuapple": {
+        "type": "arm",
+        "vendor": "Apple"
+    },
+    "memory": {
+        "total": 8.0
+    }
+}
