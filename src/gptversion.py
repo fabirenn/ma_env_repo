@@ -50,7 +50,8 @@ class Dataset(Dataset):
         mask = np.array(Image.open(mask_path).convert("L"), dtype=np.float32)
         mask[
             mask == 255.0
-        ] = 1.0  # Assuming mask has two values: 0 (background) and 255 (foreground)
+        ] = 1.0  
+        # Assuming mask has two values: 0 (background) and 255 (foreground)
 
         augmented = self.augmentations(image=image, mask=mask)
         image = augmented["image"]
@@ -74,10 +75,12 @@ class UNet(nn.Module):
         super().__init__()
 
         # Encoder
-        # In the encoder, convolutional layers with the Conv2d function are used to extract features from the input image.
-        # Each block in the encoder consists of two convolutional layers followed by a max-pooling layer, with the exception of the last block which does not include a max-pooling layer.
+        # In the encoder, convolutional layers with the Conv2d function are 
+        # used to extract features from the input image.
+        # Each block in the encoder consists of two convolutional layers 
+        # followed by a max-pooling layer, with the exception of the last block 
+        # which does not include a max-pooling layer.
         # -------
-        # input: 572x572x3
         self.e11 = nn.Conv2d(
             3, 64, kernel_size=3, padding=1
         )  # output: 570x570x64

@@ -1,8 +1,9 @@
+import os
+
+import albumentations as A
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import albumentations as A
-import os
-import matplotlib.pyplot as plt
 from PIL import Image
 
 IMG_WIDTH = 1024
@@ -12,38 +13,46 @@ TRAIN_IMG_PATH = "data/train/original/"
 TRAIN_MASK_PATH = "data/train/mask/"
 TEST_PATH = "/test/Only_fence"
 
+
 def display_image_and_mask(image, mask):
     plt.figure(figsize=(12, 6))
     plt.subplot(1, 2, 1)
-    plt.imshow(image, cmap='gray')  # Annahme: Grauwertbilder. Ändern Sie 'gray' zu None für Farbbilder.
-    plt.title('Augmentiertes Bild')
-    plt.axis('off')
+    plt.imshow(
+        image, cmap="gray"
+    )  # Annahme: Grauwertbilder. Ändern Sie 'gray' zu None für Farbbilder.
+    plt.title("Augmentiertes Bild")
+    plt.axis("off")
 
     plt.subplot(1, 2, 2)
-    plt.imshow(mask, cmap='gray')  # Annahme: Masken sind in Graustufen
-    plt.title('Augmentierte Maske')
-    plt.axis('off')
+    plt.imshow(mask, cmap="gray")  # Annahme: Masken sind in Graustufen
+    plt.title("Augmentierte Maske")
+    plt.axis("off")
 
     plt.show()
 
-def load_images_from_directory(directory, target_size=(1024, 704), isMask=False, threshold=30):
+
+def load_images_from_directory(
+    directory, target_size=(1024, 704), isMask=False, threshold=30
+):
     images_list = []
 
     # Durchlaufe alle Dateien im Verzeichnis
     for filename in os.listdir(directory):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):  # Sicherstellen, dass es ein Bildformat ist
+        if filename.lower().endswith(
+            (".png", ".jpg", ".jpeg")
+        ):  # Sicherstellen, dass es ein Bildformat ist
             # Bildpfad konstruieren
             image_path = os.path.join(directory, filename)
-            
+
             # Bild laden
             with Image.open(image_path) as img:
                 # Bildgröße anpassen, falls gewünscht
                 if isMask:
-                    img = img.convert('L')
+                    img = img.convert("L")
 
                 if target_size:
                     img = img.resize(target_size)
-                
+
                 # Bild in ein NumPy-Array umwandeln
                 img_array = np.array(img)
 
@@ -52,7 +61,7 @@ def load_images_from_directory(directory, target_size=(1024, 704), isMask=False,
                     images_list.append(img_array)
                 # Bild zum Ergebnis hinzufügen
                 else:
-                    images_list.append((img_array)/255)
+                    images_list.append((img_array) / 255)
 
     return images_list
 
@@ -148,16 +157,22 @@ def conv_block_up(
 
     return c
 
+
 # Augmentation-Pipeline wie vorher definiert
-augmentation_pipeline = A.Compose([
-    A.HorizontalFlip(p=0.5),
-    A.RandomRotate90(p=0.5),
-    A.VerticalFlip(p=0.5),
-], additional_targets={'mask': 'image'})
+augmentation_pipeline = A.Compose(
+    [
+        A.HorizontalFlip(p=0.5),
+        A.RandomRotate90(p=0.5),
+        A.VerticalFlip(p=0.5),
+    ],
+    additional_targets={"mask": "image"},
+)
+
 
 def augment_image_mask(image, mask):
     augmented = augmentation_pipeline(image=image, mask=mask)
-    return augmented['image'], augmented['mask']
+    return augmented["image"], augmented["mask"]
+
 
 # build the model
 inputs = tf.keras.layers.Input((IMG_WIDTH, IMG_HEIGHT, IMG_CHANNELS))
@@ -228,7 +243,7 @@ model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
-#model.summary()
+# model.summary()
 
 checkpointer = tf.keras.callbacks.ModelCheckpoint(
     "/artifacts/models/firstTestsModel.h5", verbose=1, save_best_only=True
@@ -238,8 +253,12 @@ callbacks = [
     tf.keras.callbacks.EarlyStopping(patience=2, monitor="val_loss"),
 ]
 
-original_images = load_images_from_directory(TRAIN_IMG_PATH, (1024, 704), isMask=False)
-original_masks = load_images_from_directory(TRAIN_MASK_PATH, (1024, 704), isMask=True)
+original_images = load_images_from_directory(
+    TRAIN_IMG_PATH, (1024, 704), isMask=False
+)
+original_masks = load_images_from_directory(
+    TRAIN_MASK_PATH, (1024, 704), isMask=True
+)
 
 augmented_images = []
 augmented_masks = []
@@ -250,25 +269,18 @@ for image, mask in zip(original_images, original_masks):
     augmented_masks.append(aug_mask)
 
 
-
-
-
-
-
-
-
 #### TESTS #####
-#for i in range(20):  
-    #print(f"Bild {i} Shape: {augmented_images[i].shape}, Maske {i} Shape: {augmented_masks[i].shape}")
-    #display_image_and_mask(augmented_images[i], augmented_masks[i])
+# for i in range(20):
+# print(f"Bild {i} Shape: {augmented_images[i].shape}, Maske {i} Shape: {augmented_masks[i].shape}")
+# display_image_and_mask(augmented_images[i], augmented_masks[i])
 
 
-#for img_array in images:
+# for img_array in images:
 #    print(img_array.shape)
 
-#for img_array in masks:
+# for img_array in masks:
 #    print(img_array.shape)
 
-#results = model.fit(
+# results = model.fit(
 #    X, Y, validation_split=0.1, batch_size=2, epochs=5, callbacks=callbacks
-#)
+# )
