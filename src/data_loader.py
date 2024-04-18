@@ -61,7 +61,7 @@ def load_masks_from_directory(directory):
                 mask_array = np.array(mask)
 
                 # append img_array to list
-                print(filename)
+                #print(filename)
                 masks_list.append(mask_array)
 
     return masks_list
