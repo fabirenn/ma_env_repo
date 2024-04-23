@@ -34,7 +34,7 @@ def load_images_from_directory(directory):
                 img_array = np.array(img)
 
                 # append img_array to list
-                #print(filename)
+                # print(filename)
                 images_list.append(img_array)
 
     return images_list
@@ -61,7 +61,7 @@ def load_masks_from_directory(directory):
                 mask_array = np.array(mask)
 
                 # append img_array to list
-                #print(filename)
+                # print(filename)
                 masks_list.append(mask_array)
 
     return masks_list
