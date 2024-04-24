@@ -45,10 +45,10 @@ def unet(
         filters=1, kernel_size=(1, 1), activation="sigmoid"
     )(u2)
 
-    config = wandb.config
+    #config = wandb.config
     model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
     model.compile(
-        optimizer="adam", loss="binary_crossentropy", metrics=[config.metric]
+        optimizer="adam", loss="binary_crossentropy", metrics="accuracy"
     )
     model.summary()
     return model

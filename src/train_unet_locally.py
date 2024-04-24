@@ -1,7 +1,5 @@
 import tensorflow as tf
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
-
-import wandb
+from keras.callbacks import ModelCheckpoint, CSVLogger
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -52,19 +50,6 @@ train_dataset = create_dataset(
 )
 
 
-# Start a run, tracking hyperparameters
-wandb.init(
-    # set the wandb project where this run will be logged
-    project="first_unet_tests",
-    entity="fabio-renn",
-    # track hyperparameters and run metadata with wandb.config
-    config={"metric": "accuracy", "epochs": EPOCHS, "batch_size": BATCH_SIZE},
-)
-
-# [optional] use wandb.config as your config
-config = wandb.config
-
-
 # create model & start training it
 model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
 
@@ -75,18 +60,16 @@ model.fit(
     epochs=EPOCHS,
     validation_data=train_dataset,
     callbacks=[
-        WandbMetricsLogger(log_freq="epoch"),
-        WandbModelCheckpoint(
+        CSVLogger(filename="logs/training_metrics.log"),
+        ModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=True,
+            monitor="val_accuracy"
         ),
         ValidationCallback(model=model, validation_data=train_dataset),
     ],
 )
 
 
-# Verwendung des Callbacks während des Trainings
-# wandb.init(project="mein_projekt", entity="mein_username")
-# model.fit(train_images, train_masks, epochs=10, validation_data=(val_images, val_masks),
-#           callbacks=[WandbEvalCallback((val_images, val_masks), num_images=10)])
+

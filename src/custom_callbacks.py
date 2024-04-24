@@ -20,9 +20,10 @@ class ValidationCallback(Callback):
         random_sample = self.validation_data.take(1)
         x_batch, y_true_batch = next(iter(random_sample))
         y_pred_batch = self.model.predict(x_batch)
-        self.log_images(epoch, x_batch[0], y_true_batch[0], y_pred_batch[0])
+        self.log_images_locally(epoch, x_batch[0], y_true_batch[0], y_pred_batch[0])
+        #self.log_images_wandb(epoch, x_batch[0], y_true_batch[0], y_pred_batch[0])
 
-    def log_images(self, epoch, x, y_true, y_pred):
+    def log_images_wandb(self, epoch, x, y_true, y_pred):
         columns = ["epoch", "original", "true_mask", "predicted_mask"]
 
         input_image = wandb.Image(array_to_img(x))
@@ -33,6 +34,9 @@ class ValidationCallback(Callback):
 
         wandb.log({"val_image": wandb_table})
 
+
+    def log_images_locally(self, epoch, x, y_true, y_pred):
+        
         plt.figure(figsize=(10, 3))
         plt.subplot(1, 3, 1)
         plt.title("Input Image")
@@ -55,4 +59,3 @@ class ValidationCallback(Callback):
         plt.close()
 
 
-# [optional] use wandb.config as your config
