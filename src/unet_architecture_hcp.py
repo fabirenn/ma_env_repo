@@ -1,7 +1,5 @@
 import tensorflow as tf
 
-import wandb
-
 
 def unet(
     img_width, img_height, img_channels, batch_size, pretrained_weights=None
@@ -179,7 +177,3 @@ def conv_block_up(
     )(c)
 
     return c
-
-
-model = unet(512, 512, 3, 4)
-

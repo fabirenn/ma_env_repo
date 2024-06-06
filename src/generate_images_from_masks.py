@@ -1,8 +1,6 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
-from PIL import Image, ImageFilter
 
 from data_loader import (
     load_images_from_directory,
@@ -12,7 +10,7 @@ from data_loader import (
 )
 
 ORIGINAL_IMAGES_PATH = "data/backgrounds/"
-FENCE_IMAGES_PATH = "data/train/original/"
+FENCE_IMAGES_PATH = "data/greenscreen/"
 FENCE_IMAGES_PATH_SEGMENTED = "data/segmented/fence/"
 FENCE_MASKS_PATH = "data/segmented/mask/"
 DESTINATION_PATH = "data/generated/"
@@ -44,7 +42,8 @@ def save_image(image, path):
 
 
 def convert_to_uint8(image):
-    """Konvertiert ein Bild zu uint8, wobei das Bild normalisiert wird, falls nötig."""
+    """Konvertiert ein Bild zu uint8, wobei das Bild normalisiert wird,
+    falls nötig."""
     if image.dtype != np.uint8:
         # Normalisierung nur, wenn die maximale Helligkeit über 255 liegt
         # if image.max() > 255:
@@ -83,9 +82,12 @@ def cv2_greenscreenremover(image, iterator):
     dst_th = cv2.threshold(dst, threshold_value, 255, cv2.THRESH_BINARY_INV)[1]
     mlab[:, :, 1][dst_th == 255] = 127
     img2 = cv2.cvtColor(mlab, cv2.COLOR_LAB2BGR)
+    # correction_matrix = cv2.addWeighted(img2, 1.0, np.zeros_like(img2), 0,
+    # -40)
+    # img2 = cv2.addWeighted(img2, 0.8, correction_matrix, 0.2, 0)
     img2[th == 0] = (255, 255, 255)
     cv2.imwrite(
-        FENCE_IMAGES_PATH_SEGMENTED + "image" + str(iterator + 10) + ".png",
+        FENCE_IMAGES_PATH_SEGMENTED + "image" + str(iterator + 100) + ".png",
         img2,
     )
     return img2
@@ -99,13 +101,14 @@ def make_binary_mask(img, iterator):
     # binary_mask = (binary_mask // 255).astype(np.uint8)
 
     cv2.imwrite(
-        FENCE_MASKS_PATH + "mask" + str(iterator + 10) + ".png", binary_mask
+        FENCE_MASKS_PATH + "mask" + str(iterator + 100) + ".png", binary_mask
     )
 
 
 background_images = load_images_from_directory(ORIGINAL_IMAGES_PATH)
-background_images = resize_images(background_images, 1440, 960)
+background_images = resize_images(background_images, 3000, 2000)
 fence_images = load_images_from_directory(FENCE_IMAGES_PATH)
+fence_images = resize_images(fence_images, 3000, 2000)
 
 for i in range(len(background_images)):
     img = cv2_greenscreenremover(fence_images[i], i)
@@ -114,6 +117,7 @@ for i in range(len(background_images)):
 
 fence_images_new = load_images_from_directory(FENCE_IMAGES_PATH_SEGMENTED)
 fence_masks = load_masks_from_directory(FENCE_MASKS_PATH)
+fence_masks = resize_images(fence_masks, 3000, 2000)
 fence_masks = make_binary_masks(fence_masks, 30)
 
 
@@ -122,4 +126,4 @@ for i in range(len(background_images)):
         background_images[i], fence_images_new[i], fence_masks[i]
     )
     # show_image(result_image)
-    save_image(result_image, DESTINATION_PATH + "image" + str(i + 10) + ".png")
+    save_image(result_image, DESTINATION_PATH + "image" + str(i + 100) + ".png")

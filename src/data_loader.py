@@ -6,15 +6,10 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 
-IMG_CHANNELS = 3
-
-TEST_IMG_PATH = "data/test/original/"
-TEST_MASK_PATH = "data/test/mask/"
-TEST_PATH = "/test/Only_fence"
-
 
 def load_images_from_directory(directory):
-    # puts each .png / .jpg / .jpeg File into a list of images as np-arrays and returns it
+    # puts each .png / .jpg / .jpeg File into a list of images as np-arrays
+    # and returns it
 
     images_list = []
     files = os.listdir(directory)
@@ -41,7 +36,8 @@ def load_images_from_directory(directory):
 
 
 def load_masks_from_directory(directory):
-    # puts each .png / .jpg / .jpeg File into a list of images as np-arrays and returns it
+    # puts each .png / .jpg / .jpeg File into a list of images as np-arrays
+    # and returns it
 
     masks_list = []
     files = os.listdir(directory)
@@ -74,7 +70,8 @@ def resize_images(
     interpolation_method=None,
     scalefactor=None,
 ):
-    # takes an image-list with np-arrays and resizes the images to target height/width
+    # takes an image-list with np-arrays and resizes the images to target
+    # height/width
     # with interpolation_method and scalefactor, even a crop is possible
     # it returns the list with images in the correct size
     resized_images_list = []
@@ -125,6 +122,54 @@ def augment_image_mask(image, mask):
     return augmented["image"], augmented["mask"]
 
 
+def preprocess_images(images_list):
+    preprocess_images_list = []
+    for img in images_list:
+        img_uint8 = (img * 255).astype(np.uint8)
+        img_cv32f = img.astype(np.float32)
+        y_channel = (
+            cv2.cvtColor(img_uint8, cv2.COLOR_BGR2YUV)[:, :, 0].astype(
+                np.float32
+            )
+            / 255.0
+        )
+
+        gray_image = (
+            cv2.cvtColor(img_uint8, cv2.COLOR_BGR2GRAY).astype(np.float32)
+            / 255.0
+        )
+
+        # Apply Sobel filter in X and Y directions
+        sobel_x = cv2.Sobel(gray_image, cv2.CV_32F, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(gray_image, cv2.CV_32F, 0, 1, ksize=3)
+
+        # Apply Laplacian filter
+        laplacian_4 = cv2.Laplacian(gray_image, cv2.CV_32F, ksize=1)
+        laplacian_8 = cv2.Laplacian(gray_image, cv2.CV_32F, ksize=3)
+
+        # Normalize Sobel and Laplacian filters
+        sobel_x = cv2.normalize(sobel_x, None, 0, 1, cv2.NORM_MINMAX)
+        sobel_y = cv2.normalize(sobel_y, None, 0, 1, cv2.NORM_MINMAX)
+        laplacian_4 = cv2.normalize(laplacian_4, None, 0, 1, cv2.NORM_MINMAX)
+        laplacian_8 = cv2.normalize(laplacian_8, None, 0, 1, cv2.NORM_MINMAX)
+
+        # Stack the original image with the new channels
+        y_channel = np.expand_dims(y_channel, axis=-1)
+        sobel_x = np.expand_dims(sobel_x, axis=-1)
+        sobel_y = np.expand_dims(sobel_y, axis=-1)
+        laplacian_4 = np.expand_dims(laplacian_4, axis=-1)
+        laplacian_8 = np.expand_dims(laplacian_8, axis=-1)
+
+        combined = np.concatenate(
+            (img, y_channel, sobel_x, sobel_y, laplacian_4, laplacian_8),
+            axis=-1,
+        )
+        # print(combined.shape)
+        preprocess_images_list.append(combined)
+
+    return preprocess_images_list
+
+
 # augmentation pipeline, still having no tasks ==> which augmentation step make
 # sense in my usecase?
 augmentation_pipeline = A.Compose(
@@ -134,7 +179,8 @@ augmentation_pipeline = A.Compose(
 
 
 def convert_to_tensor(images_np_array_list, dtype=tf.float32):
-    # function that converts the list of images as np-arrays into a list of tensors
+    # function that converts the list of images as np-arrays into a list
+    # of tensors
     image_list_as_tensor = tf.convert_to_tensor(
         images_np_array_list, dtype=dtype
     )

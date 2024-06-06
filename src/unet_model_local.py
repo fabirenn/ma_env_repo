@@ -1,7 +1,5 @@
 import tensorflow as tf
 
-import wandb
-
 
 def unet(
     img_width, img_height, img_channels, batch_size, pretrained_weights=None
@@ -45,7 +43,7 @@ def unet(
         filters=1, kernel_size=(1, 1), activation="sigmoid"
     )(u2)
 
-    #config = wandb.config
+    # config = wandb.config
     model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
     model.compile(
         optimizer="adam", loss="binary_crossentropy", metrics="accuracy"
