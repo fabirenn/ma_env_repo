@@ -25,7 +25,7 @@ IMG_WIDTH = 1024
 IMG_HEIGHT = 1024
 IMG_CHANNEL = 8
 
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 EPOCHS = 50
 
 # loading images and masks from their corresponding paths into to separate lists
