@@ -2,7 +2,10 @@ import tensorflow as tf
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-import sklearn
+from segnet_model import segnet
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -11,10 +14,8 @@ from data_loader import (
     load_masks_from_directory,
     make_binary_masks,
     normalize_image_data,
-    preprocess_images,
     resize_images,
 )
-from unet_model_local import unet
 
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
@@ -24,11 +25,10 @@ CHECKPOINT_PATH = "artifacts/models/test/"
 
 IMG_WIDTH = 1024
 IMG_HEIGHT = 1024
-IMG_CHANNEL = 8
+IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
 EPOCHS = 50
-print(sklearn.__version__)
 
 # loading images and masks from their corresponding paths into to separate lists
 train_images = load_images_from_directory(TRAIN_IMG_PATH)
@@ -48,15 +48,11 @@ print("All images resized..")
 # normalizing the values of the images and binarizing the image masks
 train_images = normalize_image_data(train_images)
 print("Train images normalized..")
-train_images = preprocess_images(train_images)
-print("Train images preprocessed..")
 train_masks = make_binary_masks(train_masks, 30)
 print("Train masks binarized..")
 
 val_images = normalize_image_data(val_images)
 print("Val images normalized..")
-val_images = preprocess_images(val_images)
-print("Val images preprocessed..")
 val_masks = make_binary_masks(val_masks, 30)
 print("Val masks binarized..")
 
@@ -94,7 +90,7 @@ print("Train and Val DataSet created..")
 # Start a run, tracking hyperparameters
 wandb.init(
     # set the wandb project where this run will be logged
-    project="first_unet_tests",
+    project="first_segnet_tests",
     entity="fabio-renn",
     mode="offline",
     # track hyperparameters and run metadata with wandb.config
@@ -106,10 +102,10 @@ config = wandb.config
 
 
 # create model & start training it
-model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
+model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
 
-#model.summary()
-
+model.compile(optimizer="adam", loss="binary_crossentropy", metrics=['accuracy'])
+model.summary()
 model.fit(
     train_dataset,
     batch_size=BATCH_SIZE,
