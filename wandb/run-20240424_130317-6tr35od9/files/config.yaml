@@ -1,0 +1,49 @@
+wandb_version: 1
+
+metric:
+  desc: null
+  value: accuracy
+epochs:
+  desc: null
+  value: 10
+batch_size:
+  desc: null
+  value: 16
+_wandb:
+  desc: null
+  value:
+    python_version: 3.12.2
+    cli_version: 0.16.6
+    framework: keras
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1713956597.0
+    t:
+      1:
+      - 2
+      - 3
+      - 5
+      - 53
+      - 55
+      - 80
+      2:
+      - 2
+      - 3
+      - 5
+      - 53
+      - 55
+      - 80
+      3:
+      - 7
+      - 16
+      - 23
+      - 38
+      4: 3.12.2
+      5: 0.16.6
+      8:
+      - 5
+      13: linux-x86_64
+    m:
+    - 1: epoch/epoch
+      6:
+      - 3
