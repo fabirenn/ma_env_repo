@@ -68,7 +68,7 @@ def calculate_binary_dice(pred_mask, true_mask):
 
 def safe_predictions(test_images, predictions, test_masks):
     
-    for testimage, prediction, testmask in zip(test_images, predictions, test_masks):
+    for i, testimage, prediction, testmask in zip(test_images, predictions, test_masks):
         original_image = array_to_img(testimage)
         file_name = f"og_image_{i}.png"
         original_image.save(os.path.join(PRED_IMG_PATH, file_name))
