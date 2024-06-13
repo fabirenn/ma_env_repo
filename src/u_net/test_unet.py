@@ -77,9 +77,9 @@ def safe_predictions(test_images, predictions, test_masks, range):
         file_name = f"pred_image_{i}.png"
         prediction.save(os.path.join(PRED_IMG_PATH, file_name))
 
-        print(testmask.shape)
+        true_mask = array_to_img(testmask)
         file_name = f"og_mask_{i}.png"
-        testmask.save(os.path.join(PRED_IMG_PATH, file_name))
+        true_mask.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
