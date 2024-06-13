@@ -19,7 +19,8 @@ from data_loader import (
     preprocess_images,
     resize_images,
 )
-from src.u_net.unet_model_local import unet
+
+from unet_model_local import unet
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -27,14 +28,17 @@ TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
+
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
+
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 50
+
 
 # loading images and masks from their corresponding paths into to separate lists
 train_images = load_images_from_directory(TRAIN_IMG_PATH)
@@ -114,8 +118,6 @@ config = wandb.config
 # create model & start training it
 model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
 
-# model.summary()
-
 model.fit(
     train_dataset,
     batch_size=BATCH_SIZE,
@@ -127,6 +129,8 @@ model.fit(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
+            monitor="val_loss",
+            verbose=1,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
         EarlyStopping(monitor="val_loss", mode="auto", patience=4),

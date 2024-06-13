@@ -2,7 +2,7 @@
 
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:v100:1
-#SBATCH --time=10:00:00
+#SBATCH --time=06:00:00
 #SBATCH --mem=100G
 #SBATCH --partition=clara
 #SBATCH --output=../log/%x.out-%j
