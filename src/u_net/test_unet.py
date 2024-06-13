@@ -149,5 +149,5 @@ print(f"Mean IoU: {mean_iou}")
 print(f"Mean Dice Coefficient: {mean_dice}")
 
 safe_predictions(
-    test_images=test_images, predictions=predictions, test_masks=test_masks
+    test_images=test_images, predictions=predictions, test_masks=test_masks, num_images=212
 )
