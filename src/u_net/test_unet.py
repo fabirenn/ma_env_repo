@@ -66,19 +66,19 @@ def calculate_binary_dice(pred_mask, true_mask):
         return intersection / total
 
 
-def safe_predictions(test_images, predictions, test_masks, num_images):
-    for i in range(num_images):
-        original_image = array_to_img(test_images[i])
-        file_name = f"og_image_{i}.png"
-        original_image.save(os.path.join(PRED_IMG_PATH, file_name))
+def safe_predictions(test_image, prediction, test_mask):
+    
+    original_image = array_to_img(test_images)
+    file_name = f"og_image_{i}.png"
+    original_image.save(os.path.join(PRED_IMG_PATH, file_name))
 
-        prediction = array_to_img(predictions[i])
-        file_name = f"pred_image_{i}.png"
-        prediction.save(os.path.join(PRED_IMG_PATH, file_name))
+    prediction = array_to_img(predictions)
+    file_name = f"pred_image_{i}.png"
+    prediction.save(os.path.join(PRED_IMG_PATH, file_name))
 
-        true_mask = array_to_img(test_masks[i])
-        file_name = f"og_mask_{i}.png"
-        true_mask.save(os.path.join(PRED_IMG_PATH, file_name))
+    true_mask = array_to_img(test_masks)
+    file_name = f"og_mask_{i}.png"
+    true_mask.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
@@ -130,6 +130,7 @@ model = load_model(CHECKPOINT_PATH, compile=False)
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 predictions = add_prediction_to_list(test_dataset)
+print(predictions.shape)
 
 # Calculate metrics for each image
 ious = [
@@ -148,6 +149,6 @@ mean_dice = np.nanmean(dices)
 print(f"Mean IoU: {mean_iou}")
 print(f"Mean Dice Coefficient: {mean_dice}")
 
-safe_predictions(
-    test_images=test_images, predictions=predictions, test_masks=test_masks, num_images=212
-)
+
+[safe_predictions(og, pred, mask)
+for og, pred, mask in zip(test_images, predictions, test_masks)]
