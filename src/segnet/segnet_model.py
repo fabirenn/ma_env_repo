@@ -30,7 +30,7 @@ def segnet(input_size):
     x = BatchNormalization()(x)
     p3, ind3 = MaxPoolingWithIndices2D((2, 2))(x)
 
-    '''x = Conv2D(512, (3, 3), padding='same', activation='relu')(p3)
+    x = Conv2D(512, (3, 3), padding='same', activation='relu')(p3)
     x = Conv2D(64, (3, 3), padding="same", activation="relu")(inputs)
     x = BatchNormalization()(x)
     x = Conv2D(64, (3, 3), padding="same", activation="relu")(x)
@@ -66,10 +66,10 @@ def segnet(input_size):
     x = Conv2D(512, (3, 3), padding='same', activation='relu')(x)
     x = BatchNormalization()(x)
 
-    p5, ind5 = MaxPoolingWithIndices2D((2, 2))(x)'''
+    p5, ind5 = MaxPoolingWithIndices2D((2, 2))(x)
 
     # Decoder
-    '''x = MaxUnpooling2D((2, 2))([p5, ind5])
+    x = MaxUnpooling2D((2, 2))([p5, ind5])
     p5, ind5 = MaxPoolingWithIndices2D((2, 2))(x)
     x = Conv2D(512, (3, 3), padding='same', activation='relu')(x)
     x = BatchNormalization()(x)
@@ -84,9 +84,9 @@ def segnet(input_size):
     x = Conv2D(512, (3, 3), padding='same', activation='relu')(x)
     x = BatchNormalization()(x)
     x = Conv2D(256, (3, 3), padding='same', activation='relu')(x)
-    x = BatchNormalization()(x)'''
+    x = BatchNormalization()(x)
 
-    x = MaxUnpooling2D((2, 2))([p3, ind3])
+    x = MaxUnpooling2D((2, 2))([x, ind3])
     x = Conv2D(256, (3, 3), padding='same', activation='relu')(x)
     x = BatchNormalization()(x)
     x = Conv2D(256, (3, 3), padding='same', activation='relu')(x)

@@ -10,7 +10,7 @@ import wandb
 
 
 class ValidationCallback(Callback):
-    def __init__(self, model, validation_data, log_dir="data/predictions"):
+    def __init__(self, model, validation_data, log_dir):
         super().__init__()
         self.model = model
         self.validation_data = validation_data

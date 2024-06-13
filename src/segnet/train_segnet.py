@@ -130,7 +130,7 @@ model.fit(
             monitor="val_loss",
             verbose=1,
         ),
-        ValidationCallback(model=model, validation_data=val_dataset),
+        ValidationCallback(model=model, validation_data=val_dataset, log_dir="data/predictions/segnet"),
         EarlyStopping(monitor="val_loss", mode="auto", patience=4),
     ],
 )

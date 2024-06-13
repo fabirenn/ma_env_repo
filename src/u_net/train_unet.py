@@ -20,7 +20,7 @@ from data_loader import (
     resize_images,
 )
 
-from unet_model_local import unet
+from unet_architecture_hcp import unet
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -31,8 +31,8 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 1024
+IMG_HEIGHT = 1024
 
 IMG_CHANNEL = 8
 
@@ -132,7 +132,7 @@ model.fit(
             monitor="val_loss",
             verbose=1,
         ),
-        ValidationCallback(model=model, validation_data=val_dataset),
+        ValidationCallback(model=model, validation_data=val_dataset, log_dir="data/predictions/unet"),
         EarlyStopping(monitor="val_loss", mode="auto", patience=6),
     ],
 )
