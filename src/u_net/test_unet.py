@@ -85,9 +85,13 @@ def add_prediction_to_list(test_dataset):
     predictions_list = []
 
     for image, mask in test_dataset:
-        prediction_image = model.predict(image)
-        prediction_image = array_to_img(prediction_image)
-        predictions_list.append(prediction_image)
+        image = tf.expand_dims(image, axis=0) 
+        prediction = model.predict(image)
+        for j in range(BATCH_SIZE - 1):
+            prediction_image = prediction[j]
+            prediction_image = array_to_img(prediction_image)
+            predictions_list.append(prediction_image)
+        
 
     return predictions_list
 
@@ -120,7 +124,7 @@ print("Test images converted to tensors..")
 test_dataset = create_dataset(
     tensor_test_images,
     tensor_test_masks,
-    batchsize=1,
+    batchsize=4
     buffersize=tf.data.AUTOTUNE,
 )
 
