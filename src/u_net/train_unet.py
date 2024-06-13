@@ -1,12 +1,11 @@
-import tensorflow as tf
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
-
-import wandb
 import os
 import sys
 
+import tensorflow as tf
 from keras.callbacks import EarlyStopping
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
+import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
@@ -20,7 +19,6 @@ from data_loader import (
     preprocess_images,
     resize_images,
 )
-
 from src.u_net.unet_model_local import unet
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
@@ -39,7 +37,6 @@ IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 50
-
 
 
 # loading images and masks from their corresponding paths into to separate lists
@@ -131,11 +128,10 @@ model.fit(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
-            monitor='val_loss',
-            verbose=1
+            monitor="val_loss",
+            verbose=1,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
         EarlyStopping(monitor="val_loss", mode="auto", patience=4),
     ],
 )
-
