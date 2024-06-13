@@ -18,10 +18,10 @@ from data_loader import (
 from unet_model_local import unet
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-TRAIN_IMG_PATH = "data/training_train/images_mixed"
-TRAIN_MASK_PATH = "data/training_train/labels_mixed"
-VAL_IMG_PATH = "data/training_val/images_mixed"
-VAL_MASK_PATH = "data/training_val/labels_mixed"
+TRAIN_IMG_PATH = "data/local/train/images"
+TRAIN_MASK_PATH = "data/local/train/labels"
+VAL_IMG_PATH = "data/local/val/images"
+VAL_MASK_PATH = "data/local/val/labels"
 CHECKPOINT_PATH = "artifacts/models/test/"
 
 IMG_WIDTH = 512
@@ -110,6 +110,7 @@ config = wandb.config
 # create model & start training it
 model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
 
+#model.summary()
 
 model.fit(
     train_dataset,

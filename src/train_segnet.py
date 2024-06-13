@@ -2,13 +2,6 @@ import tensorflow as tf
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-from segnet_model import segnet
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from keras.callbacks import EarlyStopping
-
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -17,25 +10,23 @@ from data_loader import (
     load_masks_from_directory,
     make_binary_masks,
     normalize_image_data,
+    preprocess_images,
     resize_images,
 )
+from segnet_model import segnet
 
-os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
-
-
-TRAIN_IMG_PATH = "data/training_train/images_mixed"
-TRAIN_MASK_PATH = "data/training_train/labels_mixed"
-VAL_IMG_PATH = "data/training_val/images_mixed"
-VAL_MASK_PATH = "data/training_val/labels_mixed"
-CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
-
+TRAIN_IMG_PATH = "data/local/train/images"
+TRAIN_MASK_PATH = "data/local/train/labels"
+VAL_IMG_PATH = "data/local/val/images"
+VAL_MASK_PATH = "data/local/val/labels"
+CHECKPOINT_PATH = "artifacts/models/test/"
 
 IMG_WIDTH = 1024
 IMG_HEIGHT = 1024
 IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
-EPOCHS = 50
+EPOCHS = 10
 
 # loading images and masks from their corresponding paths into to separate lists
 train_images = load_images_from_directory(TRAIN_IMG_PATH)
@@ -109,13 +100,10 @@ config = wandb.config
 
 
 # create model & start training it
-model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
+model = segnet(input_shape=(1024, 1024, 3), n_labels=2)
 
-model.compile(
-    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
-)
+#model.summary()
 
-model.summary()
 model.fit(
     train_dataset,
     batch_size=BATCH_SIZE,
@@ -129,6 +117,5 @@ model.fit(
             save_weights_only=True,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
-        EarlyStopping(monitor="val_loss", mode="auto", patience=4),
     ],
 )

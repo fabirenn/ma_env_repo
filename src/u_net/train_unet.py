@@ -1,14 +1,13 @@
+import os
+import sys
+
 import tensorflow as tf
+from keras.callbacks import EarlyStopping
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-from segnet_model import segnet
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from keras.callbacks import EarlyStopping
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -17,22 +16,22 @@ from data_loader import (
     load_masks_from_directory,
     make_binary_masks,
     normalize_image_data,
+    preprocess_images,
     resize_images,
 )
+from src.u_net.unet_model_local import unet
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
-
 
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
-CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
+CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
-
-IMG_WIDTH = 1024
-IMG_HEIGHT = 1024
-IMG_CHANNEL = 3
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
+IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 50
@@ -55,11 +54,15 @@ print("All images resized..")
 # normalizing the values of the images and binarizing the image masks
 train_images = normalize_image_data(train_images)
 print("Train images normalized..")
+train_images = preprocess_images(train_images)
+print("Train images preprocessed..")
 train_masks = make_binary_masks(train_masks, 30)
 print("Train masks binarized..")
 
 val_images = normalize_image_data(val_images)
 print("Val images normalized..")
+val_images = preprocess_images(val_images)
+print("Val images preprocessed..")
 val_masks = make_binary_masks(val_masks, 30)
 print("Val masks binarized..")
 
@@ -97,7 +100,7 @@ print("Train and Val DataSet created..")
 # Start a run, tracking hyperparameters
 wandb.init(
     # set the wandb project where this run will be logged
-    project="first_segnet_tests",
+    project="first_unet_tests",
     entity="fabio-renn",
     mode="offline",
     # track hyperparameters and run metadata with wandb.config
@@ -109,13 +112,10 @@ config = wandb.config
 
 
 # create model & start training it
-model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
+model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
 
-model.compile(
-    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
-)
+# model.summary()
 
-model.summary()
 model.fit(
     train_dataset,
     batch_size=BATCH_SIZE,
@@ -126,7 +126,7 @@ model.fit(
         WandbModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
-            save_weights_only=True,
+            save_weights_only=False,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
         EarlyStopping(monitor="val_loss", mode="auto", patience=4),
