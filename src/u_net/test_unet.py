@@ -103,7 +103,8 @@ tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)"""
 
 # print("Test images converted to tensors..")
 
-model = load_model(CHECKPOINT_PATH)
+model = load_model(CHECKPOINT_PATH, compile=False)
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 predictions = model.predict(test_images)
 # Calculate metrics for each image
