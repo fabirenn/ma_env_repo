@@ -8,6 +8,7 @@ from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
 from unet_architecture_hcp import unet
 from PIL import Image as im 
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
@@ -67,19 +68,39 @@ def calculate_binary_dice(pred_mask, true_mask):
         return intersection / total
 
 
-def safe_predictions(test_images, predictions, test_masks, range):
+def safe_predictions(range, test_images, predictions, test_masks):
     
     for i, testimage, prediction, testmask in zip(range, test_images, predictions, test_masks):
+        
+        plt.figure(figsize=(45,15))
+
+        plt.subplot(1, 3, 1)
+        plt.title("GT")
         original_image = array_to_img(testimage)
-        file_name = f"og_image_{i}.png"
-        original_image.save(os.path.join(PRED_IMG_PATH, file_name))
+        plt.imshow(original_image)
 
-        file_name = f"pred_image_{i}.png"
-        prediction.save(os.path.join(PRED_IMG_PATH, file_name))
+        plt.subplot(1, 3, 2)
+        plt.title("True Mask")
+        data = im.fromarray(testmask)
+        plt.imshow(data)
 
-        data = im.fromarray(testmask) 
-        file_name = f"og_mask_{i}.png"
-        data.save(os.path.join(PRED_IMG_PATH, file_name))
+        plt.subplot(1, 3, 3)
+        plt.title("Pred Mask")
+        plt.imshow(prediction)
+
+        file_name = f"pred_figure_{i}.png"
+        plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
+
+        
+        #file_name = f"og_image_{i}.png"
+        #original_image.save(os.path.join(PRED_IMG_PATH, file_name))
+
+        #file_name = f"pred_image_{i}.png"
+        #prediction.save(os.path.join(PRED_IMG_PATH, file_name))
+
+        #data = im.fromarray(testmask) 
+        #file_name = f"og_mask_{i}.png"
+       #data.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
