@@ -4,7 +4,7 @@ import sys
 import cv2
 import numpy as np
 import tensorflow as tf
-from keras.models import load_model, predict
+from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
 from unet_architecture_hcp import unet
 
