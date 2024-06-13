@@ -2,7 +2,7 @@
 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:v100:1
+#SBATCH --gres=gpu:v100:2
 #SBATCH --time=03:00:00
 #SBATCH --mem=200G
 #SBATCH --partition=clara
