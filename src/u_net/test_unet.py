@@ -120,7 +120,7 @@ print("Test images converted to tensors..")
 test_dataset = create_dataset(
     tensor_test_images,
     tensor_test_masks,
-    batchsize=1,
+    batchsize=4,
     buffersize=tf.data.AUTOTUNE,
 )
 
