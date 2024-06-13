@@ -1,6 +1,18 @@
+<<<<<<< HEAD
 import tensorflow as tf
 from keras.callbacks import CSVLogger, ModelCheckpoint
 
+=======
+import os
+import sys
+
+import tensorflow as tf
+from keras.callbacks import CSVLogger, ModelCheckpoint
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from unet_model_local import unet
+
+>>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -12,7 +24,10 @@ from data_loader import (
     preprocess_images,
     resize_images,
 )
+<<<<<<< HEAD
 from unet_model_local import unet
+=======
+>>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
 
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"

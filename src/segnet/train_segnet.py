@@ -1,11 +1,14 @@
+import os
+import sys
+
 import tensorflow as tf
+from keras.callbacks import EarlyStopping
+from segnet_model import segnet
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-from segnet_model import segnet
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -17,12 +20,23 @@ from data_loader import (
     resize_images,
 )
 
+<<<<<<< HEAD
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 CHECKPOINT_PATH = "artifacts/models/test/"
 
+=======
+os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
+
+TRAIN_IMG_PATH = "data/training_train/images_mixed"
+TRAIN_MASK_PATH = "data/training_train/labels_mixed"
+VAL_IMG_PATH = "data/training_val/images_mixed"
+VAL_MASK_PATH = "data/training_val/labels_mixed"
+CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
+
+>>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
@@ -104,7 +118,9 @@ config = wandb.config
 # create model & start training it
 model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
 
-model.compile(optimizer="adam", loss="binary_crossentropy", metrics=['accuracy'])
+model.compile(
+    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+)
 model.summary()
 model.fit(
     train_dataset,
@@ -119,5 +135,6 @@ model.fit(
             save_weights_only=True,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
+        EarlyStopping(monitor="val_loss", mode="auto", patience=4),
     ],
 )
