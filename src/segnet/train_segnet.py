@@ -20,14 +20,6 @@ from data_loader import (
     resize_images,
 )
 
-<<<<<<< HEAD
-TRAIN_IMG_PATH = "data/training_train/images_mixed"
-TRAIN_MASK_PATH = "data/training_train/labels_mixed"
-VAL_IMG_PATH = "data/training_val/images_mixed"
-VAL_MASK_PATH = "data/training_val/labels_mixed"
-CHECKPOINT_PATH = "artifacts/models/test/"
-
-=======
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
@@ -36,7 +28,7 @@ VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
 
->>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
+
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3

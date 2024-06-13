@@ -1,21 +1,14 @@
-<<<<<<< HEAD
 import tensorflow as tf
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-import sklearn
-=======
 import os
 import sys
 
-import tensorflow as tf
 from keras.callbacks import EarlyStopping
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
-import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
->>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -27,37 +20,27 @@ from data_loader import (
     preprocess_images,
     resize_images,
 )
-<<<<<<< HEAD
-from unet_model_local import unet
-=======
+
 from src.u_net.unet_model_local import unet
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
->>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
 
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
-<<<<<<< HEAD
-CHECKPOINT_PATH = "artifacts/models/test/"
 
-IMG_WIDTH = 1024
-IMG_HEIGHT = 1024
-=======
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
->>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
+
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 50
-<<<<<<< HEAD
-print(sklearn.__version__)
-=======
->>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
+
+
 
 # loading images and masks from their corresponding paths into to separate lists
 train_images = load_images_from_directory(TRAIN_IMG_PATH)
@@ -137,12 +120,6 @@ config = wandb.config
 # create model & start training it
 model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
 
-<<<<<<< HEAD
-#model.summary()
-=======
-# model.summary()
->>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
-
 model.fit(
     train_dataset,
     batch_size=BATCH_SIZE,
@@ -153,17 +130,10 @@ model.fit(
         WandbModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
-<<<<<<< HEAD
-            save_weights_only=True,
-        ),
-        ValidationCallback(model=model, validation_data=val_dataset),
-    ],
-)
-=======
             save_weights_only=False,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
         EarlyStopping(monitor="val_loss", mode="auto", patience=4),
     ],
 )
->>>>>>> 8452abd5ada6cdf9d9638300b6475d3a06e6ceb4
+
