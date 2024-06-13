@@ -18,6 +18,7 @@ from data_loader import (
     make_binary_masks,
     normalize_image_data,
     resize_images,
+    preprocess_images
 )
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
@@ -103,6 +104,8 @@ test_masks = resize_images(test_masks, IMG_WIDTH, IMG_HEIGHT)
 # normalizing the values of the images and binarizing the image masks
 test_images = normalize_image_data(test_images)
 print("Test images normalized..")
+test_images = preprocess_images(test_images)
+print("Train images preprocessed..")
 test_masks = make_binary_masks(test_masks, 30)
 print("Test masks binarized..")
 
