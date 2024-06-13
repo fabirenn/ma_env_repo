@@ -90,7 +90,6 @@ def add_prediction_to_list(test_dataset):
             prediction_image = prediction[j]
             prediction_image = array_to_img(prediction_image)
             predictions_list.append(prediction_image)
-        
 
     return predictions_list
 
@@ -123,7 +122,7 @@ print("Test images converted to tensors..")
 test_dataset = create_dataset(
     tensor_test_images,
     tensor_test_masks,
-    batchsize=4
+    batchsize=4,
     buffersize=tf.data.AUTOTUNE,
 )
 
