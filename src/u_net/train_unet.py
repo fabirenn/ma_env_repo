@@ -16,10 +16,10 @@ from data_loader import (
 )
 from unet_model_local import unet
 
-TRAIN_IMG_PATH = "data/local/train/images"
-TRAIN_MASK_PATH = "data/local/train/labels"
-VAL_IMG_PATH = "data/local/val/images"
-VAL_MASK_PATH = "data/local/val/labels"
+TRAIN_IMG_PATH = "data/training_train/images_mixed"
+TRAIN_MASK_PATH = "data/training_train/labels_mixed"
+VAL_IMG_PATH = "data/training_val/images_mixed"
+VAL_MASK_PATH = "data/training_val/labels_mixed"
 CHECKPOINT_PATH = "artifacts/models/test/"
 
 IMG_WIDTH = 1024
