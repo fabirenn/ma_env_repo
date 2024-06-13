@@ -2,13 +2,13 @@ import os
 import sys
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
+from PIL import Image as im
 from unet_architecture_hcp import unet
-from PIL import Image as im 
-import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
@@ -19,8 +19,8 @@ from data_loader import (
     load_masks_from_directory,
     make_binary_masks,
     normalize_image_data,
+    preprocess_images,
     resize_images,
-    preprocess_images
 )
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
@@ -69,10 +69,12 @@ def calculate_binary_dice(pred_mask, true_mask):
 
 
 def safe_predictions(range, test_images, predictions, test_masks):
-    
-    for i, testimage, prediction, testmask in zip(range, test_images, predictions, test_masks):
-        
-        plt.figure(figsize=(45,15))
+
+    for i, testimage, prediction, testmask in zip(
+        range, test_images, predictions, test_masks
+    ):
+
+        plt.figure(figsize=(45, 15))
 
         plt.subplot(1, 3, 1)
         plt.title("GT")
@@ -91,16 +93,15 @@ def safe_predictions(range, test_images, predictions, test_masks):
         file_name = f"pred_figure_{i}.png"
         plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
 
-        
-        #file_name = f"og_image_{i}.png"
-        #original_image.save(os.path.join(PRED_IMG_PATH, file_name))
+        # file_name = f"og_image_{i}.png"
+        # original_image.save(os.path.join(PRED_IMG_PATH, file_name))
 
-        #file_name = f"pred_image_{i}.png"
-        #prediction.save(os.path.join(PRED_IMG_PATH, file_name))
+        # file_name = f"pred_image_{i}.png"
+        # prediction.save(os.path.join(PRED_IMG_PATH, file_name))
 
-        #data = im.fromarray(testmask) 
-        #file_name = f"og_mask_{i}.png"
-       #data.save(os.path.join(PRED_IMG_PATH, file_name))
+        # data = im.fromarray(testmask)
+        # file_name = f"og_mask_{i}.png"
+    # data.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
@@ -124,14 +125,15 @@ print("Test-Images successfully loaded..")
 # resizing the images to dest size for training
 test_images = resize_images(test_images, IMG_WIDTH, IMG_HEIGHT)
 test_masks = resize_images(test_masks, IMG_WIDTH, IMG_HEIGHT)
+print("Test-Images resized")
 
 # normalizing the values of the images and binarizing the image masks
 test_images = normalize_image_data(test_images)
-print("Test images normalized..")
+print("Test-Images normalized..")
 test_images_preprocessed = preprocess_images(test_images)
-print("Test images preprocessed..")
+print("Test-Images preprocessed..")
 test_masks_binary = make_binary_masks(test_masks, 30)
-print("Test masks binarized..")
+print("Test-Masks binarized..")
 
 # converting the images/masks to tensors + expanding the masks tensor slide to
 # 1 dimension
@@ -149,7 +151,9 @@ test_dataset = create_dataset(
 )
 
 model = load_model(CHECKPOINT_PATH, compile=False)
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(
+    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+)
 
 predictions = add_prediction_to_list(test_dataset)
 

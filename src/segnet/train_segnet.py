@@ -1,11 +1,13 @@
+import os
+import sys
+
 import tensorflow as tf
+from segnet_model import segnet
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-from segnet_model import segnet
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from keras.callbacks import EarlyStopping
 
@@ -130,7 +132,11 @@ model.fit(
             monitor="val_loss",
             verbose=1,
         ),
-        ValidationCallback(model=model, validation_data=val_dataset, log_dir="data/predictions/segnet"),
+        ValidationCallback(
+            model=model,
+            validation_data=val_dataset,
+            log_dir="data/predictions/segnet",
+        ),
         EarlyStopping(monitor="val_loss", mode="auto", patience=6),
     ],
 )

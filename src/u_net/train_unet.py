@@ -8,6 +8,8 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from unet_architecture_hcp import unet
+
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -19,8 +21,6 @@ from data_loader import (
     preprocess_images,
     resize_images,
 )
-
-from unet_architecture_hcp import unet
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -132,7 +132,11 @@ model.fit(
             monitor="val_loss",
             verbose=1,
         ),
-        ValidationCallback(model=model, validation_data=val_dataset, log_dir="data/predictions/unet"),
+        ValidationCallback(
+            model=model,
+            validation_data=val_dataset,
+            log_dir="data/predictions/unet",
+        ),
         EarlyStopping(monitor="val_loss", mode="auto", patience=6),
     ],
 )
