@@ -126,7 +126,6 @@ def preprocess_images(images_list):
     preprocess_images_list = []
     for img in images_list:
         img_uint8 = (img * 255).astype(np.uint8)
-        img_cv32f = img.astype(np.float32)
         y_channel = (
             cv2.cvtColor(img_uint8, cv2.COLOR_BGR2YUV)[:, :, 0].astype(
                 np.float32

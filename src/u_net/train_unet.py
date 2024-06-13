@@ -3,7 +3,6 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 from keras.callbacks import EarlyStopping
 
 import wandb
-from segnet_model import segnet
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -15,8 +14,10 @@ from data_loader import (
     load_masks_from_directory,
     make_binary_masks,
     normalize_image_data,
+    preprocess_images,
     resize_images,
 )
+from src.u_net.unet_model_local import unet
 
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
@@ -26,7 +27,7 @@ CHECKPOINT_PATH = "artifacts/models/test/"
 
 IMG_WIDTH = 1024
 IMG_HEIGHT = 1024
-IMG_CHANNEL = 3
+IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 50
@@ -49,11 +50,15 @@ print("All images resized..")
 # normalizing the values of the images and binarizing the image masks
 train_images = normalize_image_data(train_images)
 print("Train images normalized..")
+train_images = preprocess_images(train_images)
+print("Train images preprocessed..")
 train_masks = make_binary_masks(train_masks, 30)
 print("Train masks binarized..")
 
 val_images = normalize_image_data(val_images)
 print("Val images normalized..")
+val_images = preprocess_images(val_images)
+print("Val images preprocessed..")
 val_masks = make_binary_masks(val_masks, 30)
 print("Val masks binarized..")
 
@@ -91,7 +96,7 @@ print("Train and Val DataSet created..")
 # Start a run, tracking hyperparameters
 wandb.init(
     # set the wandb project where this run will be logged
-    project="first_segnet_tests",
+    project="first_unet_tests",
     entity="fabio-renn",
     mode="offline",
     # track hyperparameters and run metadata with wandb.config
@@ -103,10 +108,10 @@ config = wandb.config
 
 
 # create model & start training it
-model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
+model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
 
-model.compile(optimizer="adam", loss="binary_crossentropy", metrics=['accuracy'])
-model.summary()
+# model.summary()
+
 model.fit(
     train_dataset,
     batch_size=BATCH_SIZE,
