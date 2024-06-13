@@ -133,6 +133,6 @@ model.fit(
             verbose=1,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
-        EarlyStopping(monitor="val_loss", mode="auto", patience=4),
+        EarlyStopping(monitor="val_loss", mode="auto", patience=6),
     ],
 )
