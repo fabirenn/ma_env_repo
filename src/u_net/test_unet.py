@@ -7,6 +7,7 @@ import tensorflow as tf
 from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
 from unet_architecture_hcp import unet
+from PIL import Image as im 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
@@ -76,8 +77,9 @@ def safe_predictions(test_images, predictions, test_masks, range):
         file_name = f"pred_image_{i}.png"
         prediction.save(os.path.join(PRED_IMG_PATH, file_name))
 
+        real_pred = im.fromarray(testmask)
         file_name = f"og_mask_{i}.png"
-        testmask.save(os.path.join(PRED_IMG_PATH, file_name))
+        real_pred.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
