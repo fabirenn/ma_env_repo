@@ -131,8 +131,6 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 
 predictions = add_prediction_to_list(test_dataset)
 
-for i, prediction in enumerate(predictions):
-    print(f"Prediction {i} shape: {prediction.shape}")
 
 # Calculate metrics for each image
 ious = [
