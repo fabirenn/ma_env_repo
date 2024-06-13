@@ -18,15 +18,16 @@ from data_loader import (
     resize_images,
 )
 from src.u_net.unet_model_local import unet
+os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-TRAIN_IMG_PATH = "data/local/train/images"
-TRAIN_MASK_PATH = "data/local/train/labels"
-VAL_IMG_PATH = "data/local/val/images"
-VAL_MASK_PATH = "data/local/val/labels"
-CHECKPOINT_PATH = "artifacts/models/test/"
+TRAIN_IMG_PATH = "data/training_train/images_mixed"
+TRAIN_MASK_PATH = "data/training_train/labels_mixed"
+VAL_IMG_PATH = "data/training_val/images_mixed"
+VAL_MASK_PATH = "data/training_val/labels_mixed"
+CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
-IMG_WIDTH = 1024
-IMG_HEIGHT = 1024
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
@@ -122,7 +123,7 @@ model.fit(
         WandbModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
-            save_weights_only=True,
+            save_weights_only=False,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
         EarlyStopping(monitor='val_loss', mode='auto', patience=4)
