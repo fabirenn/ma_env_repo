@@ -131,6 +131,8 @@ model.fit(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
+            monitor='val_loss',
+            verbose=1
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
         EarlyStopping(monitor="val_loss", mode="auto", patience=4),
