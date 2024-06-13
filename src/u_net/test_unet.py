@@ -80,6 +80,17 @@ def safe_predictions(test_images, predictions, test_masks, num_images):
         true_mask.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
+def add_prediction_to_list(test_images_as_tensors):
+    predictions_list = []
+
+    for image in test_images_as_tensors:
+        prediction_image = model.predict(image)
+        prediction_image = array_to_img(prediction_image)
+        predictions_list.append(prediction_image)
+
+    return predictions_list
+
+
 # loading images and masks from their corresponding paths into to separate lists
 test_images = load_images_from_directory(TEST_IMG_PATH)
 test_masks = load_masks_from_directory(TEST_MASK_PATH)
@@ -95,18 +106,28 @@ print("Test images normalized..")
 test_masks = make_binary_masks(test_masks, 30)
 print("Test masks binarized..")
 
-"""# converting the images/masks to tensors + expanding the masks tensor slide to
+# converting the images/masks to tensors + expanding the masks tensor slide to
 # 1 dimension
 tensor_test_images = convert_to_tensor(test_images)
-tensor_test_masks = convert_to_tensor(test_masks)
-tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)"""
 
-# print("Test images converted to tensors..")
+'''tensor_test_masks = convert_to_tensor(test_masks)
+tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
+
+print("Test images converted to tensors..")
+
+train_dataset = create_dataset(
+    tensor_test_images,
+    tensor_test_masks,
+    batchsize=1,
+    buffersize=tf.data.AUTOTUNE,
+)'''
+
 
 model = load_model(CHECKPOINT_PATH, compile=False)
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-predictions = model.predict(test_images)
+predictions = add_prediction_to_list(tensor_test_images)
+
 # Calculate metrics for each image
 ious = [
     calculate_binary_iou(pred, true)
