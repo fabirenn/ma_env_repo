@@ -1,11 +1,13 @@
+import os
+import sys
+
 import tensorflow as tf
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 from keras.callbacks import EarlyStopping
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -18,7 +20,8 @@ from data_loader import (
     resize_images,
 )
 from src.u_net.unet_model_local import unet
-os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
+
+os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
@@ -126,6 +129,6 @@ model.fit(
             save_weights_only=False,
         ),
         ValidationCallback(model=model, validation_data=val_dataset),
-        EarlyStopping(monitor='val_loss', mode='auto', patience=4)
+        EarlyStopping(monitor="val_loss", mode="auto", patience=4),
     ],
 )
