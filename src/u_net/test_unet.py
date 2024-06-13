@@ -106,14 +106,14 @@ test_masks = resize_images(test_masks, IMG_WIDTH, IMG_HEIGHT)
 # normalizing the values of the images and binarizing the image masks
 test_images = normalize_image_data(test_images)
 print("Test images normalized..")
-test_images = preprocess_images(test_images)
+test_images_preprocessed = preprocess_images(test_images)
 print("Test images preprocessed..")
 test_masks = make_binary_masks(test_masks, 30)
 print("Test masks binarized..")
 
 # converting the images/masks to tensors + expanding the masks tensor slide to
 # 1 dimension
-tensor_test_images = convert_to_tensor(test_images)
+tensor_test_images = convert_to_tensor(test_images_preprocessed)
 tensor_test_masks = convert_to_tensor(test_masks)
 tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
 
