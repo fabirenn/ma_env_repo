@@ -19,7 +19,8 @@ from data_loader import (
     preprocess_images,
     resize_images,
 )
-from src.u_net.unet_model_local import unet
+
+from unet_model_local import unet
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
