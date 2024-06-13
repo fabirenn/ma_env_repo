@@ -77,9 +77,9 @@ def safe_predictions(test_images, predictions, test_masks, range):
         file_name = f"pred_image_{i}.png"
         prediction.save(os.path.join(PRED_IMG_PATH, file_name))
 
-        real_pred = im.fromarray(testmask)
+        print(testmask.shape)
         file_name = f"og_mask_{i}.png"
-        real_pred.save(os.path.join(PRED_IMG_PATH, file_name))
+        testmask.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
@@ -109,13 +109,13 @@ test_images = normalize_image_data(test_images)
 print("Test images normalized..")
 test_images_preprocessed = preprocess_images(test_images)
 print("Test images preprocessed..")
-test_masks = make_binary_masks(test_masks, 30)
+test_masks_binary = make_binary_masks(test_masks, 30)
 print("Test masks binarized..")
 
 # converting the images/masks to tensors + expanding the masks tensor slide to
 # 1 dimension
 tensor_test_images = convert_to_tensor(test_images_preprocessed)
-tensor_test_masks = convert_to_tensor(test_masks)
+tensor_test_masks = convert_to_tensor(test_masks_binary)
 tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
 
 print("Test images converted to tensors..")
@@ -136,11 +136,11 @@ predictions = add_prediction_to_list(test_dataset)
 # Calculate metrics for each image
 ious = [
     calculate_binary_iou(pred, true)
-    for pred, true in zip(predictions, test_masks)
+    for pred, true in zip(predictions, test_masks_binary)
 ]
 dices = [
     calculate_binary_dice(pred, true)
-    for pred, true in zip(predictions, test_masks)
+    for pred, true in zip(predictions, test_masks_binary)
 ]
 
 # Average metrics over the dataset
