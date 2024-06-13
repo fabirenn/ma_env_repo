@@ -66,9 +66,9 @@ def calculate_binary_dice(pred_mask, true_mask):
         return intersection / total
 
 
-def safe_predictions(test_images, predictions, test_masks):
+def safe_predictions(test_images, predictions, test_masks, range):
     
-    for i, testimage, prediction, testmask in zip(test_images, predictions, test_masks):
+    for i, testimage, prediction, testmask in zip(range, test_images, predictions, test_masks):
         original_image = array_to_img(testimage)
         file_name = f"og_image_{i}.png"
         original_image.save(os.path.join(PRED_IMG_PATH, file_name))
@@ -150,4 +150,4 @@ mean_dice = np.nanmean(dices)
 print(f"Mean IoU: {mean_iou}")
 print(f"Mean Dice Coefficient: {mean_dice}")
 
-safe_predictions(test_images, predictions, test_masks)
+safe_predictions(test_images, predictions, test_masks, range(212))
