@@ -17,13 +17,6 @@ class MaxUnpooling2D(tf.keras.layers.Layer):
             input_shape[0],
             input_shape[1] * self.pool_size[0],
             input_shape[2] * self.pool_size[1],
-            input_shape[3]
-        ]
-
-        # Calculate indices for scatter
-        one_like_mask = tf.ones_like(mask, dtype='int32')
-        batch_shape = tf.concat([[input_shape[0]], [1], [1], [1]], axis=0)
-        batch_range = tf.reshape(tf.range(output_shape[0], dtype='int32'), shape=batch_shape)
             input_shape[3],
         ]
 
