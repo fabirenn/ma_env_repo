@@ -1,8 +1,8 @@
-import tensorflow as tf
-from keras.callbacks import CSVLogger, ModelCheckpoint
-
 import os
 import sys
+
+import tensorflow as tf
+from keras.callbacks import CSVLogger, ModelCheckpoint
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from unet_model_local import unet
@@ -18,7 +18,6 @@ from data_loader import (
     preprocess_images,
     resize_images,
 )
-
 
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"

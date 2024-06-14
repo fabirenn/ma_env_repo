@@ -2,13 +2,15 @@ import os
 import sys
 
 import tensorflow as tf
-from keras.callbacks import EarlyStopping
 from segnet_model import segnet
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from keras.callbacks import EarlyStopping
+
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -22,6 +24,7 @@ from data_loader import (
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
+
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
@@ -29,8 +32,8 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
 
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 1024
+IMG_HEIGHT = 1024
 IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
@@ -113,6 +116,7 @@ model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
 model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
+
 model.summary()
 model.fit(
     train_dataset,
@@ -125,10 +129,14 @@ model.fit(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=True,
-            monitor='val_loss',
-            verbose=1
+            monitor="val_loss",
+            verbose=1,
         ),
-        ValidationCallback(model=model, validation_data=val_dataset),
-        EarlyStopping(monitor="val_loss", mode="auto", patience=4),
+        ValidationCallback(
+            model=model,
+            validation_data=val_dataset,
+            log_dir="data/predictions/segnet",
+        ),
+        EarlyStopping(monitor="val_loss", mode="auto", patience=6),
     ],
 )

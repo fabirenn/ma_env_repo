@@ -1,14 +1,15 @@
-import tensorflow as tf
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
-
-import wandb
 import os
 import sys
 
+import tensorflow as tf
 from keras.callbacks import EarlyStopping
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
+import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from unet_architecture_hcp import unet
+
 from custom_callbacks import ValidationCallback
 from data_loader import (
     convert_to_tensor,
@@ -21,8 +22,6 @@ from data_loader import (
     resize_images,
 )
 
-from unet_model_local import unet
-
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
@@ -32,14 +31,13 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 1024
+IMG_HEIGHT = 1024
 
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 50
-
 
 
 # loading images and masks from their corresponding paths into to separate lists
@@ -131,11 +129,14 @@ model.fit(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
-            monitor='val_loss',
-            verbose=1
+            monitor="val_loss",
+            verbose=1,
         ),
-        ValidationCallback(model=model, validation_data=val_dataset),
-        EarlyStopping(monitor="val_loss", mode="auto", patience=4),
+        ValidationCallback(
+            model=model,
+            validation_data=val_dataset,
+            log_dir="data/predictions/unet",
+        ),
+        EarlyStopping(monitor="val_loss", mode="auto", patience=6),
     ],
 )
-
