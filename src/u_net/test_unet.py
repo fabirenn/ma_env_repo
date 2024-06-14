@@ -78,12 +78,12 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         plt.subplot(1, 3, 1)
         plt.title("GT")
-        original_image = array_to_img(testimage)
-        plt.imshow(original_image)
+        plt.imshow(testimage)
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        data = im.fromarray(testmask)
+        #data = array_to_img(testmask)
+        print(testmask)
         plt.imshow(data)
 
         plt.subplot(1, 3, 3)
@@ -175,4 +175,4 @@ mean_dice = np.nanmean(dices)
 print(f"Mean IoU: {mean_iou}")
 print(f"Mean Dice Coefficient: {mean_dice}")
 
-safe_predictions(test_images, predictions, test_masks, range(212))
+safe_predictions(test_images, predictions, test_masks_binary, range(212))
