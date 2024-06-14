@@ -82,8 +82,6 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        # data = array_to_img(testmask)
-        print(testmask)
         plt.imshow(testmask)
 
         plt.subplot(1, 3, 3)
@@ -92,16 +90,6 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         file_name = f"pred_figure_{i}.png"
         plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
-
-        # file_name = f"og_image_{i}.png"
-        # original_image.save(os.path.join(PRED_IMG_PATH, file_name))
-
-        # file_name = f"pred_image_{i}.png"
-        # prediction.save(os.path.join(PRED_IMG_PATH, file_name))
-
-        # data = im.fromarray(testmask)
-        # file_name = f"og_mask_{i}.png"
-    # data.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
@@ -137,7 +125,7 @@ print("Test-Masks binarized..")
 
 # converting the images/masks to tensors + expanding the masks tensor slide to
 # 1 dimension
-print(len(test_masks))
+#print(len(test_masks))
 tensor_test_images = convert_to_tensor(test_images_preprocessed)
 tensor_test_masks = convert_to_tensor(test_masks_binary)
 tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
