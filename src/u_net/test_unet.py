@@ -84,7 +84,7 @@ def safe_predictions(range, test_images, predictions, test_masks):
         plt.title("True Mask")
         # data = array_to_img(testmask)
         print(testmask)
-        plt.imshow(data)
+        plt.imshow(testmask)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
