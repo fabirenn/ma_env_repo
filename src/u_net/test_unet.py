@@ -82,7 +82,7 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        #data = array_to_img(testmask)
+        # data = array_to_img(testmask)
         print(testmask)
         plt.imshow(data)
 
@@ -137,6 +137,7 @@ print("Test-Masks binarized..")
 
 # converting the images/masks to tensors + expanding the masks tensor slide to
 # 1 dimension
+print(len(test_masks))
 tensor_test_images = convert_to_tensor(test_images_preprocessed)
 tensor_test_masks = convert_to_tensor(test_masks_binary)
 tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
@@ -175,4 +176,9 @@ mean_dice = np.nanmean(dices)
 print(f"Mean IoU: {mean_iou}")
 print(f"Mean Dice Coefficient: {mean_dice}")
 
-safe_predictions(test_images, predictions, test_masks_binary, range(212))
+safe_predictions(
+    range=range(212),
+    test_images=test_images,
+    predictions=predictions,
+    test_masks=test_masks,
+)
