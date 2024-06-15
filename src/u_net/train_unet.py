@@ -118,6 +118,10 @@ config = wandb.config
 # create model & start training it
 model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE)
 
+model.compile(
+        optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+    )
+
 model.fit(
     train_dataset,
     batch_size=BATCH_SIZE,

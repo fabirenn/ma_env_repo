@@ -77,13 +77,11 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         plt.subplot(1, 3, 1)
         plt.title("GT")
-        original_image = array_to_img(testimage)
-        plt.imshow(original_image)
+        plt.imshow(testimage)
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        data = im.fromarray(testmask)
-        plt.imshow(data)
+        plt.imshow(testmask)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
@@ -91,16 +89,6 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         file_name = f"pred_figure_{i}.png"
         plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
-
-        # file_name = f"og_image_{i}.png"
-        # original_image.save(os.path.join(PRED_IMG_PATH, file_name))
-
-        # file_name = f"pred_image_{i}.png"
-        # prediction.save(os.path.join(PRED_IMG_PATH, file_name))
-
-        # data = im.fromarray(testmask)
-        # file_name = f"og_mask_{i}.png"
-        # data.save(os.path.join(PRED_IMG_PATH, file_name))
 
 
 def add_prediction_to_list(test_dataset):
@@ -172,4 +160,9 @@ mean_dice = np.nanmean(dices)
 print(f"Mean IoU: {mean_iou}")
 print(f"Mean Dice Coefficient: {mean_dice}")
 
-safe_predictions(test_images, predictions, test_masks, range(212))
+safe_predictions(
+    range=range(212),
+    test_images=test_images,
+    predictions=predictions,
+    test_masks=test_masks,
+)
