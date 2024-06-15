@@ -1,4 +1,5 @@
 import tensorflow as tf
+from keras.layers import BatchNormalization
 
 
 def unet(
@@ -79,9 +80,7 @@ def unet(
     )(u5)
 
     model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-    model.compile(
-        optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
-    )
+    
     model.summary()
     return model
 
@@ -104,10 +103,12 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     conv = tf.keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        activation="relu",
         kernel_initializer="he_normal",
         padding="same",
     )(input_tensor)
+
+    conv = BatchNormalization()(conv)
+    conv = tf.keras.layers.Activation("relu")
 
     # Dropout layer
     conv = tf.keras.layers.Dropout(dropout_rate)(conv)
@@ -116,10 +117,12 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     conv = tf.keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        activation="relu",
         kernel_initializer="he_normal",
         padding="same",
     )(conv)
+
+    conv = BatchNormalization()(conv)
+    conv = tf.keras.layers.Activation("relu")
 
     # Max pooling layer
     pool = tf.keras.layers.MaxPooling2D((2, 2))(conv)
@@ -159,10 +162,12 @@ def conv_block_up(
     c = tf.keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        activation="relu",
         kernel_initializer="he_normal",
         padding="same",
     )(u)
+
+    c = BatchNormalization()(c)
+    c = tf.keras.layers.Activation("relu")
 
     # Dropout-Layer
     c = tf.keras.layers.Dropout(dropout_rate)(c)
@@ -171,9 +176,11 @@ def conv_block_up(
     c = tf.keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        activation="relu",
         kernel_initializer="he_normal",
         padding="same",
     )(c)
+
+    c = BatchNormalization()(c)
+    c = tf.keras.layers.Activation("relu")
 
     return c

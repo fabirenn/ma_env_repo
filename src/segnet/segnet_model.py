@@ -106,5 +106,5 @@ def segnet(input_size):
         filters=1, kernel_size=(1, 1), padding="same", activation="sigmoid"
     )(x)
     model = Model(inputs, outputs)
-
+    model.summary()
     return model
