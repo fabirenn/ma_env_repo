@@ -90,6 +90,7 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         file_name = f"pred_figure_{i}.png"
         plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
+        plt.close()
 
 
 def add_prediction_to_list(test_dataset):
