@@ -128,7 +128,7 @@ model.fit(
         WandbModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
-            save_weights_only=True,
+            save_weights_only=False,
             monitor="val_loss",
             verbose=1,
         ),
