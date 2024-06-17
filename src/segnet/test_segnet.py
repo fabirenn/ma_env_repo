@@ -97,7 +97,7 @@ def add_prediction_to_list(test_dataset):
 
     for image, mask in test_dataset:
         prediction = model.predict(image)
-        for j in range(BATCH_SIZE - 1):
+        for j in range(BATCH_SIZE):
             prediction_image = prediction[j]
             prediction_image = array_to_img(prediction_image)
             predictions_list.append(prediction_image)
