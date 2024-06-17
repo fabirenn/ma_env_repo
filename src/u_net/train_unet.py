@@ -22,8 +22,8 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
-IMG_WIDTH = 1024
-IMG_HEIGHT = 1024
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 
 IMG_CHANNEL = 8
 
