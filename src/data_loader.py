@@ -186,14 +186,244 @@ def convert_to_tensor(images_np_array_list, dtype=tf.float32):
     return image_list_as_tensor
 
 
-def create_dataset(images_as_tensors, masks_as_tensors, batchsize, buffersize):
+def create_dataset(images_as_tensors, masks_as_tensors, batch_size, buffersize):
     # method that creates a dataset, out of images and their corresponding masks
     # furthermore, the batch and buffersize are being set
     dataset = tf.data.Dataset.from_tensor_slices(
         (images_as_tensors, masks_as_tensors)
     )
-    dataset = dataset.batch(batch_size=batchsize).prefetch(
+    dataset = dataset.batch(batch_size=batch_size).prefetch(
         buffer_size=buffersize
     )
 
     return dataset
+
+
+def create_datasets_for_unet_training(
+    directory_train_images,
+    directory_train_masks,
+    directory_val_images,
+    directory_val_masks,
+    img_width,
+    img_height,
+    batch_size,
+):
+
+    # loading images and masks from their corresponding paths into to separate lists
+    train_images = load_images_from_directory(directory_train_images)
+    train_masks = load_masks_from_directory(directory_train_masks)
+    print("Train-Images successfully loaded..")
+
+    val_images = load_images_from_directory(directory_val_images)
+    val_masks = load_masks_from_directory(directory_val_masks)
+    print("Validation-Images successfully loaded..")
+
+    # resizing the images to dest size for training
+    train_images = resize_images(train_images, img_width, img_height)
+    train_masks = resize_images(train_masks, img_width, img_height)
+    val_images = resize_images(val_images, img_width, img_height)
+    val_masks = resize_images(val_masks, img_width, img_height)
+    print("All images resized..")
+
+    # normalizing the values of the images and binarizing the image masks
+    train_images = normalize_image_data(train_images)
+    print("Train-Images normalized..")
+    train_images = preprocess_images(train_images)
+    print("Train-Images preprocessed for U-Net..")
+    train_masks = make_binary_masks(train_masks, 30)
+    print("Train-Masks binarized..")
+
+    val_images = normalize_image_data(val_images)
+    print("Val-Images normalized..")
+    val_masks = make_binary_masks(val_masks, 30)
+    print("Val-Masks binarized..")
+
+    # converting the images/masks to tensors + expanding the masks tensor slide to
+    # 1 dimension
+    tensor_train_images = convert_to_tensor(train_images)
+    tensor_train_masks = convert_to_tensor(train_masks)
+    tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+
+    tensor_val_images = convert_to_tensor(val_images)
+    tensor_val_masks = convert_to_tensor(val_masks)
+    tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+
+    print("Images converted to tensors..")
+
+    # create dataset for training purposes
+    train_dataset = create_dataset(
+        tensor_train_images,
+        tensor_train_masks,
+        batchsize=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    val_dataset = create_dataset(
+        tensor_val_images,
+        tensor_val_masks,
+        batch_size=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    print("Train and Validation Dataset created..")
+
+    return train_dataset, val_dataset
+
+
+def create_datasets_for_segnet_training(
+    directory_train_images,
+    directory_train_masks,
+    directory_val_images,
+    directory_val_masks,
+    img_width,
+    img_height,
+    batch_size,
+):
+
+    # loading images and masks from their corresponding paths into to separate lists
+    train_images = load_images_from_directory(directory_train_images)
+    train_masks = load_masks_from_directory(directory_train_masks)
+    print("Train-Images successfully loaded..")
+
+    val_images = load_images_from_directory(directory_val_images)
+    val_masks = load_masks_from_directory(directory_val_masks)
+    print("Validation-Images successfully loaded..")
+
+    # resizing the images to dest size for training
+    train_images = resize_images(train_images, img_width, img_height)
+    train_masks = resize_images(train_masks, img_width, img_height)
+    val_images = resize_images(val_images, img_width, img_height)
+    val_masks = resize_images(val_masks, img_width, img_height)
+    print("All images resized..")
+
+    # normalizing the values of the images and binarizing the image masks
+    train_images = normalize_image_data(train_images)
+    print("Train-Images normalized..")
+    train_masks = make_binary_masks(train_masks, 30)
+    print("Train-Masks binarized..")
+
+    val_images = normalize_image_data(val_images)
+    print("Val-Images normalized..")
+    val_masks = make_binary_masks(val_masks, 30)
+    print("Val-Masks binarized..")
+
+    # converting the images/masks to tensors + expanding the masks tensor slide to
+    # 1 dimension
+    tensor_train_images = convert_to_tensor(train_images)
+    tensor_train_masks = convert_to_tensor(train_masks)
+    tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+
+    tensor_val_images = convert_to_tensor(val_images)
+    tensor_val_masks = convert_to_tensor(val_masks)
+    tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+
+    print("Images converted to tensors..")
+
+    # create dataset for training purposes
+    train_dataset = create_dataset(
+        tensor_train_images,
+        tensor_train_masks,
+        batchsize=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    val_dataset = create_dataset(
+        tensor_val_images,
+        tensor_val_masks,
+        batch_size=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    print("Train and Validation Dataset created..")
+
+    return train_dataset, val_dataset
+
+
+def create_testdataset_for_unet_training(
+    directory_test_images,
+    directory_test_masks,
+    img_width,
+    img_height,
+    batch_size,
+):
+
+    # loading images and masks from their corresponding paths into to separate lists
+    test_images = load_images_from_directory(directory_test_images)
+    test_masks = load_masks_from_directory(directory_test_masks)
+    print("Test-Images successfully loaded..")
+
+    # resizing the images to dest size for training
+    test_images = resize_images(test_images, img_width, img_height)
+    test_masks = resize_images(test_masks, img_width, img_height)
+    print("Test-Images resized..")
+
+    # normalizing the values of the images and binarizing the image masks
+    test_images = normalize_image_data(test_images)
+    print("Train-Images normalized..")
+    test_images = preprocess_images(test_images)
+    print("Train-Images preprocessed for U-Net..")
+    test_masks = make_binary_masks(test_masks, 30)
+    print("Train-Masks binarized..")
+
+    # converting the images/masks to tensors + expanding the masks tensor slide to
+    # 1 dimension
+    tensor_test_images = convert_to_tensor(test_images)
+    tensor_test_masks = convert_to_tensor(test_masks)
+    tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
+    print("Images converted to tensors..")
+
+    # create dataset for training purposes
+    test_dataset = create_dataset(
+        tensor_test_images,
+        tensor_test_masks,
+        batchsize=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    print("Test Dataset created..")
+
+    return test_dataset, test_images, test_masks
+
+
+def create_testdataset_for_segnet_training(
+    directory_test_images,
+    directory_test_masks,
+    img_width,
+    img_height,
+    batch_size,
+):
+
+    # loading images and masks from their corresponding paths into to separate lists
+    test_images = load_images_from_directory(directory_test_images)
+    test_masks = load_masks_from_directory(directory_test_masks)
+    print("Test-Images successfully loaded..")
+
+    # resizing the images to dest size for training
+    test_images = resize_images(test_images, img_width, img_height)
+    test_masks = resize_images(test_masks, img_width, img_height)
+    print("Test-Images resized..")
+
+    # normalizing the values of the images and binarizing the image masks
+    test_images = normalize_image_data(test_images)
+    print("Train-Images normalized..")
+    test_masks = make_binary_masks(test_masks, 30)
+    print("Train-Masks binarized..")
+
+    # converting the images/masks to tensors + expanding the masks tensor slide to
+    # 1 dimension
+    tensor_test_images = convert_to_tensor(test_images)
+    tensor_test_masks = convert_to_tensor(test_masks)
+    tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
+    print("Images converted to tensors..")
+
+    # create dataset for training purposes
+    test_dataset = create_dataset(
+        tensor_test_images,
+        tensor_test_masks,
+        batchsize=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    print("Test Dataset created..")
+
+    return test_dataset, test_images, test_masks

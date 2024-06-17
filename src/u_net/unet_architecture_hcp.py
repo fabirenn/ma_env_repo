@@ -80,7 +80,7 @@ def unet(
     )(u5)
 
     model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-    
+
     model.summary()
     return model
 

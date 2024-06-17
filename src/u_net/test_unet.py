@@ -12,16 +12,7 @@ from unet_architecture_hcp import unet
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
-from data_loader import (
-    convert_to_tensor,
-    create_dataset,
-    load_images_from_directory,
-    load_masks_from_directory,
-    make_binary_masks,
-    normalize_image_data,
-    preprocess_images,
-    resize_images,
-)
+from data_loader import create_testdataset_for_unet_training
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -106,38 +97,12 @@ def add_prediction_to_list(test_dataset):
     return predictions_list
 
 
-# loading images and masks from their corresponding paths into to separate lists
-test_images = load_images_from_directory(TEST_IMG_PATH)
-test_masks = load_masks_from_directory(TEST_MASK_PATH)
-print("Test-Images successfully loaded..")
-
-# resizing the images to dest size for training
-test_images = resize_images(test_images, IMG_WIDTH, IMG_HEIGHT)
-test_masks = resize_images(test_masks, IMG_WIDTH, IMG_HEIGHT)
-print("Test-Images resized")
-
-# normalizing the values of the images and binarizing the image masks
-test_images = normalize_image_data(test_images)
-print("Test-Images normalized..")
-test_images_preprocessed = preprocess_images(test_images)
-print("Test-Images preprocessed..")
-test_masks_binary = make_binary_masks(test_masks, 30)
-print("Test-Masks binarized..")
-
-# converting the images/masks to tensors + expanding the masks tensor slide to
-# 1 dimension
-#print(len(test_masks))
-tensor_test_images = convert_to_tensor(test_images_preprocessed)
-tensor_test_masks = convert_to_tensor(test_masks_binary)
-tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
-
-print("Test images converted to tensors..")
-
-test_dataset = create_dataset(
-    tensor_test_images,
-    tensor_test_masks,
-    batchsize=4,
-    buffersize=tf.data.AUTOTUNE,
+test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
+    directory_test_images=TEST_IMG_PATH,
+    directory_test_masks=TEST_MASK_PATH,
+    img_width=IMG_WIDTH,
+    img_height=IMG_HEIGHT,
+    batch_size=BATCH_SIZE,
 )
 
 model = load_model(CHECKPOINT_PATH, compile=False)
@@ -151,11 +116,11 @@ predictions = add_prediction_to_list(test_dataset)
 # Calculate metrics for each image
 ious = [
     calculate_binary_iou(pred, true)
-    for pred, true in zip(predictions, test_masks_binary)
+    for pred, true in zip(predictions, test_masks)
 ]
 dices = [
     calculate_binary_dice(pred, true)
-    for pred, true in zip(predictions, test_masks_binary)
+    for pred, true in zip(predictions, test_masks)
 ]
 
 # Average metrics over the dataset

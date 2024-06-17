@@ -105,6 +105,6 @@ def segnet(input_size):
     outputs = Conv2D(
         filters=1, kernel_size=(1, 1), padding="same", activation="sigmoid"
     )(x)
-    model = Model(inputs, outputs)
+    model = Model(inputs, outputs, name="SegNet")
     model.summary()
     return model
