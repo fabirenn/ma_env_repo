@@ -16,4 +16,3 @@ module load Python/3.10.4-GCCcore-11.3.0
 module load TensorFlow/2.11.0-foss-2022a-CUDA-11.7.0
 
 python src/u_net/train_unet.py
-python src/u_net/test_unet.py
