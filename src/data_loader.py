@@ -323,7 +323,7 @@ def create_datasets_for_segnet_training(
     train_dataset = create_dataset(
         tensor_train_images,
         tensor_train_masks,
-        batchsize=batch_size,
+        batch_size=batch_size,
         buffersize=tf.data.AUTOTUNE,
     )
 

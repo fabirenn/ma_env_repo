@@ -1,11 +1,16 @@
+import os
+import sys
 import tensorflow as tf
-from custom_layers import MaxPoolingWithIndices2D, MaxUnpooling2D
 from keras import layers, models
 from keras.layers import BatchNormalization, Conv2D, Input
 from keras.models import Model
 
-from src.segnet.segnet_model import segnet
-from src.u_net.unet_architecture_hcp import unet
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'segnet')))
+from segnet_model import segnet
+from custom_layers import MaxPoolingWithIndices2D, MaxUnpooling2D
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", 'u_net')))
+from unet_architecture_hcp import unet
 
 
 def generator(img_width, img_height, img_channels, batch_size, unet):
