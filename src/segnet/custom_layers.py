@@ -58,7 +58,9 @@ class MaxUnpooling2D(tf.keras.layers.Layer):
 
 
 class MaxPoolingWithIndices2D(tf.keras.layers.Layer):
-    def __init__(self, pool_size=(2, 2), strides=(2, 2), padding='VALID', **kwargs):
+    def __init__(
+        self, pool_size=(2, 2), strides=(2, 2), padding="VALID", **kwargs
+    ):
         super(MaxPoolingWithIndices2D, self).__init__(**kwargs)
         self.pool_size = pool_size
         self.strides = strides
