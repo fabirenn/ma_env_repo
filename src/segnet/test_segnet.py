@@ -12,6 +12,7 @@ from segnet_model import segnet
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
+from custom_layers import custom_objects
 from data_loader import create_testdataset_for_segnet_training
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
@@ -105,7 +106,8 @@ test_dataset, test_images, test_masks = create_testdataset_for_segnet_training(
     batch_size=BATCH_SIZE,
 )
 
-model = load_model(CHECKPOINT_PATH, compile=False)
+
+model = load_model(CHECKPOINT_PATH, custom_objects=custom_objects, compile=False)
 model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )

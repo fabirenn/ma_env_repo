@@ -27,15 +27,19 @@ def discriminator(input_shape, mask_shape):
 
     x = layers.Concatenate()([image_input, mask_input])
     x = layers.Conv2D(64, kernel_size=3, strides=2, padding="same")(x)
+    x = layers.BatchNormalization()(x)
     x = layers.LeakyReLU(alpha=0.2)(x)
 
     x = layers.Conv2D(128, kernel_size=3, strides=2, padding="same")(x)
+    x = layers.BatchNormalization()(x)
     x = layers.LeakyReLU(alpha=0.2)(x)
 
     x = layers.Conv2D(256, kernel_size=3, strides=2, padding="same")(x)
+    x = layers.BatchNormalization()(x)
     x = layers.LeakyReLU(alpha=0.2)(x)
 
     x = layers.Conv2D(512, kernel_size=3, strides=2, padding="same")(x)
+    x = layers.BatchNormalization()(x)
     x = layers.LeakyReLU(alpha=0.2)(x)
 
     x = layers.Flatten()(x)

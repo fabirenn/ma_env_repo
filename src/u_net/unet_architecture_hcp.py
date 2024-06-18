@@ -79,7 +79,7 @@ def unet(
         filters=1, kernel_size=(1, 1), activation="sigmoid"
     )(u5)
 
-    model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
+    model = tf.keras.Model(inputs=[inputs], outputs=[outputs], name="U-Net")
 
     model.summary()
     return model

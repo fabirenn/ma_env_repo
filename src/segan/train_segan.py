@@ -108,6 +108,7 @@ def train(dataset, epochs):
         print(
             f"Epoch {epoch+1}, Gen Loss: {gen_loss.numpy()}, Disc Loss: {disc_loss.numpy()}"
         )
+        
 
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
