@@ -376,7 +376,7 @@ def create_testdataset_for_unet_training(
     test_dataset = create_dataset(
         tensor_test_images,
         tensor_test_masks,
-        batchsize=batch_size,
+        batch_size=batch_size,
         buffersize=tf.data.AUTOTUNE,
     )
 
@@ -420,7 +420,7 @@ def create_testdataset_for_segnet_training(
     test_dataset = create_dataset(
         tensor_test_images,
         tensor_test_masks,
-        batchsize=batch_size,
+        batch_size=batch_size,
         buffersize=tf.data.AUTOTUNE,
     )
 

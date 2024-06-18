@@ -82,6 +82,5 @@ model.fit(
             validation_data=val_dataset,
             log_dir="data/predictions/segnet",
         ),
-        EarlyStopping(monitor="val_loss", mode="auto", patience=6),
     ],
 )
