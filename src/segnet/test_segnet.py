@@ -81,7 +81,7 @@ def safe_predictions(range, test_images, predictions, test_masks):
         plt.title("Pred Mask")
         plt.imshow(prediction)
 
-        file_name = f"pred_figure_{i}.png"
+        file_name = f"pred_figure_{i+1}.png"
         plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
         plt.close()
 
