@@ -235,6 +235,8 @@ def create_datasets_for_unet_training(
 
     val_images = normalize_image_data(val_images)
     print("Val-Images normalized..")
+    val_images = preprocess_images(val_images)
+    print("Val-Images preprocessed for U-Net..")
     val_masks = make_binary_masks(val_masks, 30)
     print("Val-Masks binarized..")
 

@@ -1,0 +1,49 @@
+{
+    "os": "macOS-14.5-arm64-arm-64bit",
+    "python": "3.10.13",
+    "heartbeatAt": "2024-06-18T10:00:06.108066",
+    "startedAt": "2024-06-18T10:00:06.057091",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/fabiorenn/Desktop/Master/code/ma_env_repo/src/u_net/train_unet.py",
+    "codePathLocal": "src/u_net/train_unet.py",
+    "codePath": "src/u_net/train_unet.py",
+    "git": {
+        "remote": "https://github.com/fabirenn/ma_env_repo.git",
+        "commit": "76cc64abb48d1d478b4300470c4ad81f56299270"
+    },
+    "email": "fabio.renn@outlook.de",
+    "root": "/Users/fabiorenn/Desktop/Master/code/ma_env_repo",
+    "host": "MacBook-Air-von-Fabio.local",
+    "username": "fabiorenn",
+    "executable": "/opt/miniconda3/envs/ma_env/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 3504,
+        "min": 600,
+        "max": 3504
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3504,
+            "min": 600,
+            "max": 3504
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 460.4317207336426,
+            "used": 358.60776138305664
+        }
+    },
+    "gpuapple": {
+        "type": "arm",
+        "vendor": "Apple"
+    },
+    "memory": {
+        "total": 8.0
+    }
+}
