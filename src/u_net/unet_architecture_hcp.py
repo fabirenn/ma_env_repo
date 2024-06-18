@@ -3,7 +3,7 @@ from keras.layers import BatchNormalization
 
 
 def unet(
-    img_width, img_height, img_channels, batch_size, pretrained_weights=None
+    img_width, img_height, img_channels, batch_size, pretrained_weights=None, training=True
 ):
     # build the model
     inputs = tf.keras.layers.Input(
