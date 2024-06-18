@@ -1,15 +1,20 @@
 import os
 import sys
+
 import tensorflow as tf
 from keras import layers, models
 from keras.layers import BatchNormalization, Conv2D, Input
 from keras.models import Model
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'segnet')))
-from segnet_model import segnet
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "segnet"))
+)
 from custom_layers import MaxPoolingWithIndices2D, MaxUnpooling2D
+from segnet_model import segnet
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", 'u_net')))
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net"))
+)
 from unet_architecture_hcp import unet
 
 

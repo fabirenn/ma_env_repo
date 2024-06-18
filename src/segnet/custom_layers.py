@@ -70,14 +70,16 @@ class MaxPoolingWithIndices2D(tf.keras.layers.Layer):
             padding="SAME",
         )
         return pool, indices
-    
+
     def get_config(self):
         config = super(MaxPoolingWithIndices2D, self).get_config()
-        config.update({
-            'pool_size': self.pool_size,
-            'strides': self.strides,
-            'padding': self.padding
-        })
+        config.update(
+            {
+                "pool_size": self.pool_size,
+                "strides": self.strides,
+                "padding": self.padding,
+            }
+        )
         return config
 
     def compute_output_shape(self, input_shape):
@@ -90,4 +92,7 @@ class MaxPoolingWithIndices2D(tf.keras.layers.Layer):
         return tf.TensorShape(shape)
 
 
-custom_objects = {'MaxPoolingWithIndices2D': MaxPoolingWithIndices2D}
+custom_objects = {
+    "MaxPoolingWithIndices2D": MaxPoolingWithIndices2D,
+    "MaxUnpooling2D": MaxUnpooling2D,
+}

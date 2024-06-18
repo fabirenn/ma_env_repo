@@ -5,8 +5,8 @@ import numpy as np
 import tensorflow as tf
 from keras import layers, models
 from keras.callbacks import EarlyStopping
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 from segan_model import discriminator, generator
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 
@@ -108,7 +108,6 @@ def train(dataset, epochs):
         print(
             f"Epoch {epoch+1}, Gen Loss: {gen_loss.numpy()}, Disc Loss: {disc_loss.numpy()}"
         )
-        
 
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
