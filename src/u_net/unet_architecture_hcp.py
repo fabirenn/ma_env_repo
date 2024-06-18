@@ -115,9 +115,6 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     conv = BatchNormalization()(conv)
     conv = tf.keras.layers.Activation("relu")(conv)
 
-    # Dropout layer
-    conv = tf.keras.layers.Dropout(dropout_rate)(conv)
-
     # Second convolutional layer
     conv = tf.keras.layers.Conv2D(
         num_filters,
@@ -128,6 +125,9 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
 
     conv = BatchNormalization()(conv)
     conv = tf.keras.layers.Activation("relu")(conv)
+
+    # Dropout layer
+    conv = tf.keras.layers.Dropout(dropout_rate)(conv)
 
     # Max pooling layer
     pool = tf.keras.layers.MaxPooling2D((2, 2))(conv)
@@ -160,6 +160,9 @@ def conv_block_up(
         padding="same",
     )(input_tensor)
 
+    u = BatchNormalization()(u)
+    u = tf.keras.layers.Activation('relu')(u)
+
     # Concatenating Upconvolution with Contraction tensor
     u = tf.keras.layers.concatenate([u, skip_tensor])
 
@@ -174,9 +177,6 @@ def conv_block_up(
     c = BatchNormalization()(c)
     c = tf.keras.layers.Activation("relu")(c)
 
-    # Dropout-Layer
-    c = tf.keras.layers.Dropout(dropout_rate)(c)
-
     # Second convolutional layer
     c = tf.keras.layers.Conv2D(
         num_filters,
@@ -187,5 +187,8 @@ def conv_block_up(
 
     c = BatchNormalization()(c)
     c = tf.keras.layers.Activation("relu")(c)
+
+    # Dropout-Layer
+    c = tf.keras.layers.Dropout(dropout_rate)(c)
 
     return c
