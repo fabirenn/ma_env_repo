@@ -161,7 +161,7 @@ def conv_block_up(
     )(input_tensor)
 
     u = BatchNormalization()(u)
-    u = tf.keras.layers.Activation('relu')(u)
+    u = tf.keras.layers.Activation("relu")(u)
 
     # Concatenating Upconvolution with Contraction tensor
     u = tf.keras.layers.concatenate([u, skip_tensor])

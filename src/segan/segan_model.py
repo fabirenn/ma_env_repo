@@ -21,14 +21,16 @@ from unet_architecture_hcp import unet
 def generator(img_width, img_height, img_channels, batch_size, unet):
     if unet:
         model = unet(img_width, img_height, img_channels, batch_size)
+        unet = True
     else:
         model = segnet((img_width, img_height, img_channels))
+        unet = False
     return model
 
 
 def discriminator(input_shape, mask_shape):
-    image_input = layers.Input(shape=input_shape)
-    mask_input = layers.Input(shape=mask_shape)
+    image_input = layers.Input(shape=input_shape, name="input_image")
+    mask_input = layers.Input(shape=mask_shape, name="mask_image")
 
     x = layers.Concatenate()([image_input, mask_input])
     x = layers.Conv2D(64, kernel_size=3, strides=2, padding="same")(x)

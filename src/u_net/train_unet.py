@@ -19,6 +19,7 @@ TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
+LOG_VAL_PRED = "data/predictions/unet"
 
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
@@ -78,7 +79,7 @@ model.fit(
         ValidationCallback(
             model=model,
             validation_data=val_dataset,
-            log_dir="data/predictions/unet",
+            log_dir=LOG_VAL_PRED,
         ),
     ],
 )
