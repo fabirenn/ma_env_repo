@@ -12,7 +12,7 @@ from unet_architecture_hcp import unet
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
-from data_loader import create_testdataset_for_unet_training
+from data_loader import create_testdataset_for_unet_training, make_binary_masks
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -73,11 +73,11 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        plt.imshow(testmask)
+        plt.imshow(testmask, cmap=plt.cm.gray)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
-        plt.imshow(prediction)
+        plt.imshow(prediction, cmap=plt.cm.gray)
 
         file_name = f"pred_figure_{i+1}.png"
         plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
@@ -111,6 +111,7 @@ model.compile(
 )
 
 predictions = add_prediction_to_list(test_dataset)
+binary_predictions = make_binary_masks(predictions)
 
 
 # Calculate metrics for each image
@@ -133,6 +134,6 @@ print(f"Mean Dice Coefficient: {mean_dice}")
 safe_predictions(
     range=range(212),
     test_images=test_images,
-    predictions=predictions,
+    predictions=binary_predictions,
     test_masks=test_masks,
 )
