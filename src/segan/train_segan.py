@@ -116,11 +116,12 @@ def generate_images(model, dataset, epoch):
     sample = dataset.take(1)
     image_batch, mask_batch = next(iter(sample))
     pred_batch = model.predict(image_batch)
+
     log_images_locally(
         epoch=epoch,
         x=image_batch[0],
         y_true=mask_batch[0],
-        y_pred=pred_batch[0],
+        y_pred=(pred_batch[0] > 0.5).astype(np.uint8),
     )
 
 
@@ -149,11 +150,11 @@ def log_images_locally(epoch, x, y_true, y_pred):
 
     plt.subplot(1, 3, 2)
     plt.title("True Mask")
-    plt.imshow(y_true)
+    plt.imshow(y_true, cmap=plt.cm.gray)
 
     plt.subplot(1, 3, 3)
     plt.title("Pred Mask")
-    plt.imshow(y_pred)
+    plt.imshow(y_pred, cmap=plt.cm.gray)
 
     file_name = f"val_figure_epoch{epoch + 1}.png"
     plt.savefig(os.path.join(LOG_VAL_PRED, file_name))
@@ -180,7 +181,6 @@ if UNET is True:
             batch_size=BATCH_SIZE,
         )
     )
-
 
 else:
     train_dataset, val_dataset = create_datasets_for_segnet_training(
