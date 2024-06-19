@@ -360,16 +360,16 @@ def create_testdataset_for_unet_training(
     print("Test-Images resized..")
 
     # normalizing the values of the images and binarizing the image masks
-    test_images = normalize_image_data(test_images)
+    test_images_normalized = normalize_image_data(test_images)
     print("Train-Images normalized..")
-    test_images = preprocess_images(test_images)
+    test_images_preprocessed = preprocess_images(test_images_normalized)
     print("Train-Images preprocessed for U-Net..")
     test_masks = make_binary_masks(test_masks, 30)
     print("Train-Masks binarized..")
 
     # converting the images/masks to tensors + expanding the masks tensor slide to
     # 1 dimension
-    tensor_test_images = convert_to_tensor(test_images)
+    tensor_test_images = convert_to_tensor(test_images_preprocessed)
     tensor_test_masks = convert_to_tensor(test_masks)
     tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
     print("Images converted to tensors..")
