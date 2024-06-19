@@ -96,7 +96,7 @@ def add_prediction_to_list(test_dataset):
             prediction_image = array_to_img(prediction_image)
             predictions_list.append(prediction_image)
 
-    return predictions_list
+    return predictions_list, binary_predictions
 
 
 test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
