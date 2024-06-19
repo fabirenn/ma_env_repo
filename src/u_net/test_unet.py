@@ -86,11 +86,13 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
 def add_prediction_to_list(test_dataset):
     predictions_list = []
-
+    binary_predictions = []
     for image, mask in test_dataset:
         prediction = model.predict(image)
         for j in range(BATCH_SIZE):
             prediction_image = prediction[j]
+            binary_prediction_image = (prediction_image > 0.5).astype(np.uint8)
+            binary_predictions.append(binary_prediction_image)
             prediction_image = array_to_img(prediction_image)
             predictions_list.append(prediction_image)
 
@@ -110,13 +112,7 @@ model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
 
-predictions = add_prediction_to_list(test_dataset)
-
-binary_predictions = []
-for prediction in predictions:
-    binary_pred_mask = (prediction > 0.5).astype(np.int8)
-    binary_predictions.append(binary_pred_mask)
-
+predictions, binary_predictions = add_prediction_to_list(test_dataset)
 
 
 
