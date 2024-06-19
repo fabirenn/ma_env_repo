@@ -75,11 +75,11 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        plt.imshow(testmask)
+        plt.imshow(testmask, cmap=plt.cm.gray)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
-        plt.imshow(prediction)
+        plt.imshow(prediction, cmap=plt.cm.gray)
 
         file_name = f"pred_figure_{i+1}.png"
         plt.savefig(os.path.join(PRED_IMG_PATH, file_name))
@@ -88,15 +88,17 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
 def add_prediction_to_list(test_dataset):
     predictions_list = []
-
+    binary_predictions = [] 
     for image, mask in test_dataset:
         prediction = model.predict(image)
         for j in range(BATCH_SIZE):
             prediction_image = prediction[j]
+            binary_prediction_image = (prediction_image > 0.5).astype(np.uint8)
+            binary_predictions.append(binary_prediction_image)
             prediction_image = array_to_img(prediction_image)
             predictions_list.append(prediction_image)
 
-    return predictions_list
+    return predictions_list, binary_predictions
 
 
 test_dataset, test_images, test_masks = create_testdataset_for_segnet_training(
@@ -115,7 +117,7 @@ model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
 
-predictions = add_prediction_to_list(test_dataset)
+predictions, binary_predictions = add_prediction_to_list(test_dataset)
 
 
 # Calculate metrics for each image
@@ -138,6 +140,6 @@ print(f"Mean Dice Coefficient: {mean_dice}")
 safe_predictions(
     range=range(212),
     test_images=test_images,
-    predictions=predictions,
+    predictions=binary_predictions,
     test_masks=test_masks,
 )
