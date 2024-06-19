@@ -111,7 +111,7 @@ model.compile(
 )
 
 predictions = add_prediction_to_list(test_dataset)
-binary_predictions = make_binary_masks(predictions)
+binary_predictions = make_binary_masks(predictions, threshold=30)
 
 
 # Calculate metrics for each image
