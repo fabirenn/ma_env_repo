@@ -23,6 +23,7 @@ from data_loader import (
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
+
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
@@ -38,23 +39,24 @@ TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
 TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"
-'''
+TEST_MASK_PATH = "data/local/test/labels"'''
+
 
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-IMG_CHANNEL = 3
+IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 200
-UNET = False
+UNET = True
 
 generator_model = generator(
-    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, unet=UNET
+    IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, used_unet=UNET
 )
+
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
@@ -146,7 +148,7 @@ def log_images_locally(epoch, x, y_true, y_pred):
 
     plt.subplot(1, 3, 1)
     plt.title("GT")
-    plt.imshow(x)
+    plt.imshow(x[:, :, :3])
 
     plt.subplot(1, 3, 2)
     plt.title("True Mask")
