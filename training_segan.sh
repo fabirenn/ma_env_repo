@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:v100:2
-#SBATCH --time=07:00:00
+#SBATCH --time=10:00:00
 #SBATCH --mem=200G
 #SBATCH --partition=clara
 #SBATCH --output=../log/%x.out-%j

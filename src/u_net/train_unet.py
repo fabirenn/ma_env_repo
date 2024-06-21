@@ -29,7 +29,7 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
-EPOCHS = 50
+EPOCHS = 100
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
