@@ -88,7 +88,7 @@ def safe_predictions(range, test_images, predictions, test_masks):
 
 def add_prediction_to_list(test_dataset):
     predictions_list = []
-    binary_predictions = [] 
+    binary_predictions = []
     for image, mask in test_dataset:
         prediction = model.predict(image)
         for j in range(BATCH_SIZE):

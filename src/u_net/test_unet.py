@@ -115,9 +115,6 @@ model.compile(
 predictions, binary_predictions = add_prediction_to_list(test_dataset)
 
 
-
-
-
 # Calculate metrics for each image
 ious = [
     calculate_binary_iou(pred, true)

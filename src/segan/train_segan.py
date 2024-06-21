@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 from keras import layers, models
 from keras.callbacks import EarlyStopping
-from segan_model import discriminator, generator
+from segan_model import discriminator, generator, vgg_model
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -32,7 +32,6 @@ TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
 
 
-
 '''
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
@@ -53,9 +52,13 @@ BATCH_SIZE = 4
 EPOCHS = 200
 UNET = True
 
-generator_model = generator(
-    IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, used_unet=UNET
-)
+PATIENCE = 20
+MIN_DELTA_LOSS = 0.01
+BEST_GEN_LOSS = np.inf
+WAIT = 0
+
+
+generator_model = generator(IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, used_unet=UNET)
 
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
@@ -71,6 +74,8 @@ checkpoint = tf.train.Checkpoint(
     discriminator=discriminator_model,
 )
 
+vgg_model = vgg_model()
+
 
 def discriminator_loss(real_output, fake_output):
     real_loss = loss_fn(tf.ones_like(real_output), real_output)
@@ -81,6 +86,19 @@ def discriminator_loss(real_output, fake_output):
 
 def generator_loss(fake_output):
     return loss_fn(tf.ones_like(fake_output), fake_output)
+
+
+def extract_features(model, images):
+    return model(images)
+
+
+def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
+    real_features = extract_features(feature_extractor, real_images)
+    generated_features = extract_features(feature_extractor, generated_images)
+    loss = 0
+    for real, generated in zip(real_features, generated_features):
+        loss += tf.reduce_mean(tf.abs(real - generated))
+    return loss
 
 
 @tf.function
@@ -97,8 +115,13 @@ def train_step(images, masks):
         gen_loss = generator_loss(fake_output)
         disc_loss = discriminator_loss(real_output, fake_output)
 
+        ms_feature_loss = multi_scale_feature_loss(
+            masks, generated_masks, vgg_model
+        )
+        total_gen_loss = gen_loss + ms_feature_loss
+
     gradients_of_generator = gen_tape.gradient(
-        gen_loss, generator_model.trainable_variables
+        total_gen_loss, generator_model.trainable_variables
     )
     gradients_of_discriminator = disc_tape.gradient(
         disc_loss, discriminator_model.trainable_variables
@@ -111,7 +134,7 @@ def train_step(images, masks):
         zip(gradients_of_discriminator, discriminator_model.trainable_variables)
     )
 
-    return gen_loss, disc_loss
+    return total_gen_loss, disc_loss
 
 
 def generate_images(model, dataset, epoch):
@@ -128,6 +151,7 @@ def generate_images(model, dataset, epoch):
 
 
 def train(train_dataset, test_dataset, epochs):
+    global BEST_GEN_LOSS, WAIT
     for epoch in range(epochs):
         for image_batch, mask_batch in train_dataset:
             gen_loss, disc_loss = train_step(image_batch, mask_batch)
@@ -138,8 +162,16 @@ def train(train_dataset, test_dataset, epochs):
         generate_images(
             model=generator_model, dataset=test_dataset, epoch=epoch
         )
-        if (epoch + 1) % 10 == 0:
+
+        if gen_loss < BEST_GEN_LOSS - MIN_DELTA_LOSS:
+            BEST_GEN_LOSS = gen_loss
             checkpoint.save(file_prefix=CHECKPOINT_PATH)
+            wait = 0
+        else:
+            wait += 1
+            if wait >= PATIENCE:
+                print("Early stopping triggered")
+                return
 
 
 def log_images_locally(epoch, x, y_true, y_pred):
