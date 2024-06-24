@@ -23,22 +23,22 @@ from data_loader import (
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-
+'''
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 TEST_IMG_PATH = "data/training_test/images_mixed"
-TEST_MASK_PATH = "data/training_test/labels_mixed"
+TEST_MASK_PATH = "data/training_test/labels_mixed"'''
 
 
-'''
+
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
 TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"'''
+TEST_MASK_PATH = "data/local/test/labels"
 
 
 LOG_VAL_PRED = "data/predictions/segan"
@@ -49,10 +49,10 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
-EPOCHS = 200
+EPOCHS = 100
 UNET = True
 
-PATIENCE = 20
+PATIENCE = 80
 MIN_DELTA_LOSS = 0.01
 BEST_GEN_LOSS = np.inf
 WAIT = 0
@@ -88,8 +88,13 @@ def generator_loss(fake_output):
     return loss_fn(tf.ones_like(fake_output), fake_output)
 
 
+def convert_grayscale_to_rgb(images):
+    return tf.image.grayscale_to_rgb(images)
+
+
 def extract_features(model, images):
-    return model(images)
+    rgb_images = convert_grayscale_to_rgb(images)
+    return model(rgb_images)
 
 
 def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
@@ -166,12 +171,15 @@ def train(train_dataset, test_dataset, epochs):
         if gen_loss < BEST_GEN_LOSS - MIN_DELTA_LOSS:
             BEST_GEN_LOSS = gen_loss
             checkpoint.save(file_prefix=CHECKPOINT_PATH)
+            print("Improved & Saved model")
             wait = 0
         else:
             wait += 1
             if wait >= PATIENCE:
                 print("Early stopping triggered")
                 return
+            else:
+                print("Waiting for improvement..")
 
 
 def log_images_locally(epoch, x, y_true, y_pred):
