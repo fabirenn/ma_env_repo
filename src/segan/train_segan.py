@@ -46,11 +46,11 @@ CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-IMG_CHANNEL = 8
+IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
 EPOCHS = 100
-UNET = True
+UNET = False
 
 PATIENCE = 80
 MIN_DELTA_LOSS = 0.01
