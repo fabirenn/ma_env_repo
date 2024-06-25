@@ -1,13 +1,28 @@
 import numpy as np
 import tensorflow as tf
-from keras.applications import ResNet50
 from keras import backend as K
-from keras.layers import Conv2D, Input, MaxPooling2D, UpSampling2D, concatenate, Layer
+from keras.applications import ResNet50
+from keras.layers import (
+    Conv2D,
+    Input,
+    Layer,
+    MaxPooling2D,
+    UpSampling2D,
+    concatenate,
+)
 from keras.models import Model
 
 
 class CRFLayer(Layer):
-    def __init__(self, image_shape, theta_alpha=160., theta_beta=3., theta_gamma=3., num_iterations=10, **kwargs):
+    def __init__(
+        self,
+        image_shape,
+        theta_alpha=160.0,
+        theta_beta=3.0,
+        theta_gamma=3.0,
+        num_iterations=10,
+        **kwargs,
+    ):
         self.image_shape = image_shape
         self.theta_alpha = theta_alpha
         self.theta_beta = theta_beta
@@ -29,10 +44,14 @@ class CRFLayer(Layer):
         Q = unary
 
         def spatial_kernel(x):
-            return tf.image.resize(x, self.image_shape[:2], method=tf.image.ResizeMethod.BILINEAR)
+            return tf.image.resize(
+                x, self.image_shape[:2], method=tf.image.ResizeMethod.BILINEAR
+            )
 
         def bilateral_kernel(x):
-            return tf.image.resize(x, self.image_shape[:2], method=tf.image.ResizeMethod.BILINEAR)
+            return tf.image.resize(
+                x, self.image_shape[:2], method=tf.image.ResizeMethod.BILINEAR
+            )
 
         # Perform mean-field inference
         for i in range(self.num_iterations):
@@ -131,7 +150,7 @@ def DeepLab(input_shape):
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
     x = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(x)
 
-    #crf_output = CRFLayer(input_shape)([inputs, x])
+    # crf_output = CRFLayer(input_shape)([inputs, x])
 
     model = Model(inputs, x)
     model.summary()

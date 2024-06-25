@@ -13,7 +13,12 @@ from unet_architecture_hcp import unet
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
 from data_loader import create_testdataset_for_unet_training, make_binary_masks
-from processing import calculate_binary_dice, calculate_binary_iou, safe_predictions_locally, add_prediction_to_list
+from processing import (
+    add_prediction_to_list,
+    calculate_binary_dice,
+    calculate_binary_iou,
+    safe_predictions_locally,
+)
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -43,7 +48,9 @@ model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
 
-predictions, binary_predictions = add_prediction_to_list(test_dataset, model=model, batch_size=BATCH_SIZE)
+predictions, binary_predictions = add_prediction_to_list(
+    test_dataset, model=model, batch_size=BATCH_SIZE
+)
 
 # Calculate metrics for each image
 ious = [
@@ -69,5 +76,5 @@ safe_predictions_locally(
     predictions=binary_predictions,
     test_masks=test_masks,
     pred_img_path=PRED_IMG_PATH,
-    val=False
+    val=False,
 )

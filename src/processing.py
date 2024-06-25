@@ -1,11 +1,12 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import wandb
-from keras.utils import array_to_img, img_to_array
 import os
 import sys
 
 import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from keras.utils import array_to_img, img_to_array
+
+import wandb
 
 
 def calculate_binary_iou(pred_mask, true_mask):
@@ -21,7 +22,7 @@ def calculate_binary_iou(pred_mask, true_mask):
         return float("nan")  # Avoid division by zero
     else:
         return intersection / union
-    
+
 
 def calculate_binary_dice(pred_mask, true_mask):
     pred_mask = np.round(pred_mask).astype(
@@ -38,7 +39,9 @@ def calculate_binary_dice(pred_mask, true_mask):
         return intersection / total
 
 
-def safe_predictions_locally(range, iterator, test_images, predictions, test_masks, pred_img_path, val):
+def safe_predictions_locally(
+    range, iterator, test_images, predictions, test_masks, pred_img_path, val
+):
     if val is True:
         plt.figure(figsize=(45, 15))
 
@@ -60,7 +63,7 @@ def safe_predictions_locally(range, iterator, test_images, predictions, test_mas
 
     else:
         for i, testimage, prediction, testmask in zip(
-        range, test_images, predictions, test_masks
+            range, test_images, predictions, test_masks
         ):
             plt.figure(figsize=(45, 15))
 
@@ -94,5 +97,3 @@ def add_prediction_to_list(test_dataset, model, batch_size):
             predictions_list.append(prediction_image)
 
     return predictions_list, binary_predictions
-    
-
