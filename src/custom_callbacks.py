@@ -5,6 +5,7 @@ import numpy as np
 from keras.callbacks import Callback
 from keras.utils import array_to_img, img_to_array
 from PIL import Image
+from processing import safe_predictions_locally
 
 import wandb
 
@@ -24,6 +25,7 @@ class ValidationCallback(Callback):
         self.log_images_locally(
             epoch, x_batch[0], y_true_batch[0], y_pred_batch[0]
         )
+        safe_predictions_locally(range=None, iterator=epoch, test_images=x_batch[0], test_masks=y_true_batch[0], predictions=y_pred_batch[0], pred_img_path=self.log_dir, val=True)
         # self.log_images_wandb(epoch, x_batch[0], y_true_batch[0],
         # y_pred_batch[0])
 

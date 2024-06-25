@@ -4,11 +4,6 @@ from keras.applications import ResNet50
 from keras import backend as K
 from keras.layers import Conv2D, Input, MaxPooling2D, UpSampling2D, concatenate, Layer
 from keras.models import Model
-from pydensecrf.utils import (
-    create_pairwise_bilateral,
-    create_pairwise_gaussian,
-    unary_from_softmax,
-)
 
 
 class CRFLayer(Layer):
