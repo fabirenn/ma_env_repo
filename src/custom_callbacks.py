@@ -22,9 +22,6 @@ class ValidationCallback(Callback):
         random_sample = self.validation_data.take(1)
         x_batch, y_true_batch = next(iter(random_sample))
         y_pred_batch = self.model.predict(x_batch)
-        self.log_images_locally(
-            epoch, x_batch[0], y_true_batch[0], y_pred_batch[0]
-        )
         safe_predictions_locally(
             range=None,
             iterator=epoch,
