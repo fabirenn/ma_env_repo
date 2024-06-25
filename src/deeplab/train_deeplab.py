@@ -16,22 +16,22 @@ from data_loader import create_datasets_for_segnet_training
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-'''
+
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
-VAL_MASK_PATH = "data/training_val/labels_mixed"'''
+VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.h5"
 LOG_VAL_PRED = "data/predictions/deeplab"
 
 
-TRAIN_IMG_PATH = "data/local/train/images"
+'''TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
 TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"
+TEST_MASK_PATH = "data/local/test/labels"'''
 
 
 IMG_WIDTH = 512
