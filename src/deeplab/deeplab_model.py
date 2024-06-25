@@ -1,5 +1,4 @@
 import numpy as np
-import pydensecrf.densecrf as dcrf
 import tensorflow as tf
 from keras.applications import ResNet50
 from keras import backend as K
