@@ -23,34 +23,33 @@ from data_loader import (
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-
+'''
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 TEST_IMG_PATH = "data/training_test/images_mixed"
-TEST_MASK_PATH = "data/training_test/labels_mixed"
+TEST_MASK_PATH = "data/training_test/labels_mixed"'''
 
 
-'''
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
 TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"'''
+TEST_MASK_PATH = "data/local/test/labels"
 
 
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
-IMG_CHANNEL = 3
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
+IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 100
-UNET = False
+UNET = True
 
 PATIENCE = 80
 MIN_DELTA_LOSS = 0.01
@@ -171,6 +170,7 @@ def train(train_dataset, test_dataset, epochs):
         if gen_loss < BEST_GEN_LOSS - MIN_DELTA_LOSS:
             BEST_GEN_LOSS = gen_loss
             checkpoint.save(file_prefix=CHECKPOINT_PATH)
+            generator_model.save(CHECKPOINT_PATH)
             print("Improved & Saved model")
             wait = 0
         else:

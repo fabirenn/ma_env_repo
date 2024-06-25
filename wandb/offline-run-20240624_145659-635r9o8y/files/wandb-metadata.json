@@ -1,0 +1,49 @@
+{
+    "os": "macOS-14.5-arm64-arm-64bit",
+    "python": "3.10.13",
+    "heartbeatAt": "2024-06-24T12:56:59.565151",
+    "startedAt": "2024-06-24T12:56:59.516821",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/fabiorenn/Desktop/Master/code/ma_env_repo/src/deeplab/train_deeblab.py",
+    "codePathLocal": "src/deeplab/train_deeblab.py",
+    "codePath": "src/deeplab/train_deeblab.py",
+    "git": {
+        "remote": "https://github.com/fabirenn/ma_env_repo.git",
+        "commit": "a06a5cc61b147e9d8cf0a38e0d4d88f4c3293893"
+    },
+    "email": "fabio.renn@outlook.de",
+    "root": "/Users/fabiorenn/Desktop/Master/code/ma_env_repo",
+    "host": "MacBook-Air-von-Fabio.local",
+    "username": "fabiorenn",
+    "executable": "/opt/miniconda3/envs/ma_env/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 3504,
+        "min": 600,
+        "max": 3504
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3504,
+            "min": 600,
+            "max": 3504
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 460.4317207336426,
+            "used": 365.8762321472168
+        }
+    },
+    "gpuapple": {
+        "type": "arm",
+        "vendor": "Apple"
+    },
+    "memory": {
+        "total": 8.0
+    }
+}
