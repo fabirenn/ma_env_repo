@@ -150,9 +150,9 @@ def DeepLab(input_shape):
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
     x = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(x)
 
-    # crf_output = CRFLayer(input_shape)([inputs, x])
+    crf_output = CRFLayer(input_shape)([inputs, x])
 
-    model = Model(inputs, x)
+    model = Model(inputs, crf_output)
     model.summary()
 
     return model
