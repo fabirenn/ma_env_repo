@@ -2,7 +2,7 @@ import os
 import sys
 
 import tensorflow as tf
-from deeplab_model import DeepLab, apply_crf
+from deeplab_model import DeepLab
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -34,8 +34,8 @@ TEST_IMG_PATH = "data/local/test/images"
 TEST_MASK_PATH = "data/local/test/labels"
 
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
 BATCH_SIZE = 4

@@ -2,7 +2,8 @@ import numpy as np
 import pydensecrf.densecrf as dcrf
 import tensorflow as tf
 from keras.applications import ResNet50
-from keras.layers import Conv2D, Input, MaxPooling2D, UpSampling2D, concatenate
+from keras import backend as K
+from keras.layers import Conv2D, Input, MaxPooling2D, UpSampling2D, concatenate, Layer
 from keras.models import Model
 from pydensecrf.utils import (
     create_pairwise_bilateral,
@@ -11,37 +12,87 @@ from pydensecrf.utils import (
 )
 
 
+class CRFLayer(Layer):
+    def __init__(self, image_shape, theta_alpha=160., theta_beta=3., theta_gamma=3., num_iterations=10, **kwargs):
+        self.image_shape = image_shape
+        self.theta_alpha = theta_alpha
+        self.theta_beta = theta_beta
+        self.theta_gamma = theta_gamma
+        self.num_iterations = num_iterations
+        super(CRFLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        super(CRFLayer, self).build(input_shape)
+
+    def call(self, inputs):
+        image, logits = inputs
+
+        # Convert logits to unary potentials
+        unary = tf.nn.softmax(logits, axis=-1)
+        unary = -tf.math.log(unary + 1e-10)
+
+        # Initialize Q to unary
+        Q = unary
+
+        def spatial_kernel(x):
+            return tf.image.resize(x, self.image_shape[:2], method=tf.image.ResizeMethod.BILINEAR)
+
+        def bilateral_kernel(x):
+            return tf.image.resize(x, self.image_shape[:2], method=tf.image.ResizeMethod.BILINEAR)
+
+        # Perform mean-field inference
+        for i in range(self.num_iterations):
+            # Spatial term
+            spatial_out = spatial_kernel(Q)
+            spatial_out = K.exp(-spatial_out / (2 * self.theta_gamma**2))
+            spatial_out = K.sum(spatial_out, axis=-1, keepdims=True)
+
+            # Bilateral term
+            bilateral_out = bilateral_kernel(Q)
+            bilateral_out = K.exp(-bilateral_out / (2 * self.theta_alpha**2))
+            bilateral_out = K.sum(bilateral_out, axis=-1, keepdims=True)
+
+            # Update Q
+            Q = unary + spatial_out + bilateral_out
+            Q = tf.nn.softmax(Q, axis=-1)
+
+        return Q
+
+    def compute_output_shape(self, input_shape):
+        return input_shape[1]
+
+
 def atrous_spatial_pyramid_pooling(inputs, filters):
     # Define atrous convolutions with different rates
     conv_1x1 = Conv2D(
-        filters=filters, kernel_size=(1, 1), padding="same", activation="relu"
+        filters=filters, kernel_size=(1, 1), padding="same", activation=None
     )(inputs)
     conv_3x3_rate_6 = Conv2D(
         filters=filters,
         kernel_size=(3, 3),
         padding="same",
-        activation="relu",
+        activation=None,
         dilation_rate=6,
     )(inputs)
     conv_3x3_rate_12 = Conv2D(
         filters=filters,
         kernel_size=(3, 3),
         padding="same",
-        activation="relu",
+        activation=None,
         dilation_rate=12,
     )(inputs)
     conv_3x3_rate_18 = Conv2D(
         filters=filters,
         kernel_size=(3, 3),
         padding="same",
-        activation="relu",
+        activation=None,
         dilation_rate=18,
     )(inputs)
 
     # Image-level features
     image_pooling = tf.reduce_mean(inputs, axis=[1, 2], keepdims=True)
     image_pooling = Conv2D(
-        filters=filters, kernel_size=(1, 1), padding="same", activation="relu"
+        filters=filters, kernel_size=(1, 1), padding="same", activation=None
     )(image_pooling)
     image_pooling = UpSampling2D(
         size=(inputs.shape[1], inputs.shape[2]), interpolation="bilinear"
@@ -50,57 +101,19 @@ def atrous_spatial_pyramid_pooling(inputs, filters):
     # Concatenate all features
     concat = concatenate(
         [
+            image_pooling,
             conv_1x1,
             conv_3x3_rate_6,
             conv_3x3_rate_12,
             conv_3x3_rate_18,
-            image_pooling,
         ],
-        axis=-1,
+        axis=3,
     )
     outputs = Conv2D(
-        filters=filters, kernel_size=(1, 1), padding="same", activation="relu"
+        filters=filters, kernel_size=(1, 1), padding="same", activation=None
     )(concat)
 
     return outputs
-
-
-def apply_crf(image, prediction):
-    """
-    Apply CRF to the prediction.
-
-    Parameters:
-    image: The original image
-    prediction: The model's softmax output
-
-    Returns:
-    result: The CRF-refined segmentation
-    """
-    # Convert softmax output to unary potentials
-    unary = unary_from_softmax(prediction)
-    unary = np.ascontiguousarray(unary)
-
-    # Create the dense CRF model
-    d = dcrf.DenseCRF2D(image.shape[1], image.shape[0], prediction.shape[0])
-    d.setUnaryEnergy(unary)
-
-    # Create pairwise potentials (bilateral and spatial)
-    pairwise_gaussian = create_pairwise_gaussian(
-        sdims=(3, 3), shape=image.shape[:2]
-    )
-    d.addPairwiseEnergy(pairwise_gaussian, compat=3)
-
-    pairwise_bilateral = create_pairwise_bilateral(
-        sdims=(50, 50), schan=(20, 20, 20), img=image, chdim=2
-    )
-    d.addPairwiseEnergy(pairwise_bilateral, compat=10)
-
-    # Perform inference
-    Q = d.inference(5)
-
-    # Convert the Q array to the final prediction
-    result = np.argmax(Q, axis=0).reshape((image.shape[0], image.shape[1]))
-    return result
 
 
 def DeepLab(input_shape):
@@ -122,9 +135,11 @@ def DeepLab(input_shape):
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
     x = Conv2D(256, (3, 3), padding="same", activation="relu")(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
-    outputs = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(x)
+    x = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(x)
 
-    model = Model(inputs, outputs)
+    #crf_output = CRFLayer(input_shape)([inputs, x])
+
+    model = Model(inputs, x)
     model.summary()
 
     return model

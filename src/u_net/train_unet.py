@@ -19,6 +19,12 @@ TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
+
+TRAIN_IMG_PATH = "data/local/train/images"
+TRAIN_MASK_PATH = "data/local/train/labels"
+VAL_IMG_PATH = "data/local/val/images"
+VAL_MASK_PATH = "data/local/val/labels"
+
 LOG_VAL_PRED = "data/predictions/unet"
 
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
