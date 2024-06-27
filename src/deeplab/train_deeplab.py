@@ -38,6 +38,7 @@ IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
 EPOCHS = 50
+APPLY_CRF = False
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -89,7 +90,7 @@ model.fit(
             model=model,
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
-            apply_crf=True,
+            apply_crf=APPLY_CRF,
         ),
     ],
 )

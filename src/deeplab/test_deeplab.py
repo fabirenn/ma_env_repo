@@ -32,6 +32,7 @@ IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
 EPOCHS = 50
+APPLY_CRF = False
 
 
 test_dataset, test_images, test_masks = create_testdataset_for_segnet_training(
@@ -48,7 +49,7 @@ model.compile(
 )
 
 predictions, binary_predictions = add_prediction_to_list(
-    test_dataset, model=model, batch_size=BATCH_SIZE, apply_crf=True
+    test_dataset, model=model, batch_size=BATCH_SIZE, apply_crf=APPLY_CRF
 )
 
 # Calculate metrics for each image
