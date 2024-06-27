@@ -38,7 +38,7 @@ IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
 EPOCHS = 50
-APPLY_CRF = False
+APPLY_CRF = True
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
     directory_train_images=TRAIN_IMG_PATH,
