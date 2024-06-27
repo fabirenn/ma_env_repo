@@ -53,7 +53,7 @@ model.compile(
 )
 
 predictions, binary_predictions = add_prediction_to_list(
-    test_dataset, model=model, batch_size=BATCH_SIZE
+    test_dataset, model=model, batch_size=BATCH_SIZE, apply_crf=False
 )
 
 
