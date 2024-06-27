@@ -82,6 +82,7 @@ model.fit(
             model=model,
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
+            apply_crf=False
         ),
     ],
 )
