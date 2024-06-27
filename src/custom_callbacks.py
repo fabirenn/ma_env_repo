@@ -7,21 +7,25 @@ from keras.utils import array_to_img, img_to_array
 from PIL import Image
 
 import wandb
-from processing import safe_predictions_locally
+from processing import apply_crf, safe_predictions_locally
 
 
 class ValidationCallback(Callback):
-    def __init__(self, model, validation_data, log_dir):
+    def __init__(self, model, validation_data, log_dir, apply_crf):
         super().__init__()
         self.model = model
         self.validation_data = validation_data
         self.log_dir = log_dir
+        self.apply_crf = apply_crf
         os.makedirs(log_dir, exist_ok=True)
 
     def on_epoch_end(self, epoch, logs=None):
         random_sample = self.validation_data.take(1)
         x_batch, y_true_batch = next(iter(random_sample))
         y_pred_batch = self.model.predict(x_batch)
+        if self.apply_crf is True:
+            y_pred_batch[0] = apply_crf(x_batch[0], y_pred_batch[0])
+
         safe_predictions_locally(
             range=None,
             iterator=epoch,

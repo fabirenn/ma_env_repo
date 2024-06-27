@@ -4,7 +4,14 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import pydensecrf.densecrf as dcrf
+import tensorflow as tf
 from keras.utils import array_to_img, img_to_array
+from pydensecrf.utils import (
+    create_pairwise_bilateral,
+    create_pairwise_gaussian,
+    unary_from_softmax,
+)
 
 import wandb
 
@@ -97,3 +104,52 @@ def add_prediction_to_list(test_dataset, model, batch_size):
             predictions_list.append(prediction_image)
 
     return predictions_list, binary_predictions
+
+
+def apply_crf(image, prediction):
+    """
+    Apply CRF to the prediction.
+
+    Parameters:
+    image: The original image
+    prediction: The model's sigmoid output
+
+    Returns:
+    result: The CRF-refined segmentation
+    """
+
+    image = image.numpy() if isinstance(image, tf.Tensor) else image
+    prediction = (
+        prediction.numpy() if isinstance(prediction, tf.Tensor) else prediction
+    )
+
+    # Convert sigmoid output to softmax for binary classification
+    softmax = np.zeros((2, *prediction.shape))
+    softmax[1, :, :] = prediction
+    softmax[0, :, :] = 1 - prediction
+
+    # Convert softmax output to unary potentials
+    unary = unary_from_softmax(softmax)
+    unary = np.ascontiguousarray(unary)
+
+    # Create the dense CRF model
+    d = dcrf.DenseCRF2D(image.shape[1], image.shape[0], 2)
+    d.setUnaryEnergy(unary)
+
+    # Create pairwise potentials (bilateral and spatial)
+    pairwise_gaussian = create_pairwise_gaussian(
+        sdims=(3, 3), shape=image.shape[:2]
+    )
+    d.addPairwiseEnergy(pairwise_gaussian, compat=3)
+
+    pairwise_bilateral = create_pairwise_bilateral(
+        sdims=(50, 50), schan=(20, 20, 20), img=image, chdim=2
+    )
+    d.addPairwiseEnergy(pairwise_bilateral, compat=10)
+
+    # Perform inference
+    Q = d.inference(5)
+
+    # Convert the Q array to the final prediction
+    result = np.argmax(Q, axis=0).reshape((image.shape[0], image.shape[1]))
+    return result[..., np.newaxis]

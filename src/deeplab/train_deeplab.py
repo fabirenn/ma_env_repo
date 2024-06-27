@@ -26,16 +26,14 @@ CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.h5"
 LOG_VAL_PRED = "data/predictions/deeplab"
 
 
-'''TRAIN_IMG_PATH = "data/local/train/images"
+TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
-TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"'''
 
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 128
+IMG_HEIGHT = 128
 IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
@@ -91,6 +89,7 @@ model.fit(
             model=model,
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
+            apply_crf=True,
         ),
     ],
 )
