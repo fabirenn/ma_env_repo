@@ -25,15 +25,15 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.h5"
 LOG_VAL_PRED = "data/predictions/deeplab"
 
-
+'''
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
-VAL_MASK_PATH = "data/local/val/labels"
+VAL_MASK_PATH = "data/local/val/labels"'''
 
 
-IMG_WIDTH = 128
-IMG_HEIGHT = 128
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
