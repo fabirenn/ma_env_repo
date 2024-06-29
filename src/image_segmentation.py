@@ -105,6 +105,10 @@ CHECKPOINT_YNET = "artifacts/models/ynet/ynet_checkpoint.h5"
 IMG_PATH = "data/generated"
 MASK_PATH = "data/segmented/mask"
 
+IMG_PATH = "data/originals/images"
+MASK_PATH = "data/originals/masks"
+
+
 unet_model = load_model(CHECKPOINT_UNET, compile=False)
 unet_model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
