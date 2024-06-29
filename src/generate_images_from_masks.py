@@ -1,6 +1,7 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 from data_loader import (
     load_images_from_directory,

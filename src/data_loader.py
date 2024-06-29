@@ -429,3 +429,18 @@ def create_testdataset_for_segnet_training(
     print("Test Dataset created..")
 
     return test_dataset, test_images, test_masks
+
+
+def create_dataset_for_image_segmentation(img_dir, mask_dir, unet):
+    images = []
+    preprocessed_images = []
+    images = load_images_from_directory(img_dir)
+    images = normalize_image_data(images)
+    if unet is True:
+        preprocessed_images = preprocess_images(images)
+
+    masks = []
+    masks = load_masks_from_directory(mask_dir)
+    masks = make_binary_masks(masks, threshold=30)
+
+    return images, preprocessed_images, masks

@@ -99,7 +99,9 @@ def add_prediction_to_list(test_dataset, model, batch_size, apply_crf):
         for j in range(batch_size):
             prediction_image = prediction[j]
             if apply_crf is True:
-                prediction_image = apply_crf_to_pred(image=image[j], prediction=prediction_image)
+                prediction_image = apply_crf_to_pred(
+                    image=image[j], prediction=prediction_image
+                )
             binary_prediction_image = (prediction_image > 0.5).astype(np.uint8)
             binary_predictions.append(binary_prediction_image)
             prediction_image = array_to_img(prediction_image)
