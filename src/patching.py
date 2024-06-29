@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
- 
+
 import albumentations as A
 import cv2
 import numpy as np
@@ -8,21 +8,21 @@ import numpy.typing as npt
 import torch
 from dotenv import load_dotenv
 from rich.progress import track
- 
+
 import wandb
 from src.nn.models.modules.segmentation import SegmentationModule
- 
+
 # from src.utils.transform.mask.class2color.multiclass_numpy import (
 #     class_mask2bgr_mask,
 # )
 from src.utils.transform.mask.change_format import mask2_2d_mask
 from src.wandb.templates.mask import fill_wandb_mask_template
- 
+
 load_dotenv()
 ARTIFACTS_DIR = os.getenv("ARTIFACTS_DIR", default="artifacts/")
 DATA_DIR = os.getenv("DATA_DIR", default="data/")
- 
- 
+
+
 def predict_by_patching(
     model: SegmentationModule,
     img: npt.NDArray[np.uint8],
@@ -36,16 +36,16 @@ def predict_by_patching(
     overlap_h, overlap_w = overlap
     assert patch_h / overlap_h > 2
     assert patch_w / overlap_w > 2
- 
+
     img = transform(image=img)["image"]
- 
+
     if img.shape[2] < img.shape[0] and img.shape[2] < img.shape[1]:
         img = img.transpose(2, 0, 1)
- 
+
     img_h, img_w = img.shape[1:]
     n_cols = 1 + int(np.ceil((img_w - patch_w) / (patch_w - overlap_w)))
     n_rows = 1 + int(np.ceil((img_h - patch_h) / (patch_h - overlap_h)))
- 
+
     patches = []
     for i in range(n_rows):
         for j in range(n_cols):
@@ -59,7 +59,7 @@ def predict_by_patching(
                 left = j * (patch_w - overlap_w)
             patch = img[:, top : top + patch_h, left : left + patch_w]
             patches += [patch]
- 
+
     if accumulate_in_batch:
         batch = torch.tensor(
             np.stack(patches, axis=0),
@@ -77,9 +77,9 @@ def predict_by_patching(
             with torch.no_grad():
                 pred = model(batch).cpu().numpy()[0]
             preds += [pred]
- 
+
     final_mask = np.zeros((n_classes, img_h, img_w), dtype=np.float32)
- 
+
     for i in range(n_rows * n_cols):
         row = int(i / n_cols)
         col = int(i % n_cols)
@@ -87,7 +87,7 @@ def predict_by_patching(
             top = img_h - patch_h
         else:
             top = row * (patch_h - overlap_h)
- 
+
         if col == n_cols - 1:
             left = img_w - patch_w
         else:
@@ -99,14 +99,14 @@ def predict_by_patching(
             [preds[i], previous_pred], axis=0
         )
     return final_mask
- 
- 
+
+
 if __name__ == "__main__":
     img_path = Path(DATA_DIR + "fence/IMG_0002.jpg")
     assert img_path.is_file()
     img = cv2.imread(str(img_path))
     img_h, img_w = img.shape[:2]
- 
+
     mean = (
         np.array((99.34108047598379, 130.66293960985723, 130.22394853555812))
         / 255
@@ -122,7 +122,7 @@ if __name__ == "__main__":
             A.CenterCrop(2400, 3600),
         ]
     )
- 
+
     checkpoint_path = Path(
         ARTIFACTS_DIR + "models/segment/fence/unet/2024-05-10/"
         "epoch=169-step=2040.ckpt"
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     #     cls2bgr=cls2bgr,
     # )
     preds_2d = mask2_2d_mask(predictions)
- 
+
     # get wandb image
     cls2name = {
         1: "wire",
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         A.center_crop(img[..., ::-1], 2400, 3600),
         masks=wandb_mask,
     )
- 
+
     with wandb.init(
         job_type="patches_prediction", project="fence_segmentation"
     ) as run:
@@ -186,4 +186,3 @@ if __name__ == "__main__":
     #     ARTIFACTS_DIR + f"masks/patches/{img_path.stem}.png",
     #     bgr_mask
     # )
- 

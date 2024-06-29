@@ -48,5 +48,3 @@ class ValidationCallback(Callback):
         wandb_table.add_data(epoch, input_image, true_mask, predicted_mask)
 
         wandb.log({"val_image": wandb_table})
-
-    
