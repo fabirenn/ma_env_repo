@@ -142,15 +142,15 @@ def apply_crf_to_pred(image, prediction):
     pairwise_gaussian = create_pairwise_gaussian(
         sdims=(3, 3), shape=image.shape[:2]
     )
-    d.addPairwiseEnergy(pairwise_gaussian, compat=2)
+    d.addPairwiseEnergy(pairwise_gaussian, compat=1)
 
     pairwise_bilateral = create_pairwise_bilateral(
-        sdims=(20, 20), schan=(10, 10, 10), img=image, chdim=2
+        sdims=(10, 10), schan=(5, 5, 5), img=image, chdim=2
     )
-    d.addPairwiseEnergy(pairwise_bilateral, compat=2)
+    d.addPairwiseEnergy(pairwise_bilateral, compat=1)
 
     # Perform inference
-    Q = d.inference(3)
+    Q = d.inference(2)
 
     # Convert the Q array to the final prediction
     result = np.argmax(Q, axis=0).reshape((image.shape[0], image.shape[1]))
