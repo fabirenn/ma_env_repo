@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import tensorflow as tf
 from keras.models import load_model
 from PIL import Image
@@ -96,6 +97,8 @@ def segment_image(image, model, patch_size, overlap):
     return segmented_image
 
 
+os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
+
 CHECKPOINT_UNET = "artifacts/models/unet/unet_checkpoint.h5"
 CHECKPOINT_SEGNET = "artifacts/models/segnet/segnet_checkpoint.h5"
 CHECKPOINT_DEEPLAB = "artifacts/models/deeplab/deeplab_checkpoint.h5"
@@ -107,10 +110,10 @@ MASK_PATH = "data/segmented/mask"
 
 IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
+UNET = False
 
-
-unet_model = load_model(CHECKPOINT_UNET, compile=False)
-unet_model.compile(
+model = load_model(CHECKPOINT_SEGNET, compile=False)
+model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
 
@@ -118,15 +121,18 @@ original_images = []
 original_masks = []
 preprocessed_images = []
 original_images, preprocessed_images, original_masks = create_dataset_for_image_segmentation(
-    img_dir=IMG_PATH, mask_dir=MASK_PATH, unet=True
+    img_dir=IMG_PATH, mask_dir=MASK_PATH, unet=UNET
 )
 print("loaded the images")
+if UNET is False:
+    preprocessed_images = original_images
+
 
 for original_image, preprocessed_image, original_mask, i in zip(
     original_images, preprocessed_images, original_masks, range(10)
 ):
     segmented_image = segment_image(
-        preprocessed_image, unet_model, patch_size=512, overlap=100
+        preprocessed_image, model, patch_size=512, overlap=100
     )
     safe_predictions_locally(
         range=None,
