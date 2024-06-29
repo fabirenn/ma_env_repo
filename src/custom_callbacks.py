@@ -49,17 +49,4 @@ class ValidationCallback(Callback):
 
         wandb.log({"val_image": wandb_table})
 
-    def log_images_locally(self, epoch, x, y_true, y_pred):
-
-        # original_image = array_to_img(x)
-        # file_name = f"epoch_{epoch + 1}_original.png"
-        # original_image.save(os.path.join(self.log_dir, file_name))
-
-        # true_mask = array_to_img(y_true)
-        # file_name = f"epoch_{epoch + 1}_truemask.png"
-        # true_mask.save(os.path.join(self.log_dir, file_name))
-
-        prediction = array_to_img(y_pred)
-        file_name = f"epoch_{epoch + 1}_prediction.png"
-        prediction.save(os.path.join(self.log_dir, file_name))
-        plt.close()
+    
