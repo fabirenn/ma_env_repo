@@ -8,6 +8,8 @@ from PIL import Image
 from data_loader import create_dataset_for_image_segmentation
 from processing import safe_predictions_locally
 
+from segnet.custom_layers import custom_objects
+
 
 def create_patches(image, patch_size, overlap):
     """
@@ -112,7 +114,7 @@ IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
 UNET = False
 
-model = load_model(CHECKPOINT_SEGNET, compile=False)
+model = load_model(CHECKPOINT_SEGNET, custom_objects=custom_objects, compile=False)
 model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
