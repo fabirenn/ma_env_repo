@@ -12,6 +12,7 @@ from unet_architecture_hcp import unet
 
 from custom_callbacks import ValidationCallback
 from data_loader import create_datasets_for_unet_training
+from loss_functions import dice_loss, iou_loss, combined_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -66,7 +67,7 @@ config = wandb.config
 model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, training=True)
 
 model.compile(
-    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+    optimizer="adam", loss=combined_loss, metrics=["accuracy"]
 )
 
 model.fit(

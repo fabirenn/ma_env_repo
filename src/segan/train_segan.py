@@ -20,6 +20,7 @@ from data_loader import (
     create_testdataset_for_segnet_training,
     create_testdataset_for_unet_training,
 )
+from loss_functions import dice_loss, iou_loss, combined_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -63,7 +64,8 @@ discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
 
-loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+#loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+loss_fn = combined_loss
 gen_optimizer = tf.keras.optimizers.Adam(1e-4)
 disc_optimizer = tf.keras.optimizers.Adam(1e-4)
 checkpoint = tf.train.Checkpoint(
