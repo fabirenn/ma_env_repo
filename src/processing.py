@@ -50,11 +50,12 @@ def safe_predictions_locally(
     range, iterator, test_images, predictions, test_masks, pred_img_path, val
 ):
     if val is True:
+        test_images_data = test_images[:, :, 3]
         plt.figure(figsize=(45, 15))
 
         plt.subplot(1, 3, 1)
         plt.title("GT")
-        plt.imshow(test_images)
+        plt.imshow(test_images_data)
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
@@ -72,11 +73,12 @@ def safe_predictions_locally(
         for i, testimage, prediction, testmask in zip(
             range, test_images, predictions, test_masks
         ):
+            testimage_data = testimage[:, :, 3]
             plt.figure(figsize=(45, 15))
 
             plt.subplot(1, 3, 1)
             plt.title("GT")
-            plt.imshow(testimage)
+            plt.imshow(testimage_data)
 
             plt.subplot(1, 3, 2)
             plt.title("True Mask")

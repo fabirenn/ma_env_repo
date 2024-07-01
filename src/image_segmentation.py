@@ -131,7 +131,7 @@ if UNET is False:
 
 
 for original_image, preprocessed_image, original_mask, i in zip(
-    original_images, preprocessed_images, original_masks, range(10)
+    original_images, preprocessed_images, original_masks, range(50)
 ):
     segmented_image = segment_image(
         preprocessed_image, model, patch_size=512, overlap=100
