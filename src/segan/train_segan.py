@@ -64,8 +64,8 @@ discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
 
-#loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
-loss_fn = combined_loss
+loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+#loss_fn = combined_loss
 gen_optimizer = tf.keras.optimizers.Adam(1e-4)
 disc_optimizer = tf.keras.optimizers.Adam(1e-4)
 checkpoint = tf.train.Checkpoint(

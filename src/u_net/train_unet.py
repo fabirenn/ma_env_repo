@@ -52,7 +52,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
 # Start a run, tracking hyperparameters
 wandb.init(
     # set the wandb project where this run will be logged
-    project="first_unet_tests",
+    project="unet",
     entity="fabio-renn",
     mode="offline",
     # track hyperparameters and run metadata with wandb.config
