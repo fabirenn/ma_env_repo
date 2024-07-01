@@ -118,7 +118,7 @@ for i in range(len(background_images)):
 
 fence_images_new = load_images_from_directory(FENCE_IMAGES_PATH_SEGMENTED)
 fence_masks = load_masks_from_directory(FENCE_MASKS_PATH)
-fence_masks = resize_images(fence_masks, 3000, 2000)
+fence_masks = resize_images(fence_masks, 1500, 1000)
 fence_masks = make_binary_masks(fence_masks, 30)
 
 
