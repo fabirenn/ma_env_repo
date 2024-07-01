@@ -76,12 +76,13 @@ def safe_predictions_locally(
         for i, testimage, prediction, testmask in zip(
             range, test_images, predictions, test_masks
         ):
-            testimage_data = testimage[:, :, 3]
+            if testimage.ndim == 3 and testimage.shape[2] > 3:
+                testimage = testimage[:, :, 3]
             plt.figure(figsize=(45, 15))
 
             plt.subplot(1, 3, 1)
             plt.title("GT")
-            plt.imshow(testimage_data)
+            plt.imshow(testimage)
 
             plt.subplot(1, 3, 2)
             plt.title("True Mask")
