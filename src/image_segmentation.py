@@ -112,9 +112,9 @@ MASK_PATH = "data/segmented/mask"
 
 IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
-UNET = True
+UNET = False
 
-model = load_model(CHECKPOINT_UNET, compile=False)
+model = load_model(CHECKPOINT_SEGNET, custom_objects=custom_objects, compile=False)
 model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
