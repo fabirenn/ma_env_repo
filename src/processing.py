@@ -50,12 +50,15 @@ def safe_predictions_locally(
     range, iterator, test_images, predictions, test_masks, pred_img_path, val
 ):
     if val is True:
-        test_images_data = test_images[:, :, 3]
+        
+        if test_images.ndim == 3 and test_images.shape[2] > 3:
+            test_images = test_images[:, :, 3]
+        
         plt.figure(figsize=(45, 15))
 
         plt.subplot(1, 3, 1)
         plt.title("GT")
-        plt.imshow(test_images_data)
+        plt.imshow(test_images)
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
