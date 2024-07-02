@@ -49,7 +49,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
     batch_size=BATCH_SIZE,
 )
 
-os.environ['WANDB_DIR'] = "unet/"
+os.environ['WANDB_DIR'] = "wandb/unet"
 
 # Start a run, tracking hyperparameters
 wandb.init(
