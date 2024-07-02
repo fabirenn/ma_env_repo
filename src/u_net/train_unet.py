@@ -32,7 +32,7 @@ LOG_VAL_PRED = "data/predictions/unet"
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
 IMG_WIDTH = 512
-IMG_HEIGHT = 521
+IMG_HEIGHT = 512
 
 IMG_CHANNEL = 8
 
@@ -49,7 +49,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
     batch_size=BATCH_SIZE,
 )
 
-os.environ['WANDB_DIR'] = "wandb/"
+os.environ['WANDB_DIR'] = "unet/"
 
 # Start a run, tracking hyperparameters
 wandb.init(
