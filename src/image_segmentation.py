@@ -1,13 +1,13 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import tensorflow as tf
 from keras.models import load_model
 from PIL import Image
 
 from data_loader import create_dataset_for_image_segmentation
 from processing import safe_predictions_locally
-
 from segnet.custom_layers import custom_objects
 
 
@@ -31,8 +31,10 @@ def create_patches(image, patch_size, overlap):
         for x in range(0, img_width, step_size):
             y_end = min(y + patch_size, img_height)
             x_end = min(x + patch_size, img_width)
-            patch = np.zeros((patch_size, patch_size, image.shape[2]), dtype=image.dtype)
-            patch[:y_end - y, :x_end - x, :] = image[y:y_end, x:x_end, :]
+            patch = np.zeros(
+                (patch_size, patch_size, image.shape[2]), dtype=image.dtype
+            )
+            patch[: y_end - y, : x_end - x, :] = image[y:y_end, x:x_end, :]
             patches.append((x, y, patch))
 
     return patches
@@ -58,7 +60,7 @@ def reconstruct_image(patches, img_height, img_width, patch_size):
     for x, y, patch in patches:
         y_end = min(y + patch_size, img_height)
         x_end = min(x + patch_size, img_width)
-        reconstructed_image[y:y_end, x:x_end] += patch[:y_end - y, :x_end - x]
+        reconstructed_image[y:y_end, x:x_end] += patch[: y_end - y, : x_end - x]
         patch_count[y:y_end, x:x_end] += 1
 
     return reconstructed_image / patch_count
@@ -85,7 +87,9 @@ def segment_image(image, model, patch_size, overlap):
 
     for x, y, patch in patches:
         patch = np.expand_dims(patch, axis=0)  # Add batch dimension
-        prediction = model.predict(patch, batch_size=1)  # Predict segmentation for the patch
+        prediction = model.predict(
+            patch, batch_size=1
+        )  # Predict segmentation for the patch
         segmented_patch = prediction[
             0, :, :, 0
         ]  # Remove batch dimension and channel dimension
@@ -114,7 +118,9 @@ IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
 UNET = False
 
-model = load_model(CHECKPOINT_SEGNET, custom_objects=custom_objects, compile=False)
+model = load_model(
+    CHECKPOINT_SEGNET, custom_objects=custom_objects, compile=False
+)
 model.compile(
     optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
 )
@@ -122,8 +128,10 @@ model.compile(
 original_images = []
 original_masks = []
 preprocessed_images = []
-original_images, preprocessed_images, original_masks = create_dataset_for_image_segmentation(
-    img_dir=IMG_PATH, mask_dir=MASK_PATH, unet=UNET
+original_images, preprocessed_images, original_masks = (
+    create_dataset_for_image_segmentation(
+        img_dir=IMG_PATH, mask_dir=MASK_PATH, unet=UNET
+    )
 )
 print("loaded the images")
 if UNET is False:
@@ -143,5 +151,5 @@ for original_image, preprocessed_image, original_mask, i in zip(
         predictions=segmented_image,
         test_masks=original_mask,
         pred_img_path="data/predictions/originals",
-        val=True
+        val=True,
     )

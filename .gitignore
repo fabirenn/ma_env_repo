@@ -164,3 +164,7 @@ artifacts/*/*
 
 data/*
 !data/.gitkeep
+
+# Ignore WandB directory in the project folder
+wandb/
+

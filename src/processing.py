@@ -50,10 +50,10 @@ def safe_predictions_locally(
     range, iterator, test_images, predictions, test_masks, pred_img_path, val
 ):
     if val is True:
-        
+
         if test_images.ndim == 3 and test_images.shape[2] > 3:
             test_images = test_images[:, :, 3]
-        
+
         plt.figure(figsize=(45, 15))
 
         plt.subplot(1, 3, 1)

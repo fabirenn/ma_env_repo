@@ -13,7 +13,7 @@ from keras.callbacks import EarlyStopping
 
 from custom_callbacks import ValidationCallback
 from data_loader import create_datasets_for_segnet_training
-from loss_functions import dice_loss, iou_loss, combined_loss
+from loss_functions import combined_loss, dice_loss, iou_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -61,9 +61,7 @@ config = wandb.config
 # create model & start training it
 model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
 
-model.compile(
-    optimizer="adam", loss=combined_loss, metrics=["accuracy"]
-)
+model.compile(optimizer="adam", loss=combined_loss, metrics=["accuracy"])
 
 model.fit(
     train_dataset,
@@ -81,6 +79,7 @@ model.fit(
         ),
         ValidationCallback(
             model=model,
+            train_data=train_dataset,
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=False,

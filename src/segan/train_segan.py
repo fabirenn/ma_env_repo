@@ -20,7 +20,8 @@ from data_loader import (
     create_testdataset_for_segnet_training,
     create_testdataset_for_unet_training,
 )
-from loss_functions import dice_loss, iou_loss, combined_loss
+from loss_functions import combined_loss, dice_loss, iou_loss
+from processing import safe_predictions_locally
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -65,7 +66,7 @@ discriminator_model = discriminator(
 )
 
 loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
-#loss_fn = combined_loss
+# loss_fn = combined_loss
 gen_optimizer = tf.keras.optimizers.Adam(1e-4)
 disc_optimizer = tf.keras.optimizers.Adam(1e-4)
 checkpoint = tf.train.Checkpoint(
@@ -148,11 +149,14 @@ def generate_images(model, dataset, epoch):
     image_batch, mask_batch = next(iter(sample))
     pred_batch = model.predict(image_batch)
 
-    log_images_locally(
-        epoch=epoch,
-        x=image_batch[0],
-        y_true=mask_batch[0],
-        y_pred=(pred_batch[0] > 0.5).astype(np.uint8),
+    safe_predictions_locally(
+        range=None, 
+        iterator=epoch, 
+        test_images=image_batch[0],
+        predictions=(pred_batch[0] > 0.5).astype(np.uint8),
+        test_masks=mask_batch[0],
+        pred_img_path=LOG_VAL_PRED,
+        val=True
     )
 
 
@@ -182,27 +186,6 @@ def train(train_dataset, test_dataset, epochs):
                 return
             else:
                 print("Waiting for improvement..")
-
-
-def log_images_locally(epoch, x, y_true, y_pred):
-
-    plt.figure(figsize=(45, 15))
-
-    plt.subplot(1, 3, 1)
-    plt.title("GT")
-    plt.imshow(x[:, :, :3])
-
-    plt.subplot(1, 3, 2)
-    plt.title("True Mask")
-    plt.imshow(y_true, cmap=plt.cm.gray)
-
-    plt.subplot(1, 3, 3)
-    plt.title("Pred Mask")
-    plt.imshow(y_pred, cmap=plt.cm.gray)
-
-    file_name = f"val_figure_epoch{epoch + 1}.png"
-    plt.savefig(os.path.join(LOG_VAL_PRED, file_name))
-    plt.close()
 
 
 if UNET is True:
