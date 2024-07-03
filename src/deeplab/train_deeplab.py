@@ -2,6 +2,7 @@ import os
 import sys
 
 import tensorflow as tf
+import keras.metrics
 from deeplab_model import DeepLab
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
@@ -11,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from keras.callbacks import EarlyStopping
 
-from custom_callbacks import ValidationCallback
+from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import create_datasets_for_segnet_training
 from loss_functions import combined_loss, dice_loss, iou_loss
 
@@ -69,7 +70,14 @@ config = wandb.config
 # create model & start training it
 model = DeepLab(input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
 
-model.compile(optimizer="adam", loss=combined_loss, metrics=["accuracy"])
+model.compile(optimizer="adam", loss=combined_loss, metrics=[
+        'accuracy',
+        keras.metrics.BinaryIoU(),
+        keras.metrics.Precision(),
+        keras.metrics.Recall(),
+        specificity_score,
+        dice_score
+    ])
 
 model.fit(
     train_dataset,

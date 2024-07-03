@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras.callbacks import Callback
 from keras.utils import array_to_img, img_to_array
+import tensorflow as tf
 from PIL import Image
+from keras import backend as K
 from scipy.spatial.distance import directed_hausdorff
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
@@ -37,87 +39,7 @@ class ValidationCallback(Callback):
             predictions=y_pred_batch[0],
             pred_img_path=self.log_dir,
             val=True,
-        )
-        # self.log_images_wandb(epoch, x_batch[0], y_true_batch[0],
-        # y_pred_batch[0])
-        logs = logs or {}
-
-        # Training data predictions and metrics
-        all_train_predict, all_train_mask = [], []
-        for batch in self.train_data:
-            images, labels = batch
-            train_predict = (np.asarray(self.model.predict(images, verbose=0))).round()
-
-            all_train_predict.append(train_predict)
-            all_train_mask.append(labels.numpy())
-
-        train_predict = np.concatenate(all_train_predict, axis=0)
-        train_targ = np.concatenate(all_train_mask, axis=0)
-
-        train_iou = iou_score(train_targ, train_predict)
-        train_dice = dice_score(train_targ, train_predict)
-        train_precision = precision_score(
-            train_targ.flatten(), train_predict.flatten()
-        )
-        train_recall = recall_score(
-            train_targ.flatten(), train_predict.flatten()
-        )
-        train_accuracy = accuracy_score(
-            train_targ.flatten(), train_predict.flatten()
-        )
-        train_specificity = specificity_score(train_targ, train_predict)
-        train_hausdorff = hausdorff_distance(train_targ, train_predict)
-
-        # Validation data predictions and metrics
-        all_val_predict, all_val_targ = [], []
-        
-        for batch in self.validation_data:
-            images, labels = batch
-            val_predict = (np.asarray(self.model.predict(images, verbose=0))).round()
-            
-            all_val_predict.append(val_predict)
-            all_val_targ.append(labels.numpy())
-        
-        val_predict = np.concatenate(all_val_predict, axis=0)
-        val_targ = np.concatenate(all_val_targ, axis=0)
-
-        val_iou = iou_score(val_targ, val_predict)
-        val_dice = dice_score(val_targ, val_predict)
-        val_precision = precision_score(
-            val_targ.flatten(), val_predict.flatten()
-        )
-        val_recall = recall_score(val_targ.flatten(), val_predict.flatten())
-        val_accuracy = accuracy_score(val_targ.flatten(), val_predict.flatten())
-        val_specificity = specificity_score(val_targ, val_predict)
-        val_hausdorff = hausdorff_distance(val_targ, val_predict)
-
-        # Log metrics to Wandb
-        wandb.log(
-            {
-                "epoch": epoch + 1,
-                "train_iou": train_iou,
-                "train_dice": train_dice,
-                "train_precision": train_precision,
-                "train_recall": train_recall,
-                "train_accuracy": train_accuracy,
-                "train_specificity": train_specificity,
-                "train_hausdorff": train_hausdorff,
-                "val_iou": val_iou,
-                "val_dice": val_dice,
-                "val_precision": val_precision,
-                "val_recall": val_recall,
-                "val_accuracy": val_accuracy,
-                "val_specificity": val_specificity,
-                "val_hausdorff": val_hausdorff,
-            }
-        )
-        
-        print(
-            f"Epoch {epoch + 1} - train_iou: {train_iou} - train_dice: {train_dice} - train_precision: {train_precision} - train_recall: {train_recall} - train_accuracy: {train_accuracy} - train_specificity: {train_specificity} - train_hausdorff: {train_hausdorff}"
-        )
-        print(
-            f"Epoch {epoch + 1} - val_iou: {val_iou} - val_dice: {val_dice} - val_precision: {val_precision} - val_recall: {val_recall} - val_accuracy: {val_accuracy} - val_specificity: {val_specificity} - val_hausdorff: {val_hausdorff}"
-        )
+        )   
 
     def log_images_wandb(self, epoch, x, y_true, y_pred):
         columns = ["epoch", "original", "true_mask", "predicted_mask"]
@@ -131,36 +53,21 @@ class ValidationCallback(Callback):
         wandb.log({"val_image": wandb_table})
 
 
-
-def iou_score(y_true, y_pred):
-    intersection = np.logical_and(y_true, y_pred)
-    union = np.logical_or(y_true, y_pred)
-    return np.sum(intersection) / np.sum(union)
-
-
 def dice_score(y_true, y_pred):
-    intersection = np.logical_and(y_true, y_pred)
-    return 2 * np.sum(intersection) / (np.sum(y_true) + np.sum(y_pred))
+    y_pred = K.round(y_pred)
+    intersection = K.sum(y_true * y_pred)
+    union = K.sum(y_true) + K.sum(y_pred)
+    dice = (2. * intersection + K.epsilon()) / (union + K.epsilon())
+    return dice
 
 
 def specificity_score(y_true, y_pred):
-    y_true = y_true.astype(bool)
-    y_pred = y_pred.astype(bool)
+    y_pred = K.round(y_pred)
+    y_true = tf.cast(y_true, tf.bool)
+    y_pred = tf.cast(y_pred, tf.bool)
     
-    true_negatives = np.logical_and(~y_true, ~y_pred)
-    false_positives = np.logical_and(~y_true, y_pred)
+    true_negatives = tf.reduce_sum(tf.cast(tf.logical_and(tf.logical_not(y_true), tf.logical_not(y_pred)), tf.float32))
+    false_positives = tf.reduce_sum(tf.cast(tf.logical_and(tf.logical_not(y_true), y_pred), tf.float32))
     
-    tn = np.sum(true_negatives)
-    fp = np.sum(false_positives)
-    
-    specificity = tn / (tn + fp)
+    specificity = true_negatives / (true_negatives + false_positives + K.epsilon())
     return specificity
-
-
-def hausdorff_distance(y_true, y_pred):
-    y_true_points = np.argwhere(y_true)
-    y_pred_points = np.argwhere(y_pred)
-    return max(
-        directed_hausdorff(y_true_points, y_pred_points)[0],
-        directed_hausdorff(y_pred_points, y_true_points)[0],
-    )

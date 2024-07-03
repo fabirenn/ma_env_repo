@@ -150,13 +150,13 @@ def generate_images(model, dataset, epoch):
     pred_batch = model.predict(image_batch)
 
     safe_predictions_locally(
-        range=None, 
-        iterator=epoch, 
+        range=None,
+        iterator=epoch,
         test_images=image_batch[0],
         predictions=(pred_batch[0] > 0.5).astype(np.uint8),
         test_masks=mask_batch[0],
         pred_img_path=LOG_VAL_PRED,
-        val=True
+        val=True,
     )
 
 
