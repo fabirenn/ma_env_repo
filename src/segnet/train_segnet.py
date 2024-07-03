@@ -44,6 +44,7 @@ train_dataset, val_dataset = create_datasets_for_segnet_training(
     batch_size=BATCH_SIZE,
 )
 
+os.environ["WANDB_DIR"] = "wandb/segnet"
 
 # Start a run, tracking hyperparameters
 wandb.init(
