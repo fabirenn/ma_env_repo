@@ -114,8 +114,8 @@ def compute_metrics(true_mask, pred_mask):
         p = keras.metrics.Precision()
         p.update_state(true_flat, pred_flat)
         precision = p.result()
-        specificity = specificity_score(true_flat, true_mask)
-        dice = dice_score(true_flat, pred_flat)
+        specificity = specificity_score(true_mask, pred_mask)
+        dice = dice_score(true_mask, pred_mask)
 
         return precision, specificity, dice
 
@@ -143,8 +143,14 @@ MASK_PATH = "data/segmented/mask"
 IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
 
-wandb.init(project="image-segmentation-model-comparison")
+wandb.init(
+    project="image-segmentation"
+    entity="fabio-renn"
+    mode="offline"
+    config={"metric": "accuracy"}
+)
 
+wandb.config
 
 original_images = []
 original_masks = []
