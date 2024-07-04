@@ -146,8 +146,9 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     if model_name == "segnet":
         print("segnet=true")
         model = load_model(model_path, custom_objects=custom_objects, compile=False)
+    else:
+        model = load_model(model_path, compile=False)
     
-    model = load_model(model_path, compile=False)
     model.compile(optimizer="adam", loss=combined_loss, metrics=[
         'accuracy',
         keras.metrics.BinaryIoU(),
