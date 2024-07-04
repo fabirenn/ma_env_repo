@@ -2,11 +2,11 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import tensorflow as tf
+from keras import backend as K
 from keras.callbacks import Callback
 from keras.utils import array_to_img, img_to_array
-import tensorflow as tf
 from PIL import Image
-from keras import backend as K
 from scipy.spatial.distance import directed_hausdorff
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
@@ -39,7 +39,7 @@ class ValidationCallback(Callback):
             predictions=y_pred_batch[0],
             pred_img_path=self.log_dir,
             val=True,
-        )   
+        )
 
     def log_images_wandb(self, epoch, x, y_true, y_pred):
         columns = ["epoch", "original", "true_mask", "predicted_mask"]
@@ -57,7 +57,7 @@ def dice_score(y_true, y_pred):
     y_pred = K.round(y_pred)
     intersection = K.sum(y_true * y_pred)
     union = K.sum(y_true) + K.sum(y_pred)
-    dice = (2. * intersection + K.epsilon()) / (union + K.epsilon())
+    dice = (2.0 * intersection + K.epsilon()) / (union + K.epsilon())
     return dice
 
 
@@ -65,9 +65,18 @@ def specificity_score(y_true, y_pred):
     y_pred = K.round(y_pred)
     y_true = tf.cast(y_true, tf.bool)
     y_pred = tf.cast(y_pred, tf.bool)
-    
-    true_negatives = tf.reduce_sum(tf.cast(tf.logical_and(tf.logical_not(y_true), tf.logical_not(y_pred)), tf.float32))
-    false_positives = tf.reduce_sum(tf.cast(tf.logical_and(tf.logical_not(y_true), y_pred), tf.float32))
-    
-    specificity = true_negatives / (true_negatives + false_positives + K.epsilon())
+
+    true_negatives = tf.reduce_sum(
+        tf.cast(
+            tf.logical_and(tf.logical_not(y_true), tf.logical_not(y_pred)),
+            tf.float32,
+        )
+    )
+    false_positives = tf.reduce_sum(
+        tf.cast(tf.logical_and(tf.logical_not(y_true), y_pred), tf.float32)
+    )
+
+    specificity = true_negatives / (
+        true_negatives + false_positives + K.epsilon()
+    )
     return specificity

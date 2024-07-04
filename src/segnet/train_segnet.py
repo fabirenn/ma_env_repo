@@ -1,8 +1,8 @@
 import os
 import sys
 
-import tensorflow as tf
 import keras.metrics
+import tensorflow as tf
 from segnet_model import segnet
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
@@ -63,14 +63,18 @@ config = wandb.config
 # create model & start training it
 model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
 
-model.compile(optimizer="adam", loss=combined_loss, metrics=[
-        'accuracy',
+model.compile(
+    optimizer="adam",
+    loss=combined_loss,
+    metrics=[
+        "accuracy",
         keras.metrics.BinaryIoU(),
         keras.metrics.Precision(),
         keras.metrics.Recall(),
         specificity_score,
-        dice_score
-    ],)
+        dice_score,
+    ],
+)
 
 model.fit(
     train_dataset,

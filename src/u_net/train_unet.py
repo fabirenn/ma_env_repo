@@ -73,12 +73,12 @@ model.compile(
     optimizer="adam",
     loss=combined_loss,
     metrics=[
-        'accuracy',
+        "accuracy",
         keras.metrics.BinaryIoU(),
         keras.metrics.Precision(),
         keras.metrics.Recall(),
         specificity_score,
-        dice_score
+        dice_score,
     ],
 )
 

@@ -1,8 +1,8 @@
 import os
 import sys
 
-import tensorflow as tf
 import keras.metrics
+import tensorflow as tf
 from deeplab_model import DeepLab
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
@@ -71,14 +71,18 @@ config = wandb.config
 # create model & start training it
 model = DeepLab(input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))
 
-model.compile(optimizer="adam", loss=combined_loss, metrics=[
-        'accuracy',
+model.compile(
+    optimizer="adam",
+    loss=combined_loss,
+    metrics=[
+        "accuracy",
         keras.metrics.BinaryIoU(),
         keras.metrics.Precision(),
         keras.metrics.Recall(),
         specificity_score,
-        dice_score
-    ])
+        dice_score,
+    ],
+)
 
 model.fit(
     train_dataset,

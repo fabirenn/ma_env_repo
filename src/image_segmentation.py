@@ -1,17 +1,17 @@
 import os
 
+import keras.metrics
 import matplotlib.pyplot as plt
 import numpy as np
-import keras.metrics
-import wandb
-from custom_callbacks import dice_score, specificity_score
 import tensorflow as tf
 from keras.models import load_model
 from PIL import Image
 
+import wandb
+from custom_callbacks import dice_score, specificity_score
 from data_loader import create_dataset_for_image_segmentation
+from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally
-from loss_functions import dice_loss, combined_loss, iou_loss
 from segnet.custom_layers import custom_objects
 
 
@@ -108,16 +108,19 @@ def segment_image(image, model, patch_size, overlap):
 
 
 def compute_metrics(true_mask, pred_mask):
-        true_flat = true_mask.flatten()
-        pred_flat = pred_mask.flatten()
+    true_flat = true_mask.flatten()
+    pred_flat = pred_mask.flatten()
 
-        p = keras.metrics.Precision()
-        p.update_state(true_flat, pred_flat)
-        precision = p.result()
-        specificity = specificity_score(true_mask, pred_mask)
-        dice = dice_score(true_mask.astype(np.float32), pred_mask.astype(np.float32))
+    p = keras.metrics.Precision()
+    p.update_state(true_flat, pred_flat)
+    precision = p.result()
+    specificity = specificity_score(true_mask, pred_mask)
+    dice = dice_score(
+        true_mask.astype(np.float32), pred_mask.astype(np.float32)
+    )
 
-        return precision, specificity, dice
+    return precision, specificity, dice
+
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -126,15 +129,9 @@ model_paths = [
     "artifacts/models/segnet/segnet_checkpoint.h5",
     "artifacts/models/deeplab/deeplab_checkpoint.h5",
     "artifacts/models/segan/segan_checkpoint.h5",
-    "artifacts/models/ynet/ynet_checkpoint.h5"
+    "artifacts/models/ynet/ynet_checkpoint.h5",
 ]
-model_names = [
-    "unet",
-    "segnet",
-    "deeplab",
-    "segan",
-    "ynet"
-]
+model_names = ["unet", "segnet", "deeplab", "segan", "ynet"]
 
 
 IMG_PATH = "data/generated"
@@ -142,6 +139,8 @@ MASK_PATH = "data/segmented/mask"
 
 IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
+
+os.environ["WANDB_DIR"] = "wandb/testing_models"
 
 wandb.init(
     project="image-segmentation",
@@ -156,9 +155,7 @@ original_images = []
 original_masks = []
 preprocessed_images = []
 original_images, preprocessed_images, original_masks = (
-    create_dataset_for_image_segmentation(
-        img_dir=IMG_PATH, mask_dir=MASK_PATH
-    )
+    create_dataset_for_image_segmentation(img_dir=IMG_PATH, mask_dir=MASK_PATH)
 )
 print("Loaded the images")
 
@@ -167,18 +164,23 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
 
     if model_name == "segnet":
         print("segnet=true")
-        model = load_model(model_path, custom_objects=custom_objects, compile=False)
+        model = load_model(
+            model_path, custom_objects=custom_objects, compile=False
+        )
     else:
         model = load_model(model_path, compile=False)
-    
-    model.compile(optimizer="adam", loss=combined_loss, metrics=[
-        'accuracy',
-        keras.metrics.BinaryIoU(),
-        keras.metrics.Precision(),
-        keras.metrics.Recall(),
-        specificity_score,
-        dice_score
-    ],
+
+    model.compile(
+        optimizer="adam",
+        loss=combined_loss,
+        metrics=[
+            "accuracy",
+            keras.metrics.BinaryIoU(),
+            keras.metrics.Precision(),
+            keras.metrics.Recall(),
+            specificity_score,
+            dice_score,
+        ],
     )
     if "unet" not in model_path:
         preprocessed_images = original_images
@@ -186,14 +188,16 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     all_precisions = []
     all_specifities = []
     all_dices = []
-    
+
     for original_image, preprocessed_image, original_mask, i in zip(
-        original_images, preprocessed_images, original_masks, range(100)
+        original_images, preprocessed_images, original_masks, range(5)
     ):
         segmented_image = segment_image(
             preprocessed_image, model, patch_size=512, overlap=50
         )
-        precision, specifity, dice = compute_metrics(original_mask, segmented_image)
+        precision, specifity, dice = compute_metrics(
+            original_mask, segmented_image
+        )
         all_precisions.append(precision)
         all_specifities.append(specifity)
         all_dices.append(dice)
@@ -212,12 +216,14 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     mean_specifity = np.mean(all_specifities)
     mean_dice = np.mean(all_dices)
 
-    wandb.log({
-        "model_name": model_name,
-        "mean_precision": mean_precision,
-        "mean_specifity": mean_specifity,
-        "mean_dice": mean_dice,
-    })
+    wandb.log(
+        {
+            "model_name": model_name,
+            "mean_precision": mean_precision,
+            "mean_specifity": mean_specifity,
+            "mean_dice": mean_dice,
+        }
+    )
 
     print("Saved predictions in data/predictions/originals/" + model_name)
 
