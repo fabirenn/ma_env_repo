@@ -182,10 +182,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             dice_score,
         ],
     )
-    if model_name != "unet":
-        print("no preprocessed images")
-        preprocessed_images = original_images
-    elif model_name != "segan":
+    if model_name != ("unet" or "segan"):
         print("no preprocessed images")
         preprocessed_images = original_images
 
