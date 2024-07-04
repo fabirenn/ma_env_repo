@@ -182,9 +182,6 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             dice_score,
         ],
     )
-    if model_name not in ("unet", "segan"):
-        print("no preprocessed images")
-        preprocessed_images = original_images
 
     all_precisions = []
     all_specifities = []
@@ -193,9 +190,15 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     for original_image, preprocessed_image, original_mask, i in zip(
         original_images, preprocessed_images, original_masks, range(2)
     ):
-        segmented_image = segment_image(
-            preprocessed_image, model, patch_size=512, overlap=50
-        )
+        if model_name not in ("unet", "segan"):
+            print("no preprocessed images")
+            segmented_image = segment_image(
+                original_image, model, patch_size=512, overlap=50
+            )
+        else:
+            segmented_image = segment_image(
+                preprocessed_image, model, patch_size=512, overlap=50
+            )
         precision, specifity, dice = compute_metrics(
             original_mask, segmented_image
         )
