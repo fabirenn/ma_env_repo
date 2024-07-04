@@ -114,8 +114,8 @@ def compute_metrics(true_mask, pred_mask):
         p = keras.metrics.Precision()
         p.update_state(true_flat, pred_flat)
         precision = p.result()
-        specificity = specificity_score(true_mask.astype(np.float32), pred_mask.astype(np.float32))
-        dice = dice_score(true_mask, pred_mask)
+        specificity = specificity_score(true_mask, pred_mask)
+        dice = dice_score(true_mask.astype(np.int64), pred_mask.astype(np.int64))
 
         return precision, specificity, dice
 
