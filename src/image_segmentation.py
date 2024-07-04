@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import keras.metrics
+import wandb
 from custom_callbacks import dice_score, specificity_score
 import tensorflow as tf
 from keras.models import load_model
@@ -106,6 +107,18 @@ def segment_image(image, model, patch_size, overlap):
     return segmented_image
 
 
+def compute_metrics(true_mask, pred_mask):
+        true_flat = true_mask.flatten()
+        pred_flat = pred_mask.flatten()
+
+        p = keras.metrics.Precision()
+        p.update_state(true_flat, pred_flat)
+        precision = p.result()
+        specificity = specificity_score(true_flat, true_mask)
+        dice = dice_score(true_flat, pred_flat)
+
+        return precision, specificity, dice
+
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 model_paths = [
@@ -129,6 +142,9 @@ MASK_PATH = "data/segmented/mask"
 
 IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
+
+wandb.init(project="image-segmentation-model-comparison")
+
 
 original_images = []
 original_masks = []
@@ -160,6 +176,10 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     )
     if "unet" not in model_path:
         preprocessed_images = original_images
+
+    all_precisions = []
+    all_specifities = []
+    all_dices = []
     
     for original_image, preprocessed_image, original_mask, i in zip(
         original_images, preprocessed_images, original_masks, range(100)
@@ -167,6 +187,11 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         segmented_image = segment_image(
             preprocessed_image, model, patch_size=512, overlap=50
         )
+        precision, specifity, dice = compute_metrics(original_mask, segmented_image)
+        all_precisions.append(precision)
+        all_specifities.append(specifity)
+        all_dices.append(dice)
+
         safe_predictions_locally(
             range=None,
             iterator=i,
@@ -176,5 +201,18 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             pred_img_path="data/predictions/originals/" + model_name,
             val=True,
         )
+
+    mean_precision = np.mean(all_precisions)
+    mean_specifity = np.mean(all_specifities)
+    mean_dice = np.mean(all_dices)
+
+    wandb.log({
+        "model_name": model_name,
+        "mean_precision": mean_precision,
+        "mean_specifity": mean_specifity,
+        "mean_dice": mean_dice,
+    })
+
     print("Saved predictions in data/predictions/originals/" + model_name)
 
+wandb.finish()
