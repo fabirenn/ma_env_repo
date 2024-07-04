@@ -129,9 +129,9 @@ model_paths = [
     "artifacts/models/segnet/segnet_checkpoint.h5",
     "artifacts/models/deeplab/deeplab_checkpoint.h5",
     "artifacts/models/segan/segan_checkpoint.h5",
-    "artifacts/models/ynet/ynet_checkpoint.h5",
+    # "artifacts/models/ynet/ynet_checkpoint.h5",
 ]
-model_names = ["unet", "segnet", "deeplab", "segan", "ynet"]
+model_names = ["unet", "segnet", "deeplab", "segan", '''"ynet"''']
 
 
 IMG_PATH = "data/generated"
@@ -182,7 +182,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             dice_score,
         ],
     )
-    if "unet" not in model_path:
+    if ("unet" or "segan") not in model_path:
         preprocessed_images = original_images
 
     all_precisions = []
@@ -190,7 +190,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     all_dices = []
 
     for original_image, preprocessed_image, original_mask, i in zip(
-        original_images, preprocessed_images, original_masks, range(5)
+        original_images, preprocessed_images, original_masks, range(2)
     ):
         segmented_image = segment_image(
             preprocessed_image, model, patch_size=512, overlap=50
