@@ -91,7 +91,7 @@ def segment_image(image, model, patch_size, overlap):
     for x, y, patch in patches:
         patch = np.expand_dims(patch, axis=0)  # Add batch dimension
         prediction = model.predict(
-            patch, batch_size=1
+            patch, batch_size=1, verbose=0
         )  # Predict segmentation for the patch
         segmented_patch = prediction[
             0, :, :, 0
@@ -138,10 +138,13 @@ original_images, preprocessed_images, original_masks = (
         img_dir=IMG_PATH, mask_dir=MASK_PATH
     )
 )
-print("loaded the images")
+print("Loaded the images")
 
 for i, model_path, model_name in zip(range(6), model_paths, model_names):
-    if "segnet" in model_path:
+    print("Testing Model: " + model_name)
+
+    if model_name == "segnet":
+        print("segnet=true")
         model = load_model(model_path, custom_objects=custom_objects, compile=False)
     
     model = load_model(model_path, compile=False)
@@ -172,4 +175,5 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             pred_img_path="data/predictions/originals/" + model_name,
             val=True,
         )
+    print("Saved predictions in data/predictions/originals/" + model_name)
 
