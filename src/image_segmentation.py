@@ -188,10 +188,10 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     all_dices = []
 
     for original_image, preprocessed_image, original_mask, i in zip(
-        original_images, preprocessed_images, original_masks, range(2)
+        original_images, preprocessed_images, original_masks, range(5)
     ):
         if model_name not in ("unet", "segan"):
-            print("no preprocessed images")
+            #print("no preprocessed images")
             segmented_image = segment_image(
                 original_image, model, patch_size=512, overlap=50
             )
