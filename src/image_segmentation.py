@@ -2,12 +2,15 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import keras.metrics
+from custom_callbacks import dice_score, specificity_score
 import tensorflow as tf
 from keras.models import load_model
 from PIL import Image
 
 from data_loader import create_dataset_for_image_segmentation
 from processing import safe_predictions_locally
+from loss_functions import dice_loss, combined_loss, iou_loss
 from segnet.custom_layers import custom_objects
 
 
@@ -105,51 +108,68 @@ def segment_image(image, model, patch_size, overlap):
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-CHECKPOINT_UNET = "artifacts/models/unet/unet_checkpoint.h5"
-CHECKPOINT_SEGNET = "artifacts/models/segnet/segnet_checkpoint.h5"
-CHECKPOINT_DEEPLAB = "artifacts/models/deeplab/deeplab_checkpoint.h5"
-CHECKPOINT_SEGAN = "artifacts/models/segan/segan_checkpoint.h5"
-CHECKPOINT_YNET = "artifacts/models/ynet/ynet_checkpoint.h5"
+model_paths = [
+    "artifacts/models/unet/unet_checkpoint.h5",
+    "artifacts/models/segnet/segnet_checkpoint.h5",
+    "artifacts/models/deeplab/deeplab_checkpoint.h5",
+    "artifacts/models/segan/segan_checkpoint.h5",
+    "artifacts/models/ynet/ynet_checkpoint.h5"
+]
+model_names = [
+    "unet",
+    "segnet",
+    "deeplab",
+    "segan",
+    "ynet"
+]
+
 
 IMG_PATH = "data/generated"
 MASK_PATH = "data/segmented/mask"
 
 IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
-UNET = False
-
-model = load_model(
-    CHECKPOINT_SEGNET, custom_objects=custom_objects, compile=False
-)
-model.compile(
-    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
-)
 
 original_images = []
 original_masks = []
 preprocessed_images = []
 original_images, preprocessed_images, original_masks = (
     create_dataset_for_image_segmentation(
-        img_dir=IMG_PATH, mask_dir=MASK_PATH, unet=UNET
+        img_dir=IMG_PATH, mask_dir=MASK_PATH
     )
 )
 print("loaded the images")
-if UNET is False:
-    preprocessed_images = original_images
 
+for i, model_path, model_name in zip(range(6), model_paths, model_names):
+    if "segnet" in model_path:
+        model = load_model(model_path, custom_objects=custom_objects, compile=False)
+    
+    model = load_model(model_path, compile=False)
+    model.compile(optimizer="adam", loss=combined_loss, metrics=[
+        'accuracy',
+        keras.metrics.BinaryIoU(),
+        keras.metrics.Precision(),
+        keras.metrics.Recall(),
+        specificity_score,
+        dice_score
+    ],
+    )
+    if "unet" not in model_path:
+        preprocessed_images = original_images
+    
+    for original_image, preprocessed_image, original_mask, i in zip(
+        original_images, preprocessed_images, original_masks, range(100)
+    ):
+        segmented_image = segment_image(
+            preprocessed_image, model, patch_size=512, overlap=50
+        )
+        safe_predictions_locally(
+            range=None,
+            iterator=i,
+            test_images=original_image,
+            predictions=segmented_image,
+            test_masks=original_mask,
+            pred_img_path="data/predictions/originals/" + model_name,
+            val=True,
+        )
 
-for original_image, preprocessed_image, original_mask, i in zip(
-    original_images, preprocessed_images, original_masks, range(50)
-):
-    segmented_image = segment_image(
-        preprocessed_image, model, patch_size=512, overlap=100
-    )
-    safe_predictions_locally(
-        range=None,
-        iterator=i,
-        test_images=original_image,
-        predictions=segmented_image,
-        test_masks=original_mask,
-        pred_img_path="data/predictions/originals",
-        val=True,
-    )
