@@ -91,7 +91,7 @@ def segment_image(image, model, patch_size, overlap):
     for x, y, patch in patches:
         patch = np.expand_dims(patch, axis=0)  # Add batch dimension
         prediction = model.predict(
-            patch, batch_size=1, verbose=0
+            patch, batch_size=1
         )  # Predict segmentation for the patch
         segmented_patch = prediction[
             0, :, :, 0
