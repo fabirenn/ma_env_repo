@@ -144,10 +144,10 @@ IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"
 
 wandb.init(
-    project="image-segmentation"
-    entity="fabio-renn"
-    mode="offline"
-    config={"metric": "accuracy"}
+    project="image-segmentation",
+    entity="fabio-renn",
+    mode="offline",
+    config={"metric": "accuracy"},
 )
 
 wandb.config
