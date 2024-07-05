@@ -8,7 +8,7 @@ from keras.models import load_model
 from PIL import Image
 
 import wandb
-from custom_callbacks import dice_score, specificity_score
+from custom_callbacks import dice_score, specificity_score, log_images_wandb
 from data_loader import create_dataset_for_image_segmentation
 from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally
@@ -189,7 +189,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     all_dices = []
 
     for original_image, preprocessed_image, original_mask, i in zip(
-        original_images, preprocessed_images, original_masks, range(5)
+        original_images, preprocessed_images, original_masks, range(20)
     ):
         if model_name not in ("unet", "segan"):
             #print("no preprocessed images")
