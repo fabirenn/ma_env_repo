@@ -62,6 +62,7 @@ wandb.init(
     mode="offline",
     # track hyperparameters and run metadata with wandb.config
     config={"metric": "accuracy", "epochs": EPOCHS, "batch_size": BATCH_SIZE},
+    dir=os.environ["WANDB_DIR"]
 )
 
 # [optional] use wandb.config as your config
@@ -107,3 +108,5 @@ model.fit(
         ),
     ],
 )
+
+wandb.finish()

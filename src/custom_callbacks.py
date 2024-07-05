@@ -40,8 +40,10 @@ class ValidationCallback(Callback):
             pred_img_path=self.log_dir,
             val=True,
         )
+        log_images_wandb(epoch=epoch, x=x_batch[0], y_true=y_true_batch[0], y_pred=y_pred_batch[0])
 
-    def log_images_wandb(self, epoch, x, y_true, y_pred):
+
+def log_images_wandb(epoch, x, y_true, y_pred):
         columns = ["epoch", "original", "true_mask", "predicted_mask"]
 
         input_image = wandb.Image(array_to_img(x))
