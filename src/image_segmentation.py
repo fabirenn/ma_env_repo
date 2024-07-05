@@ -147,6 +147,7 @@ wandb.init(
     entity="fabio-renn",
     mode="offline",
     config={"metric": "accuracy"},
+    dir=os.environ["WANDB_DIR"]
 )
 
 wandb.config
