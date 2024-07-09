@@ -4,7 +4,9 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import keras.metrics
 import tensorflow as tf
+import wandb 
 from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
 from PIL import Image as im
@@ -14,7 +16,7 @@ from loss_functions import combined_loss
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_layers import custom_objects
 
-from custom_callbacks import ValidationCallback
+from custom_callbacks import ValidationCallback, specificity_score, dice_score
 from data_loader import create_testdataset_for_segnet_training
 from processing import (
     add_prediction_to_list,
@@ -50,7 +52,16 @@ model = load_model(
     CHECKPOINT_PATH, custom_objects=custom_objects, compile=False
 )
 model.compile(
-    optimizer="adam", loss=combined_loss, metrics=["accuracy"]
+    optimizer="adam",
+    loss=combined_loss,
+    metrics=[
+        "accuracy",
+        keras.metrics.BinaryIoU(),
+        keras.metrics.Precision(),
+        keras.metrics.Recall(),
+        specificity_score,
+        dice_score,
+    ],
 )
 
 predictions, binary_predictions = add_prediction_to_list(
@@ -66,3 +77,19 @@ safe_predictions_locally(
     pred_img_path=PRED_IMG_PATH,
     val=False,
 )
+
+os.environ["WANDB_DIR"] = "wandb/testing_models"
+
+wandb.init(
+    project="image-segmentation",
+    entity="fabio-renn",
+    name="test-segnet",
+    mode="offline",
+    config={"metric": "accuracy"},
+    dir=os.environ["WANDB_DIR"],
+)
+
+test_results = model.evaluate(test_images, test_masks, return_dict=True)
+print(test_results)
+wandb.log(test_results)
+wandb.finish()

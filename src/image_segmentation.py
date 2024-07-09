@@ -145,10 +145,10 @@ os.environ["WANDB_DIR"] = "wandb/testing_models"
 wandb.init(
     project="image-segmentation",
     entity="fabio-renn",
+    name="image-segmentation",
     mode="offline",
     config={"metric": "accuracy"},
-    dir=os.environ["WANDB_DIR"]
-)
+    dir=os.environ["WANDB_DIR"])
 
 wandb.config
 
