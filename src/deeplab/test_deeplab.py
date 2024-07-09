@@ -65,7 +65,7 @@ predictions, binary_predictions = add_prediction_to_list(
 )
 
 safe_predictions_locally(
-    range=range(50),
+    range=range(20),
     iterator=None,
     test_images=test_images,
     predictions=binary_predictions,
