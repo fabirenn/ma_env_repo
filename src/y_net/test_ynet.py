@@ -8,11 +8,12 @@ import tensorflow as tf
 from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
 from PIL import Image as im
+from ynet_model import build_ynet
 from loss_functions import combined_loss
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
-from data_loader import create_testdataset_for_segnet_training
+from data_loader import create_testdataset_for_unet_training, make_binary_masks
 from processing import (
     add_prediction_to_list,
     calculate_binary_dice,
@@ -24,24 +25,24 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
-CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.h5"
-PRED_IMG_PATH = "artifacts/models/deeplab/pred"
+CHECKPOINT_PATH = "artifacts/models/ynet/ynet_checkpoint.h5"
+PRED_IMG_PATH = "artifacts/models/ynet/pred"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-IMG_CHANNEL = 3
+IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 50
-APPLY_CRF = True
 
 
-test_dataset, test_images, test_masks = create_testdataset_for_segnet_training(
+test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
     directory_test_images=TEST_IMG_PATH,
     directory_test_masks=TEST_MASK_PATH,
     img_width=IMG_WIDTH,
     img_height=IMG_HEIGHT,
     batch_size=BATCH_SIZE,
+    channel_size=IMG_CHANNEL
 )
 
 model = load_model(CHECKPOINT_PATH, compile=False)
@@ -50,7 +51,7 @@ model.compile(
 )
 
 predictions, binary_predictions = add_prediction_to_list(
-    test_dataset, model=model, batch_size=BATCH_SIZE, apply_crf=APPLY_CRF
+    test_dataset, model=model, batch_size=BATCH_SIZE, apply_crf=False
 )
 
 safe_predictions_locally(
@@ -62,5 +63,3 @@ safe_predictions_locally(
     pred_img_path=PRED_IMG_PATH,
     val=False,
 )
-
-

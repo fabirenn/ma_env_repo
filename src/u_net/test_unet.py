@@ -10,6 +10,7 @@ from keras.utils import array_to_img, img_to_array
 from PIL import Image as im
 from unet_architecture_hcp import unet
 
+from loss_functions import combined_loss
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
 from data_loader import create_testdataset_for_unet_training, make_binary_masks
@@ -46,7 +47,7 @@ test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
 
 model = load_model(CHECKPOINT_PATH, compile=False)
 model.compile(
-    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+    optimizer="adam", loss=combined_loss, metrics=["accuracy"]
 )
 
 predictions, binary_predictions = add_prediction_to_list(
@@ -62,3 +63,5 @@ safe_predictions_locally(
     pred_img_path=PRED_IMG_PATH,
     val=False,
 )
+
+

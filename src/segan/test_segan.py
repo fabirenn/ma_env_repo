@@ -23,6 +23,8 @@ from processing import (
     safe_predictions_locally,
 )
 
+from loss_functions import combined_loss
+
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 TEST_IMG_PATH = "data/training_test/images_mixed"
@@ -70,7 +72,7 @@ else:
 model = load_model(CHECKPOINT_PATH, compile=False)
 
 model.compile(
-    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+    optimizer="adam", loss=combined_loss, metrics=["accuracy"]
 )
 
 predictions, binary_predictions = add_prediction_to_list(

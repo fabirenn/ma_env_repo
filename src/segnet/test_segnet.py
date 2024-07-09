@@ -9,6 +9,7 @@ from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
 from PIL import Image as im
 from segnet_model import segnet
+from loss_functions import combined_loss
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_layers import custom_objects
@@ -49,7 +50,7 @@ model = load_model(
     CHECKPOINT_PATH, custom_objects=custom_objects, compile=False
 )
 model.compile(
-    optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+    optimizer="adam", loss=combined_loss, metrics=["accuracy"]
 )
 
 predictions, binary_predictions = add_prediction_to_list(
