@@ -11,9 +11,10 @@ import wandb
 from keras.utils import array_to_img, img_to_array
 from PIL import Image as im
 from ynet_model import build_ynet
-from loss_functions import combined_loss
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from loss_functions import combined_loss
 from custom_callbacks import ValidationCallback, specificity_score, dice_score
 from data_loader import create_testdataset_for_unet_training, make_binary_masks
 from processing import (
