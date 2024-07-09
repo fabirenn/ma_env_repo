@@ -87,7 +87,7 @@ wandb.init(
     dir=os.environ["WANDB_DIR"],
 )
 
-test_results = model.evaluate(test_images, test_masks, return_dict=True)
+test_results = model.evaluate(test_dataset, return_dict=True)
 print(test_results)
 wandb.log(test_results)
 wandb.finish()
