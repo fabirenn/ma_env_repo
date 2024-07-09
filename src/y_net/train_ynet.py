@@ -34,8 +34,8 @@ LOG_VAL_PRED = "data/predictions/ynet"
 
 CHECKPOINT_PATH = "artifacts/models/ynet/ynet_checkpoint.h5"
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 
 IMG_CHANNEL = 8
 
@@ -51,6 +51,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
     img_width=IMG_WIDTH,
     img_height=IMG_HEIGHT,
     batch_size=BATCH_SIZE,
+    channel_size=IMG_CHANNEL
 )
 
 os.environ["WANDB_DIR"] = "wandb/ynet"
@@ -71,7 +72,7 @@ config = wandb.config
 
 
 # create model & start training it
-model = build_ynet(IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE)
+model = build_ynet(IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, IMG_CHANNEL)
 
 model.compile(
     optimizer="adam",

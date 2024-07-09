@@ -37,6 +37,7 @@ IMG_HEIGHT = 512
 
 IMG_CHANNEL = 8
 
+
 BATCH_SIZE = 4
 EPOCHS = 100
 
@@ -48,6 +49,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
     img_width=IMG_WIDTH,
     img_height=IMG_HEIGHT,
     batch_size=BATCH_SIZE,
+    channel_size=IMG_CHANNEL
 )
 
 os.environ["WANDB_DIR"] = "wandb/unet"

@@ -207,6 +207,7 @@ def create_datasets_for_unet_training(
     img_width,
     img_height,
     batch_size,
+    channel_size
 ):
 
     # loading images and masks from their corresponding paths into to separate lists
@@ -228,15 +229,19 @@ def create_datasets_for_unet_training(
     # normalizing the values of the images and binarizing the image masks
     train_images = normalize_image_data(train_images)
     print("Train-Images normalized..")
-    train_images = preprocess_images(train_images)
-    print("Train-Images preprocessed for U-Net..")
+    if channel_size > 3:
+        train_images = preprocess_images(train_images)
+        print("Added more channels for U-Net..")
+    
     train_masks = make_binary_masks(train_masks, 30)
     print("Train-Masks binarized..")
 
     val_images = normalize_image_data(val_images)
     print("Val-Images normalized..")
-    val_images = preprocess_images(val_images)
-    print("Val-Images preprocessed for U-Net..")
+    if channel_size > 3:
+        val_images = preprocess_images(val_images)
+        print("Added more channels for U-Net..")
+    
     val_masks = make_binary_masks(val_masks, 30)
     print("Val-Masks binarized..")
 
@@ -347,6 +352,7 @@ def create_testdataset_for_unet_training(
     img_width,
     img_height,
     batch_size,
+    channel_size,
 ):
 
     # loading images and masks from their corresponding paths into to separate lists
@@ -362,14 +368,15 @@ def create_testdataset_for_unet_training(
     # normalizing the values of the images and binarizing the image masks
     test_images_normalized = normalize_image_data(test_images)
     print("Train-Images normalized..")
-    test_images_preprocessed = preprocess_images(test_images_normalized)
-    print("Train-Images preprocessed for U-Net..")
+    if channel_size > 3:
+        test_images_normalized = preprocess_images(test_images_normalized)
+        print("Added more Channels for U-Net..")
     test_masks = make_binary_masks(test_masks, 30)
     print("Train-Masks binarized..")
 
     # converting the images/masks to tensors + expanding the masks tensor slide to
     # 1 dimension
-    tensor_test_images = convert_to_tensor(test_images_preprocessed)
+    tensor_test_images = convert_to_tensor(test_images_normalized)
     tensor_test_masks = convert_to_tensor(test_masks)
     tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
     print("Images converted to tensors..")
