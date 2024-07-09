@@ -15,5 +15,5 @@ source ../ma_env/bin/activate
 module load Python/3.10.4-GCCcore-11.3.0
 module load TensorFlow/2.11.0-foss-2022a-CUDA-11.7.0
 
-python src/ynet/train_ynet.py
+python src/y_net/train_ynet.py
 
