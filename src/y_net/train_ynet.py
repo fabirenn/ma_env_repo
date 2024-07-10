@@ -21,19 +21,17 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
+LOG_VAL_PRED = "data/predictions/ynet"
+CHECKPOINT_PATH = "artifacts/models/ynet/ynet_checkpoint.h5"
+
 '''
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"'''
 
-LOG_VAL_PRED = "data/predictions/ynet"
-
-CHECKPOINT_PATH = "artifacts/models/ynet/ynet_checkpoint.h5"
-
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
@@ -67,7 +65,6 @@ wandb.init(
 
 # [optional] use wandb.config as your config
 config = wandb.config
-
 
 # create model & start training it
 model = build_ynet(IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, IMG_CHANNEL)

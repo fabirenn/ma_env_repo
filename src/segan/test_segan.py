@@ -20,21 +20,18 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
 
-'''TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"'''
-
 CHECKPOINT_PATH = "artifacts/models/segan/segan_checkpoint.h5"
 PRED_IMG_PATH = "artifacts/models/segan/pred"
+
+'''TEST_IMG_PATH = "data/local/test/images"
+TEST_MASK_PATH = "data/local/test/labels"'''
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 UNET = True
-
 BATCH_SIZE = 4
-EPOCHS = 50
-
 
 if UNET is True:
     test_dataset, test_images, test_masks = (
@@ -57,7 +54,6 @@ else:
             batch_size=BATCH_SIZE,
         )
     )
-
 
 model = load_model(CHECKPOINT_PATH, compile=False)
 
@@ -87,6 +83,7 @@ safe_predictions_locally(
     pred_img_path=PRED_IMG_PATH,
     val=False,
 )
+
 os.environ["WANDB_DIR"] = "wandb/test_segan"
 
 wandb.init(

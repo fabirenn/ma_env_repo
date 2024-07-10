@@ -22,9 +22,7 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
-EPOCHS = 50
 APPLY_CRF = True
-
 
 test_dataset, test_images, test_masks = create_testdataset_for_segnet_training(
     directory_test_images=TEST_IMG_PATH,

@@ -17,14 +17,13 @@ from loss_functions import combined_loss, dice_loss, iou_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
+
 CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
 LOG_VAL_PRED = "data/predictions/segnet"
-
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
@@ -60,7 +59,6 @@ wandb.init(
 
 # [optional] use wandb.config as your config
 config = wandb.config
-
 
 # create model & start training it
 model = segnet(input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))

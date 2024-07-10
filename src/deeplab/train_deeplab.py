@@ -17,7 +17,6 @@ from loss_functions import combined_loss, dice_loss, iou_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-
 TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
@@ -32,7 +31,6 @@ TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"'''
 
-
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
@@ -40,6 +38,7 @@ IMG_CHANNEL = 3
 BATCH_SIZE = 4
 EPOCHS = 200
 PATIENCE = 70
+
 APPLY_CRF = True
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
@@ -68,7 +67,6 @@ wandb.init(
 
 # [optional] use wandb.config as your config
 config = wandb.config
-
 
 # create model & start training it
 model = DeepLab(input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL))

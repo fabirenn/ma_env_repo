@@ -24,8 +24,6 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
-EPOCHS = 50
-
 
 test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
     directory_test_images=TEST_IMG_PATH,
