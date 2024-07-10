@@ -61,15 +61,15 @@ def log_images_wandb(epoch, x, y_true, y_pred):
 
 
 def dice_score(y_true, y_pred):
-    y_pred = K.round(y_pred)
-    intersection = K.sum(y_true * y_pred)
-    union = K.sum(y_true) + K.sum(y_pred)
-    dice = (2.0 * intersection + K.epsilon()) / (union + K.epsilon())
-    return dice
+    y_pred = tf.round(y_pred)
+    intersection = tf.reduce_sum(y_true * y_pred)
+    return (2.0 * intersection + K.epsilon()) / (
+        tf.reduce_sum(y_true) + tf.reduce_sum(y_pred) + K.epsilon()
+    )
 
 
 def specificity_score(y_true, y_pred):
-    y_pred = K.round(y_pred)
+    y_pred = tf.round(y_pred)
     y_true = tf.cast(y_true, tf.bool)
     y_pred = tf.cast(y_pred, tf.bool)
 

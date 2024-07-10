@@ -1,9 +1,12 @@
 import os
 import sys
 
+import keras.backend
 import matplotlib.pyplot as plt
 import numpy as np
+import segmentation_models as sm
 import tensorflow as tf
+from keras import metrics
 from keras import layers, models
 from keras.callbacks import EarlyStopping
 from segan_model import discriminator, generator, vgg_model
@@ -33,20 +36,20 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
 
-
+'''
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
 TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"
+TEST_MASK_PATH = "data/local/test/labels"'''
 
 
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
 
-IMG_WIDTH = 128
-IMG_HEIGHT = 128
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
@@ -75,12 +78,24 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
-generator_model = generator(
-    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, used_unet=UNET
+keras.backend.set_image_data_format("channels_last")
+
+generator_model = sm.Unet(
+    backbone_name="resnet34",
+    input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
+    classes=1,
+    activation="sigmoid",
+    encoder_weights=None,
+    encoder_features="default",
+    decoder_block_type="upsampling",
+    decoder_filters=(256, 128, 64, 32, 16),
+    decoder_use_batchnorm=True,
 )
 
+generator_model.summary()
 
 
+# generator_model = generator(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, used_unet=UNET)
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
@@ -102,8 +117,8 @@ generator_model.compile(
     optimizer=gen_optimizer,
     loss=loss_fn,
     metrics=[
-        tf.keras.metrics.BinaryAccuracy(),
-    ]
+        keras.metrics.BinaryAccuracy(),
+    ],
 )
 
 

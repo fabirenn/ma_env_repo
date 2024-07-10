@@ -1,8 +1,10 @@
+import keras
 import tensorflow as tf
 from keras import backend as K
+from keras.layers import Layer
 
 
-class MaxUnpooling2D(tf.keras.layers.Layer):
+class MaxUnpooling2D(Layer):
     def __init__(self, pool_size=(2, 2), **kwargs):
         super(MaxUnpooling2D, self).__init__(**kwargs)
         self.pool_size = pool_size
@@ -57,7 +59,7 @@ class MaxUnpooling2D(tf.keras.layers.Layer):
         return tf.TensorShape(shape)
 
 
-class MaxPoolingWithIndices2D(tf.keras.layers.Layer):
+class MaxPoolingWithIndices2D(Layer):
     def __init__(
         self, pool_size=(2, 2), strides=(2, 2), padding="VALID", **kwargs
     ):
