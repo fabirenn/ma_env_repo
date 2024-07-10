@@ -10,12 +10,11 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from ynet_model import build_ynet
+
 from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import create_datasets_for_unet_training
 from loss_functions import combined_loss, dice_loss, iou_loss
-
-from ynet_model import build_ynet
-
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -51,7 +50,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
     img_width=IMG_WIDTH,
     img_height=IMG_HEIGHT,
     batch_size=BATCH_SIZE,
-    channel_size=IMG_CHANNEL
+    channel_size=IMG_CHANNEL,
 )
 
 os.environ["WANDB_DIR"] = "wandb/train_ynet"
@@ -64,7 +63,7 @@ wandb.init(
     mode="offline",
     # track hyperparameters and run metadata with wandb.config
     config={"metric": "accuracy", "epochs": EPOCHS, "batch_size": BATCH_SIZE},
-    dir=os.environ["WANDB_DIR"]
+    dir=os.environ["WANDB_DIR"],
 )
 
 # [optional] use wandb.config as your config

@@ -40,19 +40,24 @@ class ValidationCallback(Callback):
             pred_img_path=self.log_dir,
             val=True,
         )
-        log_images_wandb(epoch=epoch, x=x_batch[0], y_true=y_true_batch[0], y_pred=y_pred_batch[0])
+        log_images_wandb(
+            epoch=epoch,
+            x=x_batch[0],
+            y_true=y_true_batch[0],
+            y_pred=y_pred_batch[0],
+        )
 
 
 def log_images_wandb(epoch, x, y_true, y_pred):
-        columns = ["epoch", "original", "true_mask", "predicted_mask"]
-        extract_first_three_channels = x[:, :, :3]
-        input_image = wandb.Image(array_to_img(extract_first_three_channels))
-        true_mask = wandb.Image(array_to_img(y_true))
-        predicted_mask = wandb.Image(array_to_img(y_pred))
-        wandb_table = wandb.Table(columns=columns)
-        wandb_table.add_data(epoch, input_image, true_mask, predicted_mask)
+    columns = ["epoch", "original", "true_mask", "predicted_mask"]
+    extract_first_three_channels = x[:, :, :3]
+    input_image = wandb.Image(array_to_img(extract_first_three_channels))
+    true_mask = wandb.Image(array_to_img(y_true))
+    predicted_mask = wandb.Image(array_to_img(y_pred))
+    wandb_table = wandb.Table(columns=columns)
+    wandb_table.add_data(epoch, input_image, true_mask, predicted_mask)
 
-        wandb.log({"val_image": wandb_table})
+    wandb.log({"val_image": wandb_table})
 
 
 def dice_score(y_true, y_pred):

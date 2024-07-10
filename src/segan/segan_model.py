@@ -22,9 +22,9 @@ CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.h5"
 CHECKPOINT_PATH_SEGNET = "./artifacts/models/segnet/segnet_checkpoint.h5"
 
 
-def generator(img_width, img_height, batch_size, used_unet):
+def generator(img_width, img_height, channel_size, batch_size, used_unet):
     if used_unet is True:
-        model = unet(img_width, img_height, 8, batch_size)
+        model = unet(img_width, img_height, channel_size, batch_size)
         used_unet = True
         model.load_weights(CHECKPOINT_PATH_UNET)
     else:

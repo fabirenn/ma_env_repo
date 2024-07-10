@@ -49,7 +49,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
     img_width=IMG_WIDTH,
     img_height=IMG_HEIGHT,
     batch_size=BATCH_SIZE,
-    channel_size=IMG_CHANNEL
+    channel_size=IMG_CHANNEL,
 )
 
 os.environ["WANDB_DIR"] = "wandb/train_unet"
@@ -62,7 +62,7 @@ wandb.init(
     mode="offline",
     # track hyperparameters and run metadata with wandb.config
     config={"metric": "accuracy", "epochs": EPOCHS, "batch_size": BATCH_SIZE},
-    dir=os.environ["WANDB_DIR"]
+    dir=os.environ["WANDB_DIR"],
 )
 
 # [optional] use wandb.config as your config

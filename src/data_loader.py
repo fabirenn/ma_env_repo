@@ -207,7 +207,7 @@ def create_datasets_for_unet_training(
     img_width,
     img_height,
     batch_size,
-    channel_size
+    channel_size,
 ):
 
     # loading images and masks from their corresponding paths into to separate lists
@@ -232,7 +232,7 @@ def create_datasets_for_unet_training(
     if channel_size > 3:
         train_images = preprocess_images(train_images)
         print("Added more channels for U-Net..")
-    
+
     train_masks = make_binary_masks(train_masks, 30)
     print("Train-Masks binarized..")
 
@@ -241,7 +241,7 @@ def create_datasets_for_unet_training(
     if channel_size > 3:
         val_images = preprocess_images(val_images)
         print("Added more channels for U-Net..")
-    
+
     val_masks = make_binary_masks(val_masks, 30)
     print("Val-Masks binarized..")
 

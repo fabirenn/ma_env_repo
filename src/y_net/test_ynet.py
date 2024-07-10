@@ -2,21 +2,21 @@ import os
 import sys
 
 import cv2
+import keras.metrics
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras.models import load_model
-import keras.metrics
-import wandb
 from keras.utils import array_to_img, img_to_array
 from PIL import Image as im
 from ynet_model import build_ynet
 
+import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from loss_functions import combined_loss
-from custom_callbacks import ValidationCallback, specificity_score, dice_score
+from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import create_testdataset_for_unet_training, make_binary_masks
+from loss_functions import combined_loss
 from processing import (
     add_prediction_to_list,
     calculate_binary_dice,
@@ -45,7 +45,7 @@ test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
     img_width=IMG_WIDTH,
     img_height=IMG_HEIGHT,
     batch_size=BATCH_SIZE,
-    channel_size=IMG_CHANNEL
+    channel_size=IMG_CHANNEL,
 )
 
 model = load_model(CHECKPOINT_PATH, compile=False)

@@ -13,7 +13,7 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from custom_callbacks import ValidationCallback
+from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import (
     create_datasets_for_segnet_training,
     create_datasets_for_unet_training,
@@ -59,7 +59,25 @@ BEST_GEN_LOSS = np.inf
 WAIT = 0
 
 
-generator_model = generator(IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, used_unet=UNET)
+os.environ["WANDB_DIR"] = "wandb/train_segan"
+
+# Start a run, tracking hyperparameters
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="segan",
+    entity="fabio-renn",
+    mode="offline",
+    # track hyperparameters and run metadata with wandb.config
+    config={"metric": "accuracy", "epochs": EPOCHS, "batch_size": BATCH_SIZE},
+    dir=os.environ["WANDB_DIR"],
+)
+
+# [optional] use wandb.config as your config
+config = wandb.config
+
+generator_model = generator(
+    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, used_unet=UNET
+)
 
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
@@ -106,6 +124,34 @@ def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
     for real, generated in zip(real_features, generated_features):
         loss += tf.reduce_mean(tf.abs(real - generated))
     return loss
+
+
+def evaluate_generator(generator, dataset):
+    # Implement the evaluation logic
+    accuracy = 0.0
+    iou = 0.0
+    precision = 0.0
+    recall = 0.0
+    specificity = 0.0
+    dice = 0.0
+    # Calculate metrics over the validation dataset
+    for image_batch, mask_batch in dataset:
+        predictions = generator(image_batch, training=False)
+        accuracy += tf.keras.metrics.Accuracy()(mask_batch, predictions)
+        iou += tf.keras.metrics.BinaryIoU()(mask_batch, predictions)
+        precision += tf.keras.metrics.Precision()(mask_batch, predictions)
+        recall += tf.keras.metrics.Recall()(mask_batch, predictions)
+        specificity += specificity_score(mask_batch, predictions)
+        dice += dice_score(mask_batch, predictions)
+
+    # Average the metrics over the dataset
+    accuracy /= len(dataset)
+    iou /= len(dataset)
+    precision /= len(dataset)
+    recall /= len(dataset)
+    specificity /= len(dataset)
+    dice /= len(dataset)
+    return accuracy, iou, precision, recall, specificity, dice
 
 
 @tf.function
@@ -160,18 +206,62 @@ def generate_images(model, dataset, epoch):
     )
 
 
-def train(train_dataset, test_dataset, epochs):
+def train(train_dataset, val_dataset, epochs):
     global BEST_GEN_LOSS, WAIT
     for epoch in range(epochs):
+        print(f"Epoch {epoch+1}/{EPOCHS}")
         for image_batch, mask_batch in train_dataset:
             gen_loss, disc_loss = train_step(image_batch, mask_batch)
 
+        (
+            train_accuracy,
+            train_iou,
+            train_precision,
+            train_recall,
+            train_specificity,
+            train_dice,
+        ) = evaluate_generator(generator_model, train_dataset)
+        (
+            val_accuracy,
+            val_iou,
+            val_precision,
+            val_recall,
+            val_specificity,
+            val_dice,
+        ) = evaluate_generator(generator_model, val_dataset)
+
+        wandb.log(
+            {
+                "epoch": epoch + 1,
+                "gen_loss": gen_loss,
+                "disc_loss": disc_loss,
+                "train_accuracy": train_accuracy,
+                "train_iou": train_iou,
+                "train_precision": train_precision,
+                "train_recall": train_recall,
+                "train_specificity": train_specificity,
+                "train_dice": train_dice,
+                "val_accuracy": val_accuracy,
+                "val_iou": val_iou,
+                "val_precision": val_precision,
+                "val_recall": val_recall,
+                "val_specificity": val_specificity,
+                "val_dice": val_dice,
+            }
+        )
+
+        # Print the losses and metrics
         print(
-            f"Epoch {epoch+1}, Gen Loss: {gen_loss.numpy()}, Disc Loss: {disc_loss.numpy()}"
+            f"Generator Loss: {gen_loss:.4f}\nDiscriminator Loss: {disc_loss:.4f}"
         )
-        generate_images(
-            model=generator_model, dataset=test_dataset, epoch=epoch
+        print(
+            f"Train Metrics - Accuracy: {train_accuracy:.4f}, IoU: {train_iou:.4f}, Precision: {train_precision:.4f}, Recall: {train_recall:.4f}, Specificity: {train_specificity:.4f}, Dice: {train_dice:.4f}\n"
         )
+        print(
+            f"Validation Metrics - Accuracy: {val_accuracy:.4f}, IoU: {val_iou:.4f}, Precision: {val_precision:.4f}, Recall: {val_recall:.4f}, Specificity: {val_specificity:.4f}, Dice: {val_dice:.4f}\n"
+        )
+
+        generate_images(model=generator_model, dataset=val_dataset, epoch=epoch)
 
         if gen_loss < BEST_GEN_LOSS - MIN_DELTA_LOSS:
             BEST_GEN_LOSS = gen_loss
@@ -197,18 +287,8 @@ if UNET is True:
         img_width=IMG_WIDTH,
         img_height=IMG_HEIGHT,
         batch_size=BATCH_SIZE,
+        channel_size=IMG_CHANNEL,
     )
-
-    test_dataset, test_images, test_masks = (
-        create_testdataset_for_unet_training(
-            directory_test_images=TEST_IMG_PATH,
-            directory_test_masks=TEST_MASK_PATH,
-            img_width=IMG_WIDTH,
-            img_height=IMG_HEIGHT,
-            batch_size=BATCH_SIZE,
-        )
-    )
-
 else:
     train_dataset, val_dataset = create_datasets_for_segnet_training(
         directory_train_images=TRAIN_IMG_PATH,
@@ -220,16 +300,6 @@ else:
         batch_size=BATCH_SIZE,
     )
 
-    test_dataset, test_images, test_masks = (
-        create_testdataset_for_segnet_training(
-            directory_test_images=TEST_IMG_PATH,
-            directory_test_masks=TEST_MASK_PATH,
-            img_width=IMG_WIDTH,
-            img_height=IMG_HEIGHT,
-            batch_size=BATCH_SIZE,
-        )
-    )
+train(train_dataset=train_dataset, val_dataset=val_dataset, epochs=EPOCHS)
 
-combined_dataset = train_dataset.concatenate(val_dataset)
-
-train(train_dataset=combined_dataset, test_dataset=test_dataset, epochs=EPOCHS)
+wandb.finish()

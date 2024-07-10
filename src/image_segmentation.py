@@ -8,7 +8,7 @@ from keras.models import load_model
 from PIL import Image
 
 import wandb
-from custom_callbacks import dice_score, specificity_score, log_images_wandb
+from custom_callbacks import dice_score, log_images_wandb, specificity_score
 from data_loader import create_dataset_for_image_segmentation
 from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally
@@ -148,7 +148,8 @@ wandb.init(
     name="image-segmentation",
     mode="offline",
     config={"metric": "accuracy"},
-    dir=os.environ["WANDB_DIR"])
+    dir=os.environ["WANDB_DIR"],
+)
 
 wandb.config
 
@@ -192,7 +193,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         original_images, preprocessed_images, original_masks, range(20)
     ):
         if model_name not in ("unet", "segan", "ynet"):
-            #print("no preprocessed images")
+            # print("no preprocessed images")
             segmented_image = segment_image(
                 original_image, model, patch_size=512, overlap=50
             )

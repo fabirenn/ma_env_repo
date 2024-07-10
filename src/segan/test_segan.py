@@ -2,30 +2,30 @@ import os
 import sys
 
 import cv2
+import keras.metrics
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import wandb
-import keras.metrics
 from keras.models import load_model
 from keras.utils import array_to_img, img_to_array
 from PIL import Image as im
 
+import wandb
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import ValidationCallback, specificity_score, dice_score
+from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import (
     create_testdataset_for_segnet_training,
     create_testdataset_for_unet_training,
     make_binary_masks,
 )
+from loss_functions import combined_loss
 from processing import (
     add_prediction_to_list,
     calculate_binary_dice,
     calculate_binary_iou,
     safe_predictions_locally,
 )
-
-from loss_functions import combined_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
