@@ -38,7 +38,8 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
 BATCH_SIZE = 4
-EPOCHS = 50
+EPOCHS = 200
+PATIENCE = 70
 APPLY_CRF = True
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
@@ -106,6 +107,12 @@ model.fit(
             log_dir=LOG_VAL_PRED,
             apply_crf=APPLY_CRF,
         ),
+        EarlyStopping(
+            monitor="val_loss",
+            mode="min",
+            patience=PATIENCE,
+            restore_best_weights=True
+        )
     ],
 )
 

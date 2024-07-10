@@ -38,8 +38,7 @@ IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 EPOCHS = 200
-PATIENCE = 50
-
+PATIENCE = 70
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -107,6 +106,12 @@ model.fit(
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
         ),
+        EarlyStopping(
+            monitor="val_loss",
+            mode="min",
+            patience=PATIENCE,
+            restore_best_weights=True
+        )
     ],
 )
 

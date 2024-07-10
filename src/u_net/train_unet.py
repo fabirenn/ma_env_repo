@@ -33,12 +33,12 @@ CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-
 IMG_CHANNEL = 8
 
 
 BATCH_SIZE = 4
-EPOCHS = 100
+EPOCHS = 200
+PATIENCE = 70
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -106,6 +106,12 @@ model.fit(
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
         ),
+        EarlyStopping(
+            monitor="val_loss",
+            mode="min",
+            patience=PATIENCE,
+            restore_best_weights=True
+        )
     ],
 )
 
