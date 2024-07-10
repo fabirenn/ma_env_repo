@@ -70,6 +70,7 @@ wandb.init(
     project="segan",
     entity="fabio-renn",
     mode="offline",
+    name="train-segan",
     # track hyperparameters and run metadata with wandb.config
     config={"metric": "accuracy", "epochs": EPOCHS, "batch_size": BATCH_SIZE},
     dir=os.environ["WANDB_DIR"],

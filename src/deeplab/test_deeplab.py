@@ -78,7 +78,7 @@ safe_predictions_locally(
 os.environ["WANDB_DIR"] = "wandb/test_deeplab"
 
 wandb.init(
-    project="image-segmentation",
+    project="deeplab",
     entity="fabio-renn",
     name="test-deeplab",
     mode="offline",

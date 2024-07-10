@@ -82,7 +82,7 @@ safe_predictions_locally(
 os.environ["WANDB_DIR"] = "wandb/test_segnet"
 
 wandb.init(
-    project="image-segmentation",
+    project="segnet",
     entity="fabio-renn",
     name="test-segnet",
     mode="offline",
