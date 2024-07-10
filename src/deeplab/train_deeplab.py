@@ -52,7 +52,7 @@ train_dataset, val_dataset = create_datasets_for_segnet_training(
     batch_size=BATCH_SIZE,
 )
 
-os.environ["WANDB_DIR"] = "wandb/deeplab"
+os.environ["WANDB_DIR"] = "wandb/train_deeplab"
 
 # Start a run, tracking hyperparameters
 wandb.init(

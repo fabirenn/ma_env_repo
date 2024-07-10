@@ -54,7 +54,7 @@ train_dataset, val_dataset = create_datasets_for_unet_training(
     channel_size=IMG_CHANNEL
 )
 
-os.environ["WANDB_DIR"] = "wandb/ynet"
+os.environ["WANDB_DIR"] = "wandb/train_ynet"
 
 # Start a run, tracking hyperparameters
 wandb.init(

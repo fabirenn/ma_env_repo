@@ -99,7 +99,7 @@ safe_predictions_locally(
     pred_img_path=PRED_IMG_PATH,
     val=False,
 )
-os.environ["WANDB_DIR"] = "wandb/testing_models"
+os.environ["WANDB_DIR"] = "wandb/test_segan"
 
 wandb.init(
     project="image-segmentation",
