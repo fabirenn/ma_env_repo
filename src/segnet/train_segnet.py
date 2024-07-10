@@ -101,8 +101,8 @@ model.fit(
             monitor="val_loss",
             mode="min",
             patience=PATIENCE,
-            restore_best_weights=True
-        )
+            restore_best_weights=True,
+        ),
     ],
 )
 
