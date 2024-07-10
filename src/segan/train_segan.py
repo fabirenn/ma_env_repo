@@ -33,20 +33,20 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
 
-'''
+
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
 TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"'''
+TEST_MASK_PATH = "data/local/test/labels"
 
 
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 128
+IMG_HEIGHT = 128
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
@@ -79,6 +79,8 @@ generator_model = generator(
     IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, used_unet=UNET
 )
 
+
+
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
@@ -95,6 +97,14 @@ checkpoint = tf.train.Checkpoint(
 )
 
 vgg_model = vgg_model()
+
+generator_model.compile(
+    optimizer=gen_optimizer,
+    loss=loss_fn,
+    metrics=[
+        tf.keras.metrics.BinaryAccuracy(),
+    ]
+)
 
 
 def discriminator_loss(real_output, fake_output):
@@ -137,7 +147,7 @@ def evaluate_generator(generator, dataset):
     # Calculate metrics over the validation dataset
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
-        accuracy += tf.keras.metrics.Accuracy()(mask_batch, predictions)
+        accuracy += tf.keras.metrics.BinaryAccuracy()(mask_batch, predictions)
         iou += tf.keras.metrics.BinaryIoU()(mask_batch, predictions)
         precision += tf.keras.metrics.Precision()(mask_batch, predictions)
         recall += tf.keras.metrics.Recall()(mask_batch, predictions)
@@ -252,13 +262,13 @@ def train(train_dataset, val_dataset, epochs):
 
         # Print the losses and metrics
         print(
-            f"Generator Loss: {gen_loss:.4f}\nDiscriminator Loss: {disc_loss:.4f}"
+            f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f}"
         )
         print(
-            f"Train Metrics - Accuracy: {train_accuracy:.4f}, IoU: {train_iou:.4f}, Precision: {train_precision:.4f}, Recall: {train_recall:.4f}, Specificity: {train_specificity:.4f}, Dice: {train_dice:.4f}\n"
+            f"Train Metrics - Accuracy: {train_accuracy:.4f}, IoU: {train_iou:.4f}, Precision: {train_precision:.4f}, Recall: {train_recall:.4f}, Specificity: {train_specificity:.4f}, Dice: {train_dice:.4f}"
         )
         print(
-            f"Validation Metrics - Accuracy: {val_accuracy:.4f}, IoU: {val_iou:.4f}, Precision: {val_precision:.4f}, Recall: {val_recall:.4f}, Specificity: {val_specificity:.4f}, Dice: {val_dice:.4f}\n"
+            f"Validation Metrics - Accuracy: {val_accuracy:.4f}, IoU: {val_iou:.4f}, Precision: {val_precision:.4f}, Recall: {val_recall:.4f}, Specificity: {val_specificity:.4f}, Dice: {val_dice:.4f}"
         )
 
         generate_images(model=generator_model, dataset=val_dataset, epoch=epoch)
@@ -267,15 +277,15 @@ def train(train_dataset, val_dataset, epochs):
             BEST_GEN_LOSS = gen_loss
             checkpoint.save(file_prefix=CHECKPOINT_PATH)
             generator_model.save(CHECKPOINT_PATH)
-            print("Improved & Saved model")
+            print("Improved & Saved model\n")
             wait = 0
         else:
             wait += 1
             if wait >= PATIENCE:
-                print("Early stopping triggered")
+                print("Early stopping triggered\n")
                 return
             else:
-                print("Waiting for improvement..")
+                print("Waiting for improvement..\n")
 
 
 if UNET is True:
