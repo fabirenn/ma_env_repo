@@ -1,14 +1,9 @@
 import os
 
-import matplotlib.pyplot as plt
-import numpy as np
 import tensorflow as tf
 from keras import backend as K
 from keras.callbacks import Callback
-from keras.utils import array_to_img, img_to_array
-from PIL import Image
-from scipy.spatial.distance import directed_hausdorff
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from keras.utils import array_to_img
 
 import wandb
 from processing import apply_crf_to_pred, safe_predictions_locally

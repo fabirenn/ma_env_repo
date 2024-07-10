@@ -2,15 +2,10 @@ import os
 import sys
 
 import keras.backend
-import matplotlib.pyplot as plt
 import numpy as np
 import segmentation_models as sm
 import tensorflow as tf
-from keras import metrics
-from keras import layers, models
-from keras.callbacks import EarlyStopping
 from segan_model import discriminator, generator, vgg_model
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 
@@ -20,8 +15,6 @@ from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import (
     create_datasets_for_segnet_training,
     create_datasets_for_unet_training,
-    create_testdataset_for_segnet_training,
-    create_testdataset_for_unet_training,
 )
 from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally
@@ -53,10 +46,10 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
-EPOCHS = 100
+EPOCHS = 200
 UNET = True
 
-PATIENCE = 80
+PATIENCE = 100
 MIN_DELTA_LOSS = 0.01
 BEST_GEN_LOSS = np.inf
 WAIT = 0
@@ -96,7 +89,8 @@ generator_model = sm.Unet(
 generator_model.summary()
 
 
-# generator_model = generator(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, used_unet=UNET)
+# generator_model = generator(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE,
+# used_unet=UNET)
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )

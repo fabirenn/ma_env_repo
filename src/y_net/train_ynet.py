@@ -2,14 +2,12 @@ import os
 import sys
 
 import keras.metrics
-import tensorflow as tf
 from keras.callbacks import EarlyStopping
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from ynet_model import build_ynet
 
 from custom_callbacks import ValidationCallback, dice_score, specificity_score
@@ -39,7 +37,8 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
-EPOCHS = 100
+EPOCHS = 200
+PATIENCE = 50
 
 
 train_dataset, val_dataset = create_datasets_for_unet_training(

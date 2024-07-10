@@ -1,4 +1,3 @@
-import tensorflow as tf
 from custom_layers import MaxPoolingWithIndices2D, MaxUnpooling2D
 from keras.layers import BatchNormalization, Conv2D, Input
 from keras.models import Model

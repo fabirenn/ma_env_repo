@@ -2,7 +2,6 @@ import os
 import sys
 
 import keras.metrics
-import tensorflow as tf
 from deeplab_model import DeepLab
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 

@@ -1,15 +1,7 @@
-import numpy as np
 import tensorflow as tf
 from keras import backend as K
 from keras.applications import ResNet50
-from keras.layers import (
-    Conv2D,
-    Input,
-    Layer,
-    MaxPooling2D,
-    UpSampling2D,
-    concatenate,
-)
+from keras.layers import Conv2D, Input, Layer, UpSampling2D, concatenate
 from keras.models import Model
 
 

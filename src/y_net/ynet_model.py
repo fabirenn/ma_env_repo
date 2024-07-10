@@ -1,11 +1,9 @@
 import os
 import sys
 
-import tensorflow as tf
 from keras import layers, models
-from keras.applications import VGG16
-from keras.layers import BatchNormalization, Conv2D, Input, concatenate
-from keras.models import Model, load_model
+from keras.layers import Conv2D, Input, concatenate
+from keras.models import Model
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net"))

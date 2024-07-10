@@ -1,19 +1,15 @@
 import os
-import sys
 
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pydensecrf.densecrf as dcrf
 import tensorflow as tf
-from keras.utils import array_to_img, img_to_array
+from keras.utils import array_to_img
 from pydensecrf.utils import (
     create_pairwise_bilateral,
     create_pairwise_gaussian,
     unary_from_softmax,
 )
-
-import wandb
 
 
 def calculate_binary_iou(pred_mask, true_mask):

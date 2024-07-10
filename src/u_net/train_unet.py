@@ -2,14 +2,13 @@ import os
 import sys
 
 import keras.metrics
-import tensorflow as tf
 from keras.callbacks import EarlyStopping
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from unet_architecture_hcp import unet
+from unet_model import unet
 
 from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import create_datasets_for_unet_training

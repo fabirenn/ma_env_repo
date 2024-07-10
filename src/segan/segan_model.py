@@ -1,10 +1,8 @@
 import os
 import sys
 
-import tensorflow as tf
 from keras import layers, models
 from keras.applications import VGG16
-from keras.layers import BatchNormalization, Conv2D, Input
 from keras.models import Model
 
 sys.path.append(
@@ -70,5 +68,6 @@ def vgg_model():
     # Definiert die Layer, aus denen die Merkmale extrahiert werden sollen
     selected_layers = [vgg.layers[i].output for i in [3, 6, 10]]
     model = Model(inputs=vgg.input, outputs=selected_layers)
-    model.trainable = False  # Stelle sicher, dass die Gewichte des vortrainierten Modells nicht aktualisiert werden
+    # Stelle sicher, dass die Gewichte des vortrainierten Modells nicht aktualisiert werden
+    model.trainable = False
     return model

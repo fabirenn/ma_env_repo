@@ -2,7 +2,6 @@ import os
 import sys
 
 import keras.metrics
-import tensorflow as tf
 from segnet_model import segnet
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
