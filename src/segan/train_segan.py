@@ -49,6 +49,8 @@ BATCH_SIZE = 4
 EPOCHS = 200
 UNET = True
 
+GENERATOR_TRAINING_STEPS = 5
+
 PATIENCE = 70
 MIN_DELTA_LOSS = 0.01
 BEST_GEN_LOSS = np.inf
@@ -173,41 +175,32 @@ def evaluate_generator(generator, dataset):
     dice /= len(dataset)
     return accuracy, iou, precision, recall, specificity, dice
 
-
 @tf.function
-def train_step(images, masks):
+def train_step_generator(images, masks):
 
-    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+    with tf.GradientTape() as gen_tape:
         generated_masks = generator_model(images, training=True)
-
-        real_output = discriminator_model([images, masks], training=True)
-        fake_output = discriminator_model(
-            [images, generated_masks], training=True
-        )
-
+        fake_output = discriminator_model([images, generated_masks], training=True)
         gen_loss = generator_loss(fake_output)
-        disc_loss = discriminator_loss(real_output, fake_output)
-
         ms_feature_loss = multi_scale_feature_loss(
             masks, generated_masks, vgg_model
         )
         total_gen_loss = gen_loss + ms_feature_loss
+    gradients_of_generator = gen_tape.gradient(total_gen_loss, generator_model.trainable_variables)
+    gen_optimizer.apply_gradients(zip(gradients_of_generator, generator_model.trainable_variables))
+    return gen_loss
 
-    gradients_of_generator = gen_tape.gradient(
-        total_gen_loss, generator_model.trainable_variables
-    )
-    gradients_of_discriminator = disc_tape.gradient(
-        disc_loss, discriminator_model.trainable_variables
-    )
+@tf.function
+def train_step_discriminator(images, masks):
 
-    gen_optimizer.apply_gradients(
-        zip(gradients_of_generator, generator_model.trainable_variables)
-    )
-    disc_optimizer.apply_gradients(
-        zip(gradients_of_discriminator, discriminator_model.trainable_variables)
-    )
-
-    return total_gen_loss, disc_loss
+    with tf.GradientTape() as disc_tape:
+        generated_masks = generator_model(images, training=True)
+        real_output = discriminator_model([images, masks], training=True)
+        fake_output = discriminator_model([images, generated_masks], training=True)
+        disc_loss = discriminator_loss(real_output, fake_output)
+    gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator_model.trainable_variables)
+    disc_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator_model.trainable_variables))
+    return disc_loss
 
 
 def generate_images(model, dataset, epoch):
@@ -230,8 +223,11 @@ def train(train_dataset, val_dataset, epochs):
     global BEST_GEN_LOSS, WAIT
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}/{EPOCHS}")
+
         for image_batch, mask_batch in train_dataset:
-            gen_loss, disc_loss = train_step(image_batch, mask_batch)
+            for _ in range(GENERATOR_TRAINING_STEPS):
+                gen_loss = train_step_generator(image_batch, mask_batch)
+            disc_loss = train_step_discriminator(image_batch, mask_batch)
 
         (
             train_accuracy,
