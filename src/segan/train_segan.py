@@ -52,8 +52,7 @@ UNET = True
 GENERATOR_TRAINING_STEPS = 5
 
 PATIENCE = 70
-MIN_DELTA_LOSS = 0.01
-BEST_GEN_LOSS = np.inf
+BEST_IOU = 0
 WAIT = 0
 
 
@@ -279,8 +278,8 @@ def train(train_dataset, val_dataset, epochs):
 
         generate_images(model=generator_model, dataset=val_dataset, epoch=epoch)
 
-        if gen_loss < BEST_GEN_LOSS - MIN_DELTA_LOSS:
-            BEST_GEN_LOSS = gen_loss
+        if val_iou > BEST_IOU:
+            BEST_IOU = val_iou
             checkpoint.save(file_prefix=CHECKPOINT_PATH)
             generator_model.save(CHECKPOINT_PATH)
             print("Improved & Saved model\n")
