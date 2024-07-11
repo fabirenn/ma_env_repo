@@ -14,7 +14,7 @@ from segnet_model import segnet
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net"))
 )
-from unet_architecture_hcp import unet
+from unet_model import unet
 
 CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.h5"
 CHECKPOINT_PATH_SEGNET = "./artifacts/models/segnet/segnet_checkpoint.h5"
