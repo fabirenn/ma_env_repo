@@ -194,9 +194,9 @@ def train_step_generator(images, masks):
         ms_feature_loss = multi_scale_feature_loss(
             masks, generated_masks, vgg_model
         )
-        total_gen_loss = gen_loss + ms_feature_loss
+        #total_gen_loss = gen_loss + ms_feature_loss
     gradients_of_generator = gen_tape.gradient(
-        total_gen_loss, generator_model.trainable_variables
+        gen_loss, generator_model.trainable_variables
     )
     gen_optimizer.apply_gradients(
         zip(gradients_of_generator, generator_model.trainable_variables)
@@ -239,7 +239,7 @@ def generate_images(model, dataset, epoch):
     )
 
 
-def train(train_dataset, val_dataset, epochs, trainingsteps, clip_value=0.1):
+def train(train_dataset, val_dataset, epochs, trainingsteps, clip_value=0.01):
     global BEST_IOU, WAIT
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}/{EPOCHS}")
