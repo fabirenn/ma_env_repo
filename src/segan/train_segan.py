@@ -97,7 +97,7 @@ discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
 
-loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+#loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # loss_fn = combined_loss
 gen_optimizer = tf.keras.optimizers.Adam(1e-4)
 disc_optimizer = tf.keras.optimizers.Adam(1e-4)
@@ -110,13 +110,6 @@ checkpoint = tf.train.Checkpoint(
 
 vgg_model = vgg_model()
 
-generator_model.compile(
-    optimizer=gen_optimizer,
-    loss=loss_fn,
-    metrics=[
-        keras.metrics.BinaryAccuracy(),
-    ],
-)
 
 
 def discriminator_loss(real_output, fake_output):
@@ -194,9 +187,9 @@ def train_step_generator(images, masks):
         ms_feature_loss = multi_scale_feature_loss(
             masks, generated_masks, vgg_model
         )
-        #total_gen_loss = gen_loss + ms_feature_loss
+        total_gen_loss = gen_loss + ms_feature_loss
     gradients_of_generator = gen_tape.gradient(
-        gen_loss, generator_model.trainable_variables
+        total_gen_loss, generator_model.trainable_variables
     )
     gen_optimizer.apply_gradients(
         zip(gradients_of_generator, generator_model.trainable_variables)
