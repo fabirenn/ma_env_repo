@@ -337,6 +337,12 @@ else:
         batch_size=BATCH_SIZE,
     )
 
-train(train_dataset=train_dataset, val_dataset=val_dataset, epochs=EPOCHS)
+train(
+    train_dataset=train_dataset,
+    val_dataset=val_dataset,
+    epochs=EPOCHS,
+    trainingsteps=5,
+    clip_value=0.1,
+)
 
 wandb.finish()
