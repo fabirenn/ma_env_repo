@@ -7,6 +7,7 @@ def unet(
     img_height,
     img_channels,
     batch_size,
+    dropout_rate,
     pretrained_weights=None,
     training=True,
 ):
@@ -19,26 +20,41 @@ def unet(
     c1, p1 = conv_block_down(
         input_tensor=inputs,
         num_filters=16,
-        dropout_rate=0.1,
+        dropout_rate=dropout_rate,
         kernel_size=(3, 3),
     )
     c2, p2 = conv_block_down(
-        input_tensor=p1, num_filters=32, dropout_rate=0.1, kernel_size=(3, 3)
+        input_tensor=p1,
+        num_filters=32,
+        dropout_rate=dropout_rate,
+        kernel_size=(3, 3),
     )
     c3, p3 = conv_block_down(
-        input_tensor=p2, num_filters=64, dropout_rate=0.1, kernel_size=(3, 3)
+        input_tensor=p2,
+        num_filters=64,
+        dropout_rate=dropout_rate,
+        kernel_size=(3, 3),
     )
 
     c4, p4 = conv_block_down(
-        input_tensor=p3, num_filters=128, dropout_rate=0.2, kernel_size=(3, 3)
+        input_tensor=p3,
+        num_filters=128,
+        dropout_rate=dropout_rate,
+        kernel_size=(3, 3),
     )
 
     c5, p5 = conv_block_down(
-        input_tensor=p4, num_filters=256, dropout_rate=0.2, kernel_size=(3, 3)
+        input_tensor=p4,
+        num_filters=256,
+        dropout_rate=dropout_rate,
+        kernel_size=(3, 3),
     )
 
     c6, p6 = conv_block_down(
-        input_tensor=p5, num_filters=512, dropout_rate=0.2, kernel_size=(3, 3)
+        input_tensor=p5,
+        num_filters=512,
+        dropout_rate=dropout_rate,
+        kernel_size=(3, 3),
     )
 
     # Expansion
@@ -46,14 +62,14 @@ def unet(
         input_tensor=c6,
         skip_tensor=c5,
         num_filters=256,
-        dropout_rate=0.2,
+        dropout_rate=dropout_rate,
         kernel_size=(3, 3),
     )
     u2 = conv_block_up(
         input_tensor=u1,
         skip_tensor=c4,
         num_filters=128,
-        dropout_rate=0.2,
+        dropout_rate=dropout_rate,
         kernel_size=(3, 3),
     )
 
@@ -61,7 +77,7 @@ def unet(
         input_tensor=u2,
         skip_tensor=c3,
         num_filters=64,
-        dropout_rate=0.1,
+        dropout_rate=dropout_rate,
         kernel_size=(3, 3),
     )
 
@@ -69,14 +85,14 @@ def unet(
         input_tensor=u3,
         skip_tensor=c2,
         num_filters=32,
-        dropout_rate=0.1,
+        dropout_rate=dropout_rate,
         kernel_size=(3, 3),
     )
     u5 = conv_block_up(
         input_tensor=u4,
         skip_tensor=c1,
         num_filters=16,
-        dropout_rate=0.1,
+        dropout_rate=dropout_rate,
         kernel_size=(3, 3),
     )
 
@@ -159,8 +175,6 @@ def conv_block_up(
         strides=(2, 2),
         padding="same",
     )(input_tensor)
-
-    u = BatchNormalization()(u)
     u = tf.keras.layers.Activation("relu")(u)
 
     # Concatenating Upconvolution with Contraction tensor

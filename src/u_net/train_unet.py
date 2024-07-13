@@ -34,6 +34,7 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
+DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
 EPOCHS = 200
 PATIENCE = 70
@@ -67,7 +68,9 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-model = unet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, training=True)
+model = unet(
+    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, DROPOUT_RATE, training=True
+)
 
 model.compile(
     optimizer="adam",

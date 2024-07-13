@@ -45,6 +45,7 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
+DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
 EPOCHS = 200
 UNET = True
@@ -83,7 +84,7 @@ generator_model = sm.Unet(
     encoder_weights=None,
     encoder_features="default",
     decoder_block_type="upsampling",
-    decoder_filters=(256, 128, 64, 32, 16),
+    decoder_filters=(512, 256, 128, 64, 32, 16),
     decoder_use_batchnorm=True,
 )
 
@@ -91,7 +92,7 @@ generator_model.summary()
 
 
 # generator_model = generator(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE,
-# used_unet=UNET)
+# DROPOUT_RATE, used_unet=UNET)
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
@@ -119,14 +120,20 @@ generator_model.compile(
 
 
 def discriminator_loss(real_output, fake_output):
-    real_loss = loss_fn(tf.ones_like(real_output), real_output)
-    fake_loss = loss_fn(tf.zeros_like(fake_output), fake_output)
-    total_loss = real_loss + fake_loss
-    return total_loss
+    return tf.reduce_mean(fake_output) - tf.reduce_mean(real_output)
 
 
 def generator_loss(fake_output):
-    return loss_fn(tf.ones_like(fake_output), fake_output)
+    return -tf.reduce_mean(fake_output)
+
+
+def clip_discriminator_weights(discriminator, clip_value=0.01):
+    for layer in discriminator.layers:
+        if hasattr(layer, "kernel"):
+            clipped_weights = tf.clip_by_value(
+                layer.kernel, -clip_value, clip_value
+            )
+            layer.kernel.assign(clipped_weights)
 
 
 def convert_grayscale_to_rgb(images):
@@ -174,20 +181,28 @@ def evaluate_generator(generator, dataset):
     dice /= len(dataset)
     return accuracy, iou, precision, recall, specificity, dice
 
+
 @tf.function
 def train_step_generator(images, masks):
 
     with tf.GradientTape() as gen_tape:
         generated_masks = generator_model(images, training=True)
-        fake_output = discriminator_model([images, generated_masks], training=True)
+        fake_output = discriminator_model(
+            [images, generated_masks], training=True
+        )
         gen_loss = generator_loss(fake_output)
         ms_feature_loss = multi_scale_feature_loss(
             masks, generated_masks, vgg_model
         )
         total_gen_loss = gen_loss + ms_feature_loss
-    gradients_of_generator = gen_tape.gradient(total_gen_loss, generator_model.trainable_variables)
-    gen_optimizer.apply_gradients(zip(gradients_of_generator, generator_model.trainable_variables))
+    gradients_of_generator = gen_tape.gradient(
+        total_gen_loss, generator_model.trainable_variables
+    )
+    gen_optimizer.apply_gradients(
+        zip(gradients_of_generator, generator_model.trainable_variables)
+    )
     return gen_loss
+
 
 @tf.function
 def train_step_discriminator(images, masks):
@@ -195,10 +210,16 @@ def train_step_discriminator(images, masks):
     with tf.GradientTape() as disc_tape:
         generated_masks = generator_model(images, training=True)
         real_output = discriminator_model([images, masks], training=True)
-        fake_output = discriminator_model([images, generated_masks], training=True)
+        fake_output = discriminator_model(
+            [images, generated_masks], training=True
+        )
         disc_loss = discriminator_loss(real_output, fake_output)
-    gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator_model.trainable_variables)
-    disc_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator_model.trainable_variables))
+    gradients_of_discriminator = disc_tape.gradient(
+        disc_loss, discriminator_model.trainable_variables
+    )
+    disc_optimizer.apply_gradients(
+        zip(gradients_of_discriminator, discriminator_model.trainable_variables)
+    )
     return disc_loss
 
 
@@ -218,15 +239,16 @@ def generate_images(model, dataset, epoch):
     )
 
 
-def train(train_dataset, val_dataset, epochs):
-    global BEST_GEN_LOSS, WAIT
+def train(train_dataset, val_dataset, epochs, trainingsteps, clip_value=0.1):
+    global BEST_IOU, WAIT
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}/{EPOCHS}")
 
         for image_batch, mask_batch in train_dataset:
-            for _ in range(GENERATOR_TRAINING_STEPS):
-                gen_loss = train_step_generator(image_batch, mask_batch)
-            disc_loss = train_step_discriminator(image_batch, mask_batch)
+            for _ in range(trainingsteps):
+                disc_loss = train_step_discriminator(image_batch, mask_batch)
+                clip_discriminator_weights(discriminator_model, clip_value)
+            gen_loss = train_step_generator(image_batch, mask_batch)
 
         (
             train_accuracy,

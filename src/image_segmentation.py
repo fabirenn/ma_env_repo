@@ -130,9 +130,9 @@ model_paths = [
 ]
 model_names = ["unet", "segnet", "deeplab", "segan", "ynet"]
 
-
+'''
 IMG_PATH = "data/generated"
-MASK_PATH = "data/segmented/mask"
+MASK_PATH = "data/segmented/mask"'''
 
 IMG_PATH = "data/originals/images"
 MASK_PATH = "data/originals/masks"

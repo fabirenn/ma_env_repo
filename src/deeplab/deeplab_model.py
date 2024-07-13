@@ -1,7 +1,16 @@
 import tensorflow as tf
 from keras import backend as K
 from keras.applications import ResNet50
-from keras.layers import Conv2D, Input, Layer, UpSampling2D, concatenate
+from keras.layers import (
+    Activation,
+    BatchNormalization,
+    Conv2D,
+    Dropout,
+    Input,
+    Layer,
+    UpSampling2D,
+    concatenate,
+)
 from keras.models import Model
 
 
@@ -121,7 +130,7 @@ def atrous_spatial_pyramid_pooling(inputs, filters):
     return outputs
 
 
-def DeepLab(input_shape):
+def DeepLab(input_shape, dropout_rate):
     inputs = Input(shape=input_shape)
     base_model = ResNet50(
         weights="imagenet", include_top=False, input_tensor=inputs
@@ -134,11 +143,20 @@ def DeepLab(input_shape):
     x = atrous_spatial_pyramid_pooling(x, filters=256)
 
     # Decoder
-    x = Conv2D(256, (3, 3), padding="same", activation="relu")(x)
+    x = Conv2D(256, (3, 3), padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(dropout_rate)(x)
     x = UpSampling2D((4, 4), interpolation="bilinear")(x)
-    x = Conv2D(256, (3, 3), padding="same", activation="relu")(x)
+    x = Conv2D(256, (3, 3), padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
-    x = Conv2D(256, (3, 3), padding="same", activation="relu")(x)
+    x = Conv2D(256, (3, 3), padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
     x = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(x)
 

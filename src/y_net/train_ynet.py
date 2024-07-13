@@ -34,6 +34,7 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
+DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
 EPOCHS = 200
 PATIENCE = 70
@@ -67,7 +68,7 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-model = build_ynet(IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, IMG_CHANNEL)
+model = build_ynet(IMG_WIDTH, IMG_HEIGHT, BATCH_SIZE, IMG_CHANNEL, DROPOUT_RATE)
 
 model.compile(
     optimizer="adam",
