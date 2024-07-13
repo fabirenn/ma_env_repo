@@ -84,7 +84,7 @@ generator_model = sm.Unet(
     encoder_weights=None,
     encoder_features="default",
     decoder_block_type="upsampling",
-    decoder_filters=(512, 256, 128, 64, 32, 16),
+    decoder_filters=(256, 128, 64, 32, 16),
     decoder_use_batchnorm=True,
 )
 
