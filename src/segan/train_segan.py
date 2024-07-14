@@ -113,11 +113,13 @@ vgg_model = vgg_model()
 
 
 def discriminator_loss(real_output, fake_output):
-    return tf.reduce_mean(fake_output) - tf.reduce_mean(real_output)
+    real_loss = tf.reduce_mean(tf.keras.losses.binary_crossentropy(tf.ones_like(real_output), real_output))
+    fake_loss = tf.reduce_mean(tf.keras.losses.binary_crossentropy(tf.zeros_like(fake_output), fake_output))
+    return real_loss + fake_loss
 
 
 def generator_loss(fake_output):
-    return -tf.reduce_mean(fake_output)
+    return tf.reduce_mean(tf.keras.losses.binary_crossentropy(tf.ones_like(fake_output), fake_output))
 
 
 def clip_discriminator_weights(discriminator, clip_value=0.01):
@@ -239,9 +241,9 @@ def train(train_dataset, val_dataset, epochs, trainingsteps, clip_value=0.01):
 
         for image_batch, mask_batch in train_dataset:
             for _ in range(trainingsteps):
-                disc_loss = train_step_discriminator(image_batch, mask_batch)
-                clip_discriminator_weights(discriminator_model, clip_value)
-            gen_loss = train_step_generator(image_batch, mask_batch)
+                gen_loss = train_step_generator(image_batch, mask_batch)
+                #clip_discriminator_weights(discriminator_model, clip_value)
+            disc_loss = train_step_discriminator(image_batch, mask_batch)
 
         (
             train_accuracy,
