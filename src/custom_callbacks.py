@@ -22,7 +22,9 @@ class ValidationCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         random_sample = self.validation_data.take(1)
         x_batch, y_true_batch = next(iter(random_sample))
+        print(f"Validation sample batch shape: {x_batch.shape}, {y_true_batch.shape}")
         y_pred_batch = self.model.predict(x_batch, verbose=1)
+        print(f"Prediction batch shape: {y_pred_batch.shape}")
         if self.apply_crf is True:
             y_pred_batch[0] = apply_crf_to_pred(x_batch[0], y_pred_batch[0])
 
