@@ -39,7 +39,7 @@ def objective(trial):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
-    DROPOUT_RATE = trial.suggest_categorical("dropout_rate", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     loss_function = trial.suggest_categorical(
         "loss_function", ["combined_loss", "dice_loss", "iou_loss"]
     )
@@ -143,6 +143,8 @@ def objective(trial):
 
 
 if __name__ == "__main__":
+    tf.config.optimizer.set_experimental_options({'layout_optimizer': False})
+    
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=100)
 
