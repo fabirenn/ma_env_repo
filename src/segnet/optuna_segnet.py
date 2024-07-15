@@ -30,6 +30,7 @@ EPOCHS = 200
 PATIENCE = 70
 
 os.environ["WANDB_DIR"] = "wandb/train_segnet"
+os.environ["WANDB_CACHE_DIR"] = "/work/fi263pnye-ma_data/cache"
 
 def objective(trial):
     # Hyperparameter tuning
