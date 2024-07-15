@@ -37,7 +37,7 @@ os.environ["WANDB_DIR"] = "wandb/train_deeplab"
 def objective(trial):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
-    DROPOUT_RATE = trial.suggest_uniform("dropout_rate", 0.0, 0.5)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     loss_function = trial.suggest_categorical(
         "loss_function", ["combined_loss", "dice_loss", "iou_loss"]
     )

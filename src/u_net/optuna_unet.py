@@ -26,8 +26,8 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 LOG_VAL_PRED = "data/predictions/unet"
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
-IMG_WIDTH = 128
-IMG_HEIGHT = 128
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 
 EPOCHS = 100
 PATIENCE = 70
@@ -39,7 +39,7 @@ def objective(trial):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     loss_function = trial.suggest_categorical(
         "loss_function", ["combined_loss", "dice_loss", "iou_loss"]
     )
