@@ -6,7 +6,7 @@ import numpy as np
 import optuna
 import segmentation_models as sm
 import tensorflow as tf
-from segan_model import discriminator, generator, vgg_model
+from segan_model import discriminator, vgg_model
 from train_segan import (
     convert_grayscale_to_rgb,
     discriminator_loss,
