@@ -68,8 +68,6 @@ def objective(trial):
             channel_size=IMG_CHANNEL,
         )
 
-        #os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
-
         wandb.init(
             project="unet",
             entity="fabio-renn",
@@ -137,6 +135,8 @@ def objective(trial):
 
         val_loss = min(history.history["val_loss"])
         wandb.finish()
+
+        os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
 
         return val_loss
     except tf.errors.ResourceExhaustedError:
