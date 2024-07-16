@@ -1,6 +1,7 @@
 import os
 
 import tensorflow as tf
+import shutil
 from keras import backend as K
 from keras.callbacks import Callback
 from keras.utils import array_to_img
@@ -84,3 +85,8 @@ def specificity_score(y_true, y_pred):
         true_negatives + false_positives + K.epsilon()
     )
     return specificity
+
+def clear_directory(directory_path):
+    if os.path.exists(directory_path):
+        shutil.rmtree(directory_path)
+    os.makedirs(directory_path)

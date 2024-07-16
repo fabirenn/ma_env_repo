@@ -1,6 +1,6 @@
 import os
 import sys
-
+import shutil
 import keras.metrics
 import optuna
 import gc
@@ -13,7 +13,7 @@ import wandb
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from unet_model import unet
 
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import ValidationCallback, dice_score, specificity_score, clear_directory
 from data_loader import create_datasets_for_unet_training
 from loss_functions import dice_loss, iou_loss
 
@@ -136,7 +136,7 @@ def objective(trial):
         val_loss = min(history.history["val_loss"])
         wandb.finish()
 
-        os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
+        clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
         return val_loss
     except tf.errors.ResourceExhaustedError:
