@@ -42,12 +42,11 @@ def objective(trial):
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     loss_function = trial.suggest_categorical(
-        "loss_function", ["combined_loss", "dice_loss", "iou_loss"]
+        "loss_function", ["dice_loss", "iou_loss"]
     )
 
     # Map the loss function name to the actual function
     loss_function_map = {
-        "combined_loss": combined_loss,
         "dice_loss": dice_loss,
         "iou_loss": iou_loss,
     }
@@ -63,6 +62,8 @@ def objective(trial):
             batch_size=BATCH_SIZE,
             channel_size=IMG_CHANNEL,
         )
+
+        os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
 
         wandb.init(
             project="unet",
