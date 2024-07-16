@@ -105,6 +105,7 @@ def objective(trial):
 
     vgg_model = vgg_model()
 
+    @tf.function
     def train_step_generator(images, masks):
         with tf.GradientTape() as gen_tape:
             generated_masks = generator_model(images, training=True)
@@ -123,7 +124,8 @@ def objective(trial):
             zip(gradients_of_generator, generator_model.trainable_variables)
         )
         return gen_loss
-
+    
+    @tf.function
     def train_step_discriminator(images, masks):
         with tf.GradientTape() as disc_tape:
             generated_masks = generator_model(images, training=True)
@@ -221,6 +223,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
+    print(IMG_HEIGHT)
 
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=200)
