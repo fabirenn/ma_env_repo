@@ -7,20 +7,12 @@ import optuna
 import segmentation_models as sm
 import tensorflow as tf
 from segan_model import discriminator, vgg_model
-from train_segan import (
-    convert_grayscale_to_rgb,
-    discriminator_loss,
-    evaluate_generator,
-    extract_features,
-    generator_loss,
-    multi_scale_feature_loss,
-)
 
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from custom_callbacks import clear_directory
+from custom_callbacks import clear_directory, ValidationCallback, dice_score, specificity_score
 from data_loader import (
     create_datasets_for_segnet_training,
     create_datasets_for_unet_training,
@@ -118,6 +110,68 @@ def objective(trial):
 
     vgg_model = vgg_model()
 
+    def discriminator_loss(real_output, fake_output):
+        real_loss = tf.reduce_mean(
+            tf.keras.losses.binary_crossentropy(
+                tf.ones_like(real_output), real_output
+            )
+        )
+        fake_loss = tf.reduce_mean(
+            tf.keras.losses.binary_crossentropy(
+                tf.zeros_like(fake_output), fake_output
+            )
+        )
+        return real_loss + fake_loss
+
+    def generator_loss(fake_output):
+        return tf.reduce_mean(
+            tf.keras.losses.binary_crossentropy(
+                tf.ones_like(fake_output), fake_output
+            )
+        )
+    
+    def convert_grayscale_to_rgb(images):
+        return tf.image.grayscale_to_rgb(images)
+
+    def extract_features(model, images):
+        rgb_images = convert_grayscale_to_rgb(images)
+        return model(rgb_images)
+
+    def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
+        real_features = extract_features(feature_extractor, real_images)
+        generated_features = extract_features(feature_extractor, generated_images)
+        loss = 0
+        for real, generated in zip(real_features, generated_features):
+            loss += tf.reduce_mean(tf.abs(real - generated))
+        return loss
+    
+    def evaluate_generator(generator, dataset):
+        # Implement the evaluation logic
+        accuracy = 0.0
+        iou = 0.0
+        precision = 0.0
+        recall = 0.0
+        specificity = 0.0
+        dice = 0.0
+        # Calculate metrics over the validation dataset
+        for image_batch, mask_batch in dataset:
+            predictions = generator(image_batch, training=False)
+            accuracy += tf.keras.metrics.BinaryAccuracy()(mask_batch, predictions)
+            iou += tf.keras.metrics.BinaryIoU()(mask_batch, predictions)
+            precision += tf.keras.metrics.Precision()(mask_batch, predictions)
+            recall += tf.keras.metrics.Recall()(mask_batch, predictions)
+            specificity += specificity_score(mask_batch, predictions)
+            dice += dice_score(mask_batch, predictions)
+
+        # Average the metrics over the dataset
+        accuracy /= len(dataset)
+        iou /= len(dataset)
+        precision /= len(dataset)
+        recall /= len(dataset)
+        specificity /= len(dataset)
+        dice /= len(dataset)
+        return accuracy, iou, precision, recall, specificity, dice
+    
     @tf.function
     def train_step_generator(images, masks):
         with tf.GradientTape() as gen_tape:
@@ -226,7 +280,6 @@ def objective(trial):
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
     
-
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=200)
 
