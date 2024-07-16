@@ -101,6 +101,8 @@ def objective(trial):
         discriminator=discriminator_model,
     )
 
+    generator_model.summary()
+    
     generator_model.compile(
         optimizer=gen_optimizer,
     )
