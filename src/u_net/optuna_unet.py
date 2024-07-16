@@ -68,7 +68,7 @@ def objective(trial):
             channel_size=IMG_CHANNEL,
         )
 
-        os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
+        #os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
 
         wandb.init(
             project="unet",
