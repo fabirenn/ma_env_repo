@@ -46,8 +46,6 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 
 def objective(trial):
-    # Define hyperparameters to tune
-    print(IMG_HEIGHT)
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     BACKBONE = trial.suggest_categorical(
@@ -108,6 +106,14 @@ def objective(trial):
         discriminator_optimizer=disc_optimizer,
         generator=generator_model,
         discriminator=discriminator_model,
+    )
+
+    generator_model.compile(
+        optimizer=gen_optimizer,
+    )
+
+    discriminator_model.compile(
+        optimizer=disc_optimizer
     )
 
     def discriminator_loss(real_output, fake_output):
