@@ -3,6 +3,7 @@ import sys
 
 import keras.metrics
 import optuna
+import gc
 import tensorflow as tf
 from keras.callbacks import EarlyStopping
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
@@ -51,6 +52,9 @@ def objective(trial):
         "dice_loss": dice_loss,
         "iou_loss": iou_loss,
     }
+
+    tf.keras.backend.clear_session()
+    gc.collect()
 
     try:
         train_dataset, val_dataset = create_datasets_for_unet_training(

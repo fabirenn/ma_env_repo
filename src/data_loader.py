@@ -8,14 +8,6 @@ import gc
 import tensorflow as tf
 from PIL import Image
 
-def clear_gpu_memory():
-    tf.keras.backend.clear_session()
-    device = cuda.get_current_device()
-    device.reset()
-
-def clear_cpu_memory():
-    gc.collect()
-
 def load_images_from_directory(directory):
     # puts each .png / .jpg / .jpeg File into a list of images as np-arrays
     # and returns it
@@ -218,8 +210,6 @@ def create_datasets_for_unet_training(
     batch_size,
     channel_size,
 ):
-    clear_gpu_memory()
-    clear_cpu_memory()
     # loading img and masks from corresponding paths into to separate lists
     train_images = load_images_from_directory(directory_train_images)
     train_masks = load_masks_from_directory(directory_train_masks)
@@ -296,9 +286,7 @@ def create_datasets_for_segnet_training(
     img_height,
     batch_size,
 ):
-    clear_gpu_memory()
-    clear_cpu_memory()
-
+    
     # loading images and masks from corresponding paths into to separate lists
     train_images = load_images_from_directory(directory_train_images)
     train_masks = load_masks_from_directory(directory_train_masks)
@@ -366,8 +354,6 @@ def create_testdataset_for_unet_training(
     batch_size,
     channel_size,
 ):
-    clear_gpu_memory()
-    clear_cpu_memory()
 
     # loading images and masks from corresponding paths into to separate lists
     test_images = load_images_from_directory(directory_test_images)
@@ -415,9 +401,6 @@ def create_testdataset_for_segnet_training(
     img_height,
     batch_size,
 ):
-    clear_gpu_memory()
-    clear_cpu_memory()
-
     # loading images and masks from corresponding paths into to separate lists
     test_images = load_images_from_directory(directory_test_images)
     test_masks = load_masks_from_directory(directory_test_masks)
