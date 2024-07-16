@@ -62,7 +62,7 @@ def objective(trial):
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 0, 9)
     LEARNING_RATE = trial.suggest_loguniform("learning_rate", 1e-5, 1e-3)
 
-    tf.keras.backend.clear_session()
+    #tf.keras.backend.clear_session()
 
     # Initialize Wandb
     wandb.init(
