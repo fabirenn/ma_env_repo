@@ -20,22 +20,6 @@ CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.h5"
 CHECKPOINT_PATH_SEGNET = "./artifacts/models/segnet/segnet_checkpoint.h5"
 
 
-def generator(
-    img_width, img_height, channel_size, batch_size, dropout_rate, used_unet
-):
-    if used_unet is True:
-        model = unet(
-            img_width, img_height, channel_size, batch_size, dropout_rate
-        )
-        used_unet = True
-        model.load_weights(CHECKPOINT_PATH_UNET)
-    else:
-        model = segnet((img_width, img_height, 3), dropout_rate)
-        used_unet = False
-        model.load_weights(CHECKPOINT_PATH_SEGNET)
-    return model
-
-
 def discriminator(input_shape, mask_shape):
     image_input = layers.Input(shape=input_shape, name="input_image")
     mask_input = layers.Input(shape=mask_shape, name="mask_image")

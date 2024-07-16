@@ -13,7 +13,7 @@ import wandb
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import create_datasets_for_segnet_training
-from loss_functions import combined_loss, dice_loss, iou_loss
+from loss_functions import dice_loss, iou_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -28,11 +28,11 @@ LOG_VAL_PRED = "data/predictions/deeplab"
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
-EPOCHS = 200
-PATIENCE = 70
+EPOCHS = 100
+PATIENCE = 30
 
 os.environ["WANDB_DIR"] = "wandb/train_deeplab"
-os.environ["WANDB_CACHE_DIR"] = "/work/fi263pnye-ma_data/cache"
+os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 
 def objective(trial):
@@ -40,12 +40,12 @@ def objective(trial):
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     loss_function = trial.suggest_categorical(
-        "loss_function", ["combined_loss", "dice_loss", "iou_loss"]
+        "loss_function", ["cross_entropy", "dice_loss", "iou_loss"]
     )
 
     # Map the loss function name to the actual function
     loss_function_map = {
-        "combined_loss": combined_loss,
+        "cross_entropy": keras.losses.binary_crossentropy,
         "dice_loss": dice_loss,
         "iou_loss": iou_loss,
     }
@@ -60,6 +60,8 @@ def objective(trial):
             img_height=IMG_HEIGHT,
             batch_size=BATCH_SIZE,
         )
+
+        os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
 
         wandb.init(
             project="deeplab",
@@ -137,6 +139,8 @@ def objective(trial):
 
 
 if __name__ == "__main__":
+    tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
+
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=100)
 

@@ -14,7 +14,7 @@ from unet_model import unet
 
 from custom_callbacks import ValidationCallback, dice_score, specificity_score
 from data_loader import create_datasets_for_unet_training
-from loss_functions import combined_loss, dice_loss, iou_loss
+from loss_functions import dice_loss, iou_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -26,11 +26,11 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 LOG_VAL_PRED = "data/predictions/unet"
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 128
+IMG_HEIGHT = 128
 
-EPOCHS = 100
-PATIENCE = 70
+EPOCHS = 50
+PATIENCE = 30
 
 os.environ["WANDB_DIR"] = "wandb/train_unet"
 os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
@@ -42,7 +42,7 @@ def objective(trial):
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     loss_function = trial.suggest_categorical(
-        "loss_function", ["dice_loss", "iou_loss"]
+        "loss_function", ["cross_entropy", "dice_loss", "iou_loss"]
     )
 
     # Map the loss function name to the actual function

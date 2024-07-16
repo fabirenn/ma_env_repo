@@ -26,16 +26,14 @@ TRAIN_IMG_PATH = "data/training_train/images_mixed"
 TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
-TEST_IMG_PATH = "data/training_test/images_mixed"
-TEST_MASK_PATH = "data/training_test/labels_mixed"
 
-'''
+
+"""
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"
-TEST_IMG_PATH = "data/local/test/images"
-TEST_MASK_PATH = "data/local/test/labels"'''
+"""
 
 
 LOG_VAL_PRED = "data/predictions/segan"
@@ -48,7 +46,6 @@ IMG_CHANNEL = 8
 DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
 EPOCHS = 200
-UNET = True
 
 GENERATOR_TRAINING_STEPS = 5
 
@@ -91,8 +88,6 @@ generator_model = sm.Unet(
 generator_model.summary()
 
 
-# generator_model = generator(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE,
-# DROPOUT_RATE, used_unet=UNET)
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
 )
@@ -131,15 +126,6 @@ def generator_loss(fake_output):
             tf.ones_like(fake_output), fake_output
         )
     )
-
-
-def clip_discriminator_weights(discriminator, clip_value=0.01):
-    for layer in discriminator.layers:
-        if hasattr(layer, "kernel"):
-            clipped_weights = tf.clip_by_value(
-                layer.kernel, -clip_value, clip_value
-            )
-            layer.kernel.assign(clipped_weights)
 
 
 def convert_grayscale_to_rgb(images):
@@ -245,7 +231,7 @@ def generate_images(model, dataset, epoch):
     )
 
 
-def train(train_dataset, val_dataset, epochs, trainingsteps, clip_value=0.01):
+def train(train_dataset, val_dataset, epochs, trainingsteps):
     global BEST_IOU, WAIT
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}/{EPOCHS}")
@@ -321,34 +307,23 @@ def train(train_dataset, val_dataset, epochs, trainingsteps, clip_value=0.01):
                 print("Waiting for improvement..\n")
 
 
-if UNET is True:
-    train_dataset, val_dataset = create_datasets_for_unet_training(
-        directory_train_images=TRAIN_IMG_PATH,
-        directory_train_masks=TRAIN_MASK_PATH,
-        directory_val_images=VAL_IMG_PATH,
-        directory_val_masks=VAL_MASK_PATH,
-        img_width=IMG_WIDTH,
-        img_height=IMG_HEIGHT,
-        batch_size=BATCH_SIZE,
-        channel_size=IMG_CHANNEL,
-    )
-else:
-    train_dataset, val_dataset = create_datasets_for_segnet_training(
-        directory_train_images=TRAIN_IMG_PATH,
-        directory_train_masks=TRAIN_MASK_PATH,
-        directory_val_images=VAL_IMG_PATH,
-        directory_val_masks=VAL_MASK_PATH,
-        img_width=IMG_WIDTH,
-        img_height=IMG_HEIGHT,
-        batch_size=BATCH_SIZE,
-    )
+train_dataset, val_dataset = create_datasets_for_unet_training(
+    directory_train_images=TRAIN_IMG_PATH,
+    directory_train_masks=TRAIN_MASK_PATH,
+    directory_val_images=VAL_IMG_PATH,
+    directory_val_masks=VAL_MASK_PATH,
+    img_width=IMG_WIDTH,
+    img_height=IMG_HEIGHT,
+    batch_size=BATCH_SIZE,
+    channel_size=IMG_CHANNEL,
+)
+
 
 train(
     train_dataset=train_dataset,
     val_dataset=val_dataset,
     epochs=EPOCHS,
     trainingsteps=5,
-    clip_value=0.01,
 )
 
 wandb.finish()
