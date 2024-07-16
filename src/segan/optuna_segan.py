@@ -216,7 +216,6 @@ def objective(trial):
     def train(train_dataset, val_dataset, epochs, trainingsteps):
         global BEST_IOU, WAIT
         best_gen_loss = float("inf")
-        best_gen_loss = 10
         for epoch in range(epochs):
             print(f"Epoch {epoch+1}/{EPOCHS}")
             for image_batch, mask_batch in train_dataset:
