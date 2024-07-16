@@ -146,6 +146,7 @@ def objective(trial):
     def train(train_dataset, val_dataset, epochs, trainingsteps):
         global BEST_IOU, WAIT
         best_gen_loss = float("inf")
+        best_gen_loss = 10
         for epoch in range(epochs):
             print(f"Epoch {epoch+1}/{EPOCHS}")
             for image_batch, mask_batch in train_dataset:
@@ -215,8 +216,6 @@ def objective(trial):
 
     wandb.finish()
 
-    clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
-
     return best_gen_loss
 
 
@@ -225,6 +224,8 @@ if __name__ == "__main__":
 
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=200)
+
+    #clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
     print("Best trial:")
     trial = study.best_trial

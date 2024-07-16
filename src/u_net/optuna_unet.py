@@ -133,8 +133,6 @@ def objective(trial):
         val_loss = min(history.history["val_loss"])
         wandb.finish()
 
-        clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
-
         return val_loss
     except tf.errors.ResourceExhaustedError:
         print(
@@ -151,6 +149,8 @@ if __name__ == "__main__":
 
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=100)
+
+    #clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
     print("Best trial:")
     trial = study.best_trial

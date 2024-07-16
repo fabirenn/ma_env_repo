@@ -127,8 +127,6 @@ def objective(trial):
         val_loss = min(history.history["val_loss"])
         wandb.finish()
 
-        clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
-
         return val_loss
     except tf.errors.ResourceExhaustedError:
         print(
@@ -153,3 +151,5 @@ if __name__ == "__main__":
     print("Params:")
     for key, value in trial.params.items():
         print(f"  {key}: {value}")
+
+    #clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
