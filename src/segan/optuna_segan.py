@@ -38,9 +38,6 @@ PATIENCE = 30
 BEST_IOU = 0
 WAIT = 0
 
-print(IMG_HEIGHT)
-#keras.backend.set_image_data_format("channels_last")
-
 os.environ["WANDB_DIR"] = "wandb/train_segan"
 os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
@@ -51,10 +48,8 @@ def objective(trial):
     BACKBONE = trial.suggest_categorical(
         "backbone", ["resnet34", "resnet50", "efficientnetb0"]
     )
-    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 0, 9)
+    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 1, 5)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-3)
-
-    #tf.keras.backend.clear_session()
 
     train_dataset, val_dataset = create_datasets_for_unet_training(
         directory_train_images=TRAIN_IMG_PATH,
@@ -66,8 +61,6 @@ def objective(trial):
         batch_size=BATCH_SIZE,
         channel_size=IMG_CHANNEL,
     )
-
-    
 
     # Initialize Wandb
     wandb.init(
