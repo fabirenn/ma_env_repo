@@ -5,7 +5,7 @@ import keras.backend
 import numpy as np
 import segmentation_models as sm
 import tensorflow as tf
-from segan_model import discriminator, generator, vgg_model
+from segan_model import discriminator, vgg_model
 
 import wandb
 
