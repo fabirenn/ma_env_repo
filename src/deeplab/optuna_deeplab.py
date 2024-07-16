@@ -11,7 +11,7 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import ValidationCallback, dice_score, specificity_score, clear_directory
 from data_loader import create_datasets_for_segnet_training
 from loss_functions import dice_loss, iou_loss
 
@@ -50,6 +50,8 @@ def objective(trial):
         "iou_loss": iou_loss,
     }
 
+    tf.keras.backend.clear_session()
+
     try:
         train_dataset, val_dataset = create_datasets_for_segnet_training(
             directory_train_images=TRAIN_IMG_PATH,
@@ -60,8 +62,6 @@ def objective(trial):
             img_height=IMG_HEIGHT,
             batch_size=BATCH_SIZE,
         )
-
-        os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
 
         wandb.init(
             project="deeplab",
@@ -126,6 +126,8 @@ def objective(trial):
 
         val_loss = min(history.history["val_loss"])
         wandb.finish()
+
+        clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
         return val_loss
     except tf.errors.ResourceExhaustedError:

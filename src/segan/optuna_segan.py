@@ -20,7 +20,7 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import clear_directory
 from data_loader import (
     create_datasets_for_segnet_training,
     create_datasets_for_unet_training,
@@ -62,7 +62,7 @@ def objective(trial):
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 0, 9)
     LEARNING_RATE = trial.suggest_loguniform("learning_rate", 1e-5, 1e-3)
 
-    os.remove("/work/fi263pnye-ma_data/tmp/artifacts")
+    tf.keras.backend.clear_session()
 
     # Initialize Wandb
     wandb.init(
@@ -214,6 +214,9 @@ def objective(trial):
     )
 
     wandb.finish()
+
+    clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
+    
     return best_gen_loss
 
 
