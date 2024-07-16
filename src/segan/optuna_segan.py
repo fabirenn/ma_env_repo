@@ -46,6 +46,7 @@ PATIENCE = 30
 BEST_IOU = 0
 WAIT = 0
 
+print(IMG_HEIGHT)
 #keras.backend.set_image_data_format("channels_last")
 
 os.environ["WANDB_DIR"] = "wandb/train_segan"
@@ -54,6 +55,7 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 def objective(trial):
     # Define hyperparameters to tune
+    print(IMG_HEIGHT)
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     BACKBONE = trial.suggest_categorical(
@@ -74,7 +76,7 @@ def objective(trial):
         batch_size=BATCH_SIZE,
         channel_size=IMG_CHANNEL,
     )
-    
+
     # Initialize Wandb
     wandb.init(
         project="segan",
@@ -223,7 +225,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
-    print(IMG_HEIGHT)
+    
 
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=200)
