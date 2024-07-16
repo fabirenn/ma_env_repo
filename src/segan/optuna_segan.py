@@ -46,7 +46,7 @@ PATIENCE = 30
 BEST_IOU = 0
 WAIT = 0
 
-keras.backend.set_image_data_format("channels_last")
+#keras.backend.set_image_data_format("channels_last")
 
 os.environ["WANDB_DIR"] = "wandb/train_segan"
 os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
@@ -64,6 +64,17 @@ def objective(trial):
 
     #tf.keras.backend.clear_session()
 
+    train_dataset, val_dataset = create_datasets_for_unet_training(
+        directory_train_images=TRAIN_IMG_PATH,
+        directory_train_masks=TRAIN_MASK_PATH,
+        directory_val_images=VAL_IMG_PATH,
+        directory_val_masks=VAL_MASK_PATH,
+        img_width=IMG_WIDTH,
+        img_height=IMG_HEIGHT,
+        batch_size=BATCH_SIZE,
+        channel_size=IMG_CHANNEL,
+    )
+    
     # Initialize Wandb
     wandb.init(
         project="segan",
@@ -197,17 +208,6 @@ def objective(trial):
                 if WAIT >= PATIENCE:
                     print("Early stopping triggered\n")
                     return best_gen_loss
-
-    train_dataset, val_dataset = create_datasets_for_unet_training(
-        directory_train_images=TRAIN_IMG_PATH,
-        directory_train_masks=TRAIN_MASK_PATH,
-        directory_val_images=VAL_IMG_PATH,
-        directory_val_masks=VAL_MASK_PATH,
-        img_width=IMG_WIDTH,
-        img_height=IMG_HEIGHT,
-        batch_size=BATCH_SIZE,
-        channel_size=IMG_CHANNEL,
-    )
 
     best_gen_loss = train(
         train_dataset=train_dataset,
