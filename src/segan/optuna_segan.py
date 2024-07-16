@@ -69,6 +69,8 @@ def objective(trial):
         channel_size=IMG_CHANNEL,
     )
 
+    
+
     # Initialize Wandb
     wandb.init(
         project="segan",
@@ -107,8 +109,6 @@ def objective(trial):
         generator=generator_model,
         discriminator=discriminator_model,
     )
-
-    vgg_model = vgg_model()
 
     def discriminator_loss(real_output, fake_output):
         real_loss = tf.reduce_mean(
@@ -279,7 +279,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
-    
+    vgg_model = vgg_model()
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=200)
 
