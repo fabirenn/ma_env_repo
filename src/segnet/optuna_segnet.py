@@ -50,7 +50,7 @@ def objective(trial):
         "iou_loss": iou_loss,
     }
 
-    tf.keras.backend.clear_session()
+    #tf.keras.backend.clear_session()
 
     try:
         train_dataset, val_dataset = create_datasets_for_segnet_training(
