@@ -192,9 +192,9 @@ def create_dataset(images_as_tensors, masks_as_tensors, batch_size, buffersize):
     dataset = tf.data.Dataset.from_tensor_slices(
         (images_as_tensors, masks_as_tensors)
     )
-    dataset = dataset.batch(batch_size=batch_size, drop_remainder=True).prefetch(
-        buffer_size=buffersize
-    )
+    dataset = dataset.batch(
+        batch_size=batch_size, drop_remainder=True
+    ).prefetch(buffer_size=buffersize)
 
     return dataset
 

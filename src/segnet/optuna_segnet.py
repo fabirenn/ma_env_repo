@@ -1,12 +1,13 @@
 import os
 import sys
-import optuna
 
 import keras.metrics
+import optuna
+from keras.callbacks import EarlyStopping
 from segnet_model import segnet
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+
 import wandb
-from keras.callbacks import EarlyStopping
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback, dice_score, specificity_score
@@ -39,13 +40,15 @@ def objective(trial):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
-    loss_function = trial.suggest_categorical("loss_function", ["combined_loss", "dice_loss", "iou_loss"])
+    loss_function = trial.suggest_categorical(
+        "loss_function", ["combined_loss", "dice_loss", "iou_loss"]
+    )
 
     # Map the loss function name to the actual function
     loss_function_map = {
         "combined_loss": combined_loss,
         "dice_loss": dice_loss,
-        "iou_loss": iou_loss
+        "iou_loss": iou_loss,
     }
 
     try:
@@ -64,12 +67,17 @@ def objective(trial):
             entity="fabio-renn",
             mode="offline",
             name=f"train-segnet-{trial.number}",
-            config={"metric": "accuracy", "epochs": EPOCHS, "batch_size": BATCH_SIZE},
+            config={
+                "metric": "accuracy",
+                "epochs": EPOCHS,
+                "batch_size": BATCH_SIZE,
+            },
             dir=os.environ["WANDB_DIR"],
         )
 
         model = segnet(
-            input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), dropout_rate=DROPOUT_RATE
+            input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
+            dropout_rate=DROPOUT_RATE,
         )
 
         model.compile(
@@ -115,16 +123,19 @@ def objective(trial):
             ],
         )
 
-        val_loss = min(history.history['val_loss'])
+        val_loss = min(history.history["val_loss"])
         wandb.finish()
 
         return val_loss
     except tf.errors.ResourceExhaustedError:
-        print("Resource exhausted error caught. GPU may not have enough memory.")
+        print(
+            "Resource exhausted error caught. GPU may not have enough memory."
+        )
         return float("inf")
     except Exception as e:
         print(f"An exception occurred: {e}")
         return float("inf")
+
 
 if __name__ == "__main__":
     study = optuna.create_study(direction="minimize")

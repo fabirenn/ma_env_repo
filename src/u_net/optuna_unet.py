@@ -47,6 +47,7 @@ def objective(trial):
 
     # Map the loss function name to the actual function
     loss_function_map = {
+        "cross_entropy": keras.losses.binary_crossentropy,
         "dice_loss": dice_loss,
         "iou_loss": iou_loss,
     }
@@ -145,7 +146,7 @@ def objective(trial):
 
 
 if __name__ == "__main__":
-    tf.config.optimizer.set_experimental_options({'layout_optimizer': False})
+    tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
 
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=100)
