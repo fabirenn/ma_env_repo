@@ -38,10 +38,10 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 128
+IMG_HEIGHT = 128
 
-EPOCHS = 100
+EPOCHS = 50
 PATIENCE = 30
 BEST_IOU = 0
 WAIT = 0
@@ -216,7 +216,7 @@ def objective(trial):
     wandb.finish()
 
     clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
-    
+
     return best_gen_loss
 
 
