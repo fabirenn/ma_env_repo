@@ -116,11 +116,17 @@ def make_binary_masks(mask_list, threshold):
     return binary_mask_list
 
 
-def augment_image_mask(image, mask):
+def augment_image_mask(images_list, masks_list):
+    augmented_images = []
+    augmented_masks = []
     # each image, mask pair goes through the augmentation_pipeline and
     # is then return back as pair of image & mask
-    augmented = augmentation_pipeline(image=image, mask=mask)
-    return augmented["image"], augmented["mask"]
+    for img, mask in zip(images_list, masks_list):
+        augmented = augmentation_pipeline(image=img, mask=mask)
+        augmented_images.append(augmented["image"])
+        augmented_masks.append(augmented["mask"])
+    
+    return augmented_images, augmented_masks
 
 
 def preprocess_images(images_list):
@@ -173,7 +179,13 @@ def preprocess_images(images_list):
 # augmentation pipeline, still having no tasks ==> which augmentation step make
 # sense in my usecase?
 augmentation_pipeline = A.Compose(
-    [],
+    [
+        A.HorizontalFlip(p=0.5),
+        A.RandomBrightnessContrast(p=0.5),
+        A.GaussNoise(p=0.2),
+        A.GaussianBlur(p=0.2, blur_limit=9),
+
+    ],
     additional_targets={"mask": "image"},
 )
 
@@ -225,6 +237,10 @@ def create_datasets_for_unet_training(
     val_images = resize_images(val_images, img_width, img_height)
     val_masks = resize_images(val_masks, img_width, img_height)
     print("All images resized..")
+
+    # applying augmentation to each image / mask pair
+    train_images, train_masks = augment_image_mask(train_images, train_masks)
+    val_images, val_masks = augment_image_mask(val_images, val_masks)
 
     # normalizing the values of the images and binarizing the image masks
     train_images = normalize_image_data(train_images)
