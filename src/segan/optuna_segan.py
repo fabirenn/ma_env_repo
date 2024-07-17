@@ -280,7 +280,7 @@ if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
     vgg_model = vgg_model()
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=200)
+    study.optimize(objective, n_trials=100)
 
     #clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
