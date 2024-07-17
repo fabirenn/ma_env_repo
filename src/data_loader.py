@@ -122,9 +122,14 @@ def augment_image_mask(images_list, masks_list):
     # each image, mask pair goes through the augmentation_pipeline and
     # is then return back as pair of image & mask
     for img, mask in zip(images_list, masks_list):
+        mask = np.expand_dims(mask, axis=-1)  # Expand mask to have the same number of channels as image (1 channel)
+        mask = np.concatenate([mask] * 3, axis=-1)
+
         augmented = augmentation_pipeline(image=img, mask=mask)
-        augmented_images.append(augmented["image"])
-        augmented_masks.append(augmented["mask"])
+        augmented_image = augmented["image"]
+        augmented_mask = augmented["mask"][:, :, 0]
+        augmented_images.append(augmented_image)
+        augmented_masks.append(augmented_mask)
     
     return augmented_images, augmented_masks
 
@@ -183,7 +188,7 @@ augmentation_pipeline = A.Compose(
         A.HorizontalFlip(p=0.5),
         A.RandomBrightnessContrast(p=0.5),
         A.GaussNoise(p=0.2),
-        A.GaussianBlur(p=0.2, blur_limit=9),
+        A.GaussianBlur(p=0.2, sigma_limit=4, blur_limit=9),
 
     ],
     additional_targets={"mask": "image"},
