@@ -319,6 +319,10 @@ def create_datasets_for_segnet_training(
     val_masks = resize_images(val_masks, img_width, img_height)
     print("All images resized..")
 
+    # applying augmentation to each image / mask pair
+    train_images, train_masks = augment_image_mask(train_images, train_masks)
+    val_images, val_masks = augment_image_mask(val_images, val_masks)
+
     # normalizing the values of the images and binarizing the image masks
     train_images = normalize_image_data(train_images)
     print("Train-Images normalized..")
@@ -381,6 +385,9 @@ def create_testdataset_for_unet_training(
     test_masks = resize_images(test_masks, img_width, img_height)
     print("Test-Images resized..")
 
+    # applying augmentation to each image / mask pair
+    test_images, test_masks = augment_image_mask(test_images, test_masks)
+
     # normalizing the values of the images and binarizing the image masks
     test_images_normalized = normalize_image_data(test_images)
     print("Train-Images normalized..")
@@ -426,6 +433,9 @@ def create_testdataset_for_segnet_training(
     test_images = resize_images(test_images, img_width, img_height)
     test_masks = resize_images(test_masks, img_width, img_height)
     print("Test-Images resized..")
+
+    # applying augmentation to each image / mask pair
+    test_images, test_masks = augment_image_mask(test_images, test_masks)
 
     # normalizing the values of the images and binarizing the image masks
     test_images = normalize_image_data(test_images)
