@@ -30,8 +30,8 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
 
-IMG_WIDTH = 128
-IMG_HEIGHT = 128
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 
 EPOCHS = 50
 PATIENCE = 30
@@ -48,8 +48,7 @@ def objective(trial):
     BACKBONE = trial.suggest_categorical(
         "backbone", ["resnet34", "resnet50", "efficientnetb0"]
     )
-    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 1, 5)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-3)
+    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 2, 5)
 
     train_dataset, val_dataset = create_datasets_for_unet_training(
         directory_train_images=TRAIN_IMG_PATH,
@@ -92,8 +91,8 @@ def objective(trial):
         (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
     )
 
-    gen_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
-    disc_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
+    gen_optimizer = tf.keras.optimizers.Adam(1e-4)
+    disc_optimizer = tf.keras.optimizers.Adam(1e-4)
     checkpoint = tf.train.Checkpoint(
         generator_optimizer=gen_optimizer,
         discriminator_optimizer=disc_optimizer,

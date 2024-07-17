@@ -28,7 +28,7 @@ CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 
-EPOCHS = 100
+EPOCHS = 50
 PATIENCE = 30
 
 os.environ["WANDB_DIR"] = "wandb/train_unet"

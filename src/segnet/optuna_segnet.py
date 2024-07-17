@@ -25,8 +25,8 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
 LOG_VAL_PRED = "data/predictions/segnet"
 
-IMG_WIDTH = 128
-IMG_HEIGHT = 128
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 EPOCHS = 50
 PATIENCE = 30
