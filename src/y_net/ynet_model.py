@@ -42,7 +42,7 @@ def detail_feature_extractor(input_shape):
     c10 = Conv2D(64, (5, 5), activation="relu", padding="same", name="c10")(c9)
     c11 = Conv2D(64, (5, 5), activation="relu", padding="same", name="c11")(c10)
     c12 = Conv2D(64, (5, 5), activation="relu", padding="same", name="c12")(c11)
-    output = Conv2D(1, (1, 1), activation="sigmoid", name="c13")(c12)
+    output = Conv2D(5, (1, 1), activation="softmax", name="c13")(c12)
 
     model = models.Model(input, output, name="Detailed-Feature-Extractor")
     model.summary()
@@ -56,7 +56,7 @@ def fusion_module(y1_output, y2_output):
     c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f2")(c1)
     c3 = Conv2D(32, (3, 3), activation="relu", padding="same", name="f3")(c2)
     c4 = Conv2D(32, (3, 3), activation="relu", padding="same", name="f4")(c3)
-    outputs = Conv2D(1, (1, 1), activation="sigmoid", name="output")(c4)
+    outputs = Conv2D(5, (1, 1), activation="softmax", name="output")(c4)
     return outputs
 
 

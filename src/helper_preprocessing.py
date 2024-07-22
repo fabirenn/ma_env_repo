@@ -37,8 +37,8 @@ def split_image_and_mask(
             continue
 
         # Split the image and mask into 6 parts
-        for i in range(3):
-            for j in range(2):
+        for i in range(3):  # Horizontal splits
+            for j in range(2):  # Vertical splits
                 left = i * 1000
                 upper = j * 1000
                 right = left + 1000
@@ -51,13 +51,13 @@ def split_image_and_mask(
                 image_crop.save(
                     os.path.join(
                         output_image_folder,
-                        f"{image_file.split('.')[0]}_{i}_{j}.png",
+                        f"{os.path.splitext(image_file)[0]}_{j}_{i}.png",
                     )
                 )
                 mask_crop.save(
                     os.path.join(
                         output_mask_folder,
-                        f"{mask_file.split('.')[0]}_{i}_{j}.png",
+                        f"{os.path.splitext(mask_file)[0]}_{j}_{i}.png",
                     )
                 )
 
@@ -140,18 +140,40 @@ def crop_and_resize_images(
             )
         )
 
+def resize_and_save_images(directory, target_size=(3000, 2000), suffix="_small"):
+    # Get list of image files in the directory
+    image_files = [
+        f for f in os.listdir(directory) if f.lower().endswith((".png", ".jpg", ".jpeg"))
+    ]
+    image_files = sorted(image_files)
 
-image_folder = "data/De-fencing/dataset/Training Set/Training_Images"
-mask_folder = "data/De-fencing/dataset/Training Set/Training_Labels"
-output_image_folder = "data/De-fencing/dataset/Training Set/squared_images"
-output_mask_folder = "data/De-fencing/dataset/Training Set/squared_labels"
+    for image_file in image_files:
+        image_path = os.path.join(directory, image_file)
+        try:
+            image = Image.open(image_path)
+        except UnidentifiedImageError:
+            print(f"Skipping {image_file} due to loading error.")
+            continue
+        
+        # Resize the image
+        image_resized = image.resize(target_size, Image.Resampling.LANCZOS)
+
+        # Save the resized image with a new name
+        new_file_name = f"{os.path.splitext(image_file)[0]}{suffix}{os.path.splitext(image_file)[1]}"
+        image_resized.save(os.path.join(directory, new_file_name))
+        print(f"Saved resized image: {new_file_name}")
+
+
+# Example usage
+directory = "data/segmented/mask"
+#resize_and_save_images(directory, target_size=(3000, 2000), suffix="_small")
+
+
+image_folder = "data/segmented/original"
+mask_folder = "data/segmented/mask"
+output_image_folder = "data/segmented/squared_images"
+output_mask_folder = "data/segmented/squared_masks"
 
 # split_image_and_mask(image_folder, mask_folder, output_image_folder,
 # output_mask_folder)
-crop_and_resize_images(
-    image_folder,
-    mask_folder,
-    output_image_folder,
-    output_mask_folder,
-    target_size=1000,
-)
+split_image_and_mask(image_folder, mask_folder, output_image_folder, output_mask_folder)

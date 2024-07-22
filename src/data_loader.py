@@ -8,6 +8,28 @@ import gc
 import tensorflow as tf
 from PIL import Image
 
+cls2bgr = {
+    1: (255, 221, 51),  # wire
+    2: (195, 177, 241),  # post
+    3: (49, 147, 245),  # tensioner
+    4: (102, 255, 102),  # other
+}
+
+def bgr_mask2cls_mask(
+    bgr_mask, cls2bgr
+) -> np.ndarray:
+    """Convert BGR mask to class mask."""
+    h, w, _ = bgr_mask.shape
+    final_mask = np.zeros((h, w, len(cls2bgr) + 1), dtype=np.uint8)
+    final_mask[:, :, 0] = 1  # Background
+
+    for i, bgr in cls2bgr.items():
+        bool_mask = (bgr_mask == bgr).all(-1)
+        final_mask[:, :, i][bool_mask] = 1
+        final_mask[:, :, 0][bool_mask] = 0
+    
+    return final_mask
+
 def load_images_from_directory(directory):
     # puts each .png / .jpg / .jpeg File into a list of images as np-arrays
     # and returns it
@@ -36,7 +58,7 @@ def load_images_from_directory(directory):
     return images_list
 
 
-def load_masks_from_directory(directory):
+def load_masks_from_directory(directory, cls2bgr=cls2bgr):
     # puts each .png / .jpg / .jpeg File into a list of images as np-arrays
     # and returns it
 
@@ -51,15 +73,12 @@ def load_masks_from_directory(directory):
         ):  # Sicherstellen, dass es ein Bildformat ist
             # Bildpfad konstruieren
             masks_path = os.path.join(directory, filename)
-
-            # Bild laden
-            with Image.open(masks_path) as mask:
-                mask = mask.convert("L")
-                mask_array = np.array(mask)
-
-                # append img_array to list
-                # print(filename)
-                masks_list.append(mask_array)
+            bgr_mask = cv2.imread(masks_path)
+            if bgr_mask is not None:
+                class_mask = bgr_mask2cls_mask(bgr_mask, cls2bgr)
+                masks_list.append(class_mask)
+            else:
+                print(f"Failed to read mask: {masks_path}")
 
     return masks_list
 
@@ -229,11 +248,11 @@ def create_datasets_for_unet_training(
 ):
     # loading img and masks from corresponding paths into to separate lists
     train_images = load_images_from_directory(directory_train_images)
-    train_masks = load_masks_from_directory(directory_train_masks)
+    train_masks = load_masks_from_directory(directory_train_masks, cls2bgr)
     print("Train-Images successfully loaded..")
 
     val_images = load_images_from_directory(directory_val_images)
-    val_masks = load_masks_from_directory(directory_val_masks)
+    val_masks = load_masks_from_directory(directory_val_masks, cls2bgr)
     print("Validation-Images successfully loaded..")
 
     # resizing the images to dest size for training
@@ -254,27 +273,21 @@ def create_datasets_for_unet_training(
         train_images = preprocess_images(train_images)
         print("Added more channels for U-Net..")
 
-    train_masks = make_binary_masks(train_masks, 30)
-    print("Train-Masks binarized..")
-
     val_images = normalize_image_data(val_images)
     print("Val-Images normalized..")
     if channel_size > 3:
         val_images = preprocess_images(val_images)
         print("Added more channels for U-Net..")
 
-    val_masks = make_binary_masks(val_masks, 30)
-    print("Val-Masks binarized..")
-
     # converting the images/masks to tensors + expanding the masks tensor slide
     # to 1 dimension
     tensor_train_images = convert_to_tensor(train_images)
     tensor_train_masks = convert_to_tensor(train_masks)
-    tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+    #tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
 
     tensor_val_images = convert_to_tensor(val_images)
     tensor_val_masks = convert_to_tensor(val_masks)
-    tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+    #tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
 
     print("Images converted to tensors..")
 
@@ -310,11 +323,11 @@ def create_datasets_for_segnet_training(
     
     # loading images and masks from corresponding paths into to separate lists
     train_images = load_images_from_directory(directory_train_images)
-    train_masks = load_masks_from_directory(directory_train_masks)
+    train_masks = load_masks_from_directory(directory_train_masks, cls2bgr)
     print("Train-Images successfully loaded..")
 
     val_images = load_images_from_directory(directory_val_images)
-    val_masks = load_masks_from_directory(directory_val_masks)
+    val_masks = load_masks_from_directory(directory_val_masks, cls2bgr)
     print("Validation-Images successfully loaded..")
 
     # resizing the images to dest size for training
@@ -331,23 +344,19 @@ def create_datasets_for_segnet_training(
     # normalizing the values of the images and binarizing the image masks
     train_images = normalize_image_data(train_images)
     print("Train-Images normalized..")
-    train_masks = make_binary_masks(train_masks, 30)
-    print("Train-Masks binarized..")
 
     val_images = normalize_image_data(val_images)
     print("Val-Images normalized..")
-    val_masks = make_binary_masks(val_masks, 30)
-    print("Val-Masks binarized..")
 
     # converting the images/masks to tensors + expanding the masks tensor slide
     # to 1 dimension
     tensor_train_images = convert_to_tensor(train_images)
     tensor_train_masks = convert_to_tensor(train_masks)
-    tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+    #tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
 
     tensor_val_images = convert_to_tensor(val_images)
     tensor_val_masks = convert_to_tensor(val_masks)
-    tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+    #tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
 
     print("Images converted to tensors..")
 
@@ -382,7 +391,7 @@ def create_testdataset_for_unet_training(
 
     # loading images and masks from corresponding paths into to separate lists
     test_images = load_images_from_directory(directory_test_images)
-    test_masks = load_masks_from_directory(directory_test_masks)
+    test_masks = load_masks_from_directory(directory_test_masks, cls2bgr)
     print("Test-Images successfully loaded..")
 
     # resizing the images to dest size for training
@@ -396,14 +405,12 @@ def create_testdataset_for_unet_training(
     if channel_size > 3:
         test_images_normalized = preprocess_images(test_images_normalized)
         print("Added more Channels for U-Net..")
-    test_masks = make_binary_masks(test_masks, 30)
-    print("Train-Masks binarized..")
 
     # converting the images/masks to tensors + expanding the masks tensor slide
     # to 1 dimension
     tensor_test_images = convert_to_tensor(test_images_normalized)
     tensor_test_masks = convert_to_tensor(test_masks)
-    tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
+    #tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
     print("Images converted to tensors..")
 
     # create dataset for training purposes
@@ -428,7 +435,7 @@ def create_testdataset_for_segnet_training(
 ):
     # loading images and masks from corresponding paths into to separate lists
     test_images = load_images_from_directory(directory_test_images)
-    test_masks = load_masks_from_directory(directory_test_masks)
+    test_masks = load_masks_from_directory(directory_test_masks, cls2bgr)
     print("Test-Images successfully loaded..")
 
     # resizing the images to dest size for training
@@ -439,14 +446,11 @@ def create_testdataset_for_segnet_training(
     # normalizing the values of the images and binarizing the image masks
     test_images = normalize_image_data(test_images)
     print("Train-Images normalized..")
-    test_masks = make_binary_masks(test_masks, 30)
-    print("Train-Masks binarized..")
-
     # converting the images/masks to tensors + expanding the masks tensor slide
     # to 1 dimension
     tensor_test_images = convert_to_tensor(test_images)
     tensor_test_masks = convert_to_tensor(test_masks)
-    tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
+    #tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
     print("Images converted to tensors..")
 
     # create dataset for training purposes
@@ -471,7 +475,7 @@ def create_dataset_for_image_segmentation(img_dir, mask_dir):
     preprocessed_images = preprocess_images(images)
 
     masks = []
-    masks = load_masks_from_directory(mask_dir)
+    masks = load_masks_from_directory(mask_dir, cls2bgr)
     masks = resize_images(masks, 1500, 1000)
     masks = make_binary_masks(masks, threshold=30)
 

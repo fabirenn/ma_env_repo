@@ -158,7 +158,7 @@ def DeepLab(input_shape, dropout_rate):
     x = Activation("relu")(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
-    x = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(x)
+    x = Conv2D(5, (1, 1), padding="same", activation="softmax")(x)
 
     # crf_output = CRFLayer(input_shape)([inputs, x])
 

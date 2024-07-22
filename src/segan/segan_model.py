@@ -42,7 +42,7 @@ def discriminator(input_shape, mask_shape):
     x = layers.LeakyReLU(alpha=0.2)(x)
 
     x = layers.Flatten()(x)
-    outputs = layers.Dense(1, activation="sigmoid")(x)
+    outputs = layers.Dense(5, activation="softmax")(x)
     model = models.Model(
         [image_input, mask_input], outputs, name="Discriminator"
     )

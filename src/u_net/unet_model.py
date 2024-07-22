@@ -97,7 +97,7 @@ def unet(
     )
 
     outputs = tf.keras.layers.Conv2D(
-        filters=1, kernel_size=(1, 1), activation="sigmoid"
+        5, kernel_size=(1, 1), activation="softmax"
     )(u5)
 
     model = tf.keras.Model(inputs=[inputs], outputs=[outputs], name="U-Net")

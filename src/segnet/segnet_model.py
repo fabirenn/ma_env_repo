@@ -114,7 +114,7 @@ def segnet(input_size, dropout_rate):
     x = Activation("relu")(x)
 
     outputs = Conv2D(
-        filters=1, kernel_size=(1, 1), padding="same", activation="sigmoid"
+        5, kernel_size=(1, 1), padding="same", activation="softmax"
     )(x)
     model = Model(inputs, outputs, name="SegNet")
     model.summary()

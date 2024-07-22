@@ -76,7 +76,7 @@ keras.backend.set_image_data_format("channels_last")
 generator_model = sm.Unet(
     backbone_name="resnet34",
     input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
-    classes=1,
+    classes=5,
     activation="sigmoid",
     encoder_weights=None,
     encoder_features="default",
