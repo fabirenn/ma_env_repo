@@ -43,34 +43,34 @@ class ValidationCallback(Callback):
 
         x_rgb = x[..., :3][..., ::-1]
         
-        # Predict the segmentation map for the selected image
-        y_pred = self.model.predict(tf.expand_dims(x, axis=0), verbose=1)[0]
+        try:
+            y_pred = self.model.predict(tf.expand_dims(x, axis=0), verbose=1)[0]
+            if self.apply_crf:
+                y_pred = apply_crf_to_pred(x, y_pred)
 
-        if self.apply_crf is True:
-            y_pred[0] = apply_crf_to_pred(x, y_pred)
+            y_pred_class = np.argmax(y_pred, axis=-1)
+            y_pred_colored = map_class_to_color(y_pred_class)
 
-        y_pred_class = np.argmax(y_pred, axis=-1)  # Shape: (height, width)
-        y_pred_colored = map_class_to_color(y_pred_class)  # Shape: (height, width, 3)
-        
-        # Convert true labels to class indices
-        y_true_class = np.argmax(y_true, axis=-1)  # Shape: (height, width)
-        y_true_colored = map_class_to_color(y_true_class) 
+            y_true_class = np.argmax(y_true, axis=-1)
+            y_true_colored = map_class_to_color(y_true_class)
 
-        safe_predictions_locally(
-            range=None,
-            iterator=epoch,
-            test_images=x_rgb,
-            test_masks=y_true_colored,
-            predictions=y_pred_colored,
-            pred_img_path=self.log_dir,
-            val=True,
-        )
-        log_images_wandb(
-            epoch=epoch,
-            x=x_rgb,
-            y_true=y_true_colored,
-            y_pred=y_pred_colored,
-        )
+            safe_predictions_locally(
+                range=None,
+                iterator=epoch,
+                test_images=x_rgb,
+                test_masks=y_true_colored,
+                predictions=y_pred_colored,
+                pred_img_path=self.log_dir,
+                val=True,
+            )
+            log_images_wandb(
+                epoch=epoch,
+                x=x_rgb,
+                y_true=y_true_colored,
+                y_pred=y_pred_colored,
+            )
+        except Exception as e:
+            print(f"Error during prediction in on_epoch_end: {e}")
 
 
 def log_images_wandb(epoch, x, y_true, y_pred):
