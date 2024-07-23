@@ -148,7 +148,11 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     # Max pooling layer
     pool = tf.keras.layers.MaxPooling2D((2, 2))(conv)
 
+    print(f"conv_block_down output shape: {conv.shape}, pool shape: {pool.shape}")
+
     return conv, pool
+
+    
 
 
 def conv_block_up(
@@ -204,5 +208,7 @@ def conv_block_up(
 
     # Dropout-Layer
     c = tf.keras.layers.Dropout(dropout_rate)(c)
+
+    print(f"conv_block_up output shape: {c.shape}")
 
     return c
