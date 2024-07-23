@@ -5,12 +5,12 @@ import keras.metrics
 from keras.models import load_model
 
 import wandb
-from loss_functions import combined_loss
-
+from loss_functions import dice_loss
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_layers import custom_objects
 
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import ValidationCallback
 from data_loader import create_testdataset_for_segnet_training
 from processing import add_prediction_to_list, safe_predictions_locally
 
@@ -40,18 +40,19 @@ model = load_model(
 )
 model.compile(
     optimizer="adam",
-    loss=combined_loss,
+    loss=dice_loss,
     metrics=[
         "accuracy",
-        keras.metrics.BinaryIoU(),
-        keras.metrics.Precision(),
-        keras.metrics.Recall(),
-        specificity_score,
-        dice_score,
+        pixel_accuracy,
+        precision,
+        mean_iou,
+        dice_coefficient,
+        f1_score,
+        recall
     ],
 )
 
-predictions, binary_predictions = add_prediction_to_list(
+predictions, colored_predictions = add_prediction_to_list(
     test_dataset, model=model, batch_size=BATCH_SIZE, apply_crf=False
 )
 
@@ -59,7 +60,7 @@ safe_predictions_locally(
     range=range(20),
     iterator=None,
     test_images=test_images,
-    predictions=binary_predictions,
+    predictions=colored_predictions,
     test_masks=test_masks,
     pred_img_path=PRED_IMG_PATH,
     val=False,

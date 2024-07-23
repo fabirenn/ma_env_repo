@@ -2,18 +2,17 @@ import os
 import sys
 
 import keras.metrics
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from segnet_model import segnet
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+from wandb.integration.keras import WandbMetricsLogger, WandbCallback
 
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from keras.callbacks import EarlyStopping
-
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import ValidationCallback
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from data_loader import create_datasets_for_segnet_training
-from loss_functions import combined_loss, dice_loss, iou_loss
+from loss_functions import dice_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -68,14 +67,15 @@ model = segnet(
 
 model.compile(
     optimizer="adam",
-    loss=combined_loss,
+    loss=dice_loss,
     metrics=[
         "accuracy",
-        keras.metrics.BinaryIoU(),
-        keras.metrics.Precision(),
-        keras.metrics.Recall(),
-        specificity_score,
-        dice_score,
+        pixel_accuracy,
+        precision,
+        mean_iou,
+        dice_coefficient,
+        f1_score,
+        recall
     ],
 )
 
@@ -86,7 +86,7 @@ model.fit(
     validation_data=val_dataset,
     callbacks=[
         WandbMetricsLogger(log_freq="epoch"),
-        WandbModelCheckpoint(
+        ModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
@@ -94,8 +94,6 @@ model.fit(
             verbose=1,
         ),
         ValidationCallback(
-            model=model,
-            train_data=train_dataset,
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
