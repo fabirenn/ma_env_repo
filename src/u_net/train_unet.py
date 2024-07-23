@@ -3,7 +3,7 @@ import sys
 
 import keras.metrics
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from wandb.integration.keras import WandbMetricsLogger
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 
@@ -24,14 +24,14 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 LOG_VAL_PRED = "data/predictions/unet"
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.keras"
 
-'''
+
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
-VAL_MASK_PATH = "data/local/val/labels"'''
+VAL_MASK_PATH = "data/local/val/labels"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1

@@ -38,7 +38,7 @@ class ValidationCallback(Callback):
         random_sample = self.validation_data.take(1)
         x_batch, y_true_batch = next(iter(random_sample))
         # print(f"Validation sample batch shape: {x_batch.shape}, {y_true_batch.shape}")
-        x = x_batch[0].numpy()
+        x = x_batch[0]
         y_true = y_true_batch[0]
 
         x_rgb = x[..., :3][..., ::-1]
