@@ -27,10 +27,11 @@ def map_class_to_color(mask):
 
 
 class ValidationCallback(Callback):
-    def __init__(self, validation_data, log_dir, apply_crf):
+    def __init__(self, model, validation_data, log_dir, apply_crf):
         super().__init__()
         self.validation_data = validation_data
         self.log_dir = log_dir
+        self.model = model
         self.apply_crf = apply_crf
         os.makedirs(log_dir, exist_ok=True)
 
