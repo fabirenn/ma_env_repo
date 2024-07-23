@@ -41,6 +41,6 @@ def convert_binary_masks(
 
 
 # Example usage
-input_folder = "data/De-fencing/dataset/Test Set/squared_labels"
-output_folder = "data/De-fencing/dataset/Test Set/converted_masks"
+input_folder = "data/training_test/labels_git"
+output_folder = "data/training_test/labels_git"
 convert_binary_masks(input_folder, output_folder, wire_color=(51, 221, 255))
