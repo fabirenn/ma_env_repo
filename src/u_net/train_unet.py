@@ -24,11 +24,11 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 LOG_VAL_PRED = "data/predictions/unet"
 CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.keras"
 
-
+'''
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
-VAL_MASK_PATH = "data/local/val/labels"
+VAL_MASK_PATH = "data/local/val/labels"'''
 
 IMG_WIDTH = 256
 IMG_HEIGHT = 256
