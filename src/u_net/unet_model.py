@@ -174,12 +174,12 @@ def conv_block_up(
     """
     # First upconvolution
     u = tf.keras.layers.Conv2DTranspose(
-        num_filters,
-        (2, 2),
+        filters=num_filters,
+        kernel_size=(2, 2),
         strides=(2, 2),
         padding="same",
+        activation="relu"
     )(input_tensor)
-    u = tf.keras.layers.Activation("relu")(u)
 
     # Concatenating Upconvolution with Contraction tensor
     u = tf.keras.layers.concatenate([u, skip_tensor])
