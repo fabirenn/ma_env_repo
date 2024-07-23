@@ -3,7 +3,7 @@ import sys
 
 import keras.metrics
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from wandb.integration.keras import WandbMetricsLogger, WandbCallback
+from wandb.integration.keras import WandbMetricsLogger
 
 import wandb
 
@@ -35,6 +35,7 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
+
 BATCH_SIZE = 8
 EPOCHS = 200
 PATIENCE = 70
