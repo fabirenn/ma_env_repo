@@ -140,10 +140,15 @@ def crop_and_resize_images(
             )
         )
 
-def resize_and_save_images(directory, target_size=(3000, 2000), suffix="_small"):
+
+def resize_and_save_images(
+    directory, target_size=(3000, 2000), suffix="_small"
+):
     # Get list of image files in the directory
     image_files = [
-        f for f in os.listdir(directory) if f.lower().endswith((".png", ".jpg", ".jpeg"))
+        f
+        for f in os.listdir(directory)
+        if f.lower().endswith((".png", ".jpg", ".jpeg"))
     ]
     image_files = sorted(image_files)
 
@@ -154,7 +159,7 @@ def resize_and_save_images(directory, target_size=(3000, 2000), suffix="_small")
         except UnidentifiedImageError:
             print(f"Skipping {image_file} due to loading error.")
             continue
-        
+
         # Resize the image
         image_resized = image.resize(target_size, Image.Resampling.LANCZOS)
 
@@ -166,7 +171,7 @@ def resize_and_save_images(directory, target_size=(3000, 2000), suffix="_small")
 
 # Example usage
 directory = "data/segmented/mask"
-#resize_and_save_images(directory, target_size=(3000, 2000), suffix="_small")
+# resize_and_save_images(directory, target_size=(3000, 2000), suffix="_small")
 
 
 image_folder = "data/segmented/original"
@@ -176,4 +181,6 @@ output_mask_folder = "data/segmented/squared_masks"
 
 # split_image_and_mask(image_folder, mask_folder, output_image_folder,
 # output_mask_folder)
-split_image_and_mask(image_folder, mask_folder, output_image_folder, output_mask_folder)
+split_image_and_mask(
+    image_folder, mask_folder, output_image_folder, output_mask_folder
+)

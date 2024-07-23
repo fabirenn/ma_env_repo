@@ -12,7 +12,12 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from custom_callbacks import clear_directory, ValidationCallback, dice_score, specificity_score
+from custom_callbacks import (
+    ValidationCallback,
+    clear_directory,
+    dice_score,
+    specificity_score,
+)
 from data_loader import (
     create_datasets_for_segnet_training,
     create_datasets_for_unet_training,
@@ -101,14 +106,12 @@ def objective(trial):
     )
 
     generator_model.summary()
-    
+
     generator_model.compile(
         optimizer=gen_optimizer,
     )
 
-    discriminator_model.compile(
-        optimizer=disc_optimizer
-    )
+    discriminator_model.compile(optimizer=disc_optimizer)
 
     def discriminator_loss(real_output, fake_output):
         real_loss = tf.reduce_mean(
@@ -129,7 +132,7 @@ def objective(trial):
                 tf.ones_like(fake_output), fake_output
             )
         )
-    
+
     def convert_grayscale_to_rgb(images):
         return tf.image.grayscale_to_rgb(images)
 
@@ -137,14 +140,18 @@ def objective(trial):
         rgb_images = convert_grayscale_to_rgb(images)
         return model(rgb_images)
 
-    def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
+    def multi_scale_feature_loss(
+        real_images, generated_images, feature_extractor
+    ):
         real_features = extract_features(feature_extractor, real_images)
-        generated_features = extract_features(feature_extractor, generated_images)
+        generated_features = extract_features(
+            feature_extractor, generated_images
+        )
         loss = 0
         for real, generated in zip(real_features, generated_features):
             loss += tf.reduce_mean(tf.abs(real - generated))
         return loss
-    
+
     def evaluate_generator(generator, dataset):
         # Implement the evaluation logic
         accuracy = 0.0
@@ -156,7 +163,9 @@ def objective(trial):
         # Calculate metrics over the validation dataset
         for image_batch, mask_batch in dataset:
             predictions = generator(image_batch, training=False)
-            accuracy += tf.keras.metrics.BinaryAccuracy()(mask_batch, predictions)
+            accuracy += tf.keras.metrics.BinaryAccuracy()(
+                mask_batch, predictions
+            )
             iou += tf.keras.metrics.BinaryIoU()(mask_batch, predictions)
             precision += tf.keras.metrics.Precision()(mask_batch, predictions)
             recall += tf.keras.metrics.Recall()(mask_batch, predictions)
@@ -171,7 +180,7 @@ def objective(trial):
         specificity /= len(dataset)
         dice /= len(dataset)
         return accuracy, iou, precision, recall, specificity, dice
-    
+
     @tf.function
     def train_step_generator(images, masks):
         with tf.GradientTape() as gen_tape:
@@ -191,7 +200,7 @@ def objective(trial):
             zip(gradients_of_generator, generator_model.trainable_variables)
         )
         return gen_loss
-    
+
     @tf.function
     def train_step_discriminator(images, masks):
         with tf.GradientTape() as disc_tape:
@@ -282,7 +291,7 @@ if __name__ == "__main__":
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=100)
 
-    #clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
+    # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
     print("Best trial:")
     trial = study.best_trial

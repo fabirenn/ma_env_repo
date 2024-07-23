@@ -1,7 +1,7 @@
 import os
-
-import tensorflow as tf
 import shutil
+import numpy as np
+import tensorflow as tf
 from keras import backend as K
 from keras.callbacks import Callback
 from keras.utils import array_to_img
@@ -9,12 +9,26 @@ from keras.utils import array_to_img
 import wandb
 from processing import apply_crf_to_pred, safe_predictions_locally
 
+class_colors = {
+    0: (0, 0, 0),  # Background (Black)
+    1: (51, 221, 255),
+    2: (241, 177, 195),
+    3: (245, 147, 49),
+    4: (102, 255, 102),
+}
+
+
+def map_class_to_color(mask):
+    """Map each class in the mask to its corresponding color."""
+    color_mask = np.zeros((*mask.shape, 3), dtype=np.uint8)
+    for class_id, color in class_colors.items():
+        color_mask[mask == class_id] = color
+    return color_mask
+
 
 class ValidationCallback(Callback):
-    def __init__(self, model, train_data, validation_data, log_dir, apply_crf):
+    def __init__(self, validation_data, log_dir, apply_crf):
         super().__init__()
-        self.model = model
-        self.train_data = train_data
         self.validation_data = validation_data
         self.log_dir = log_dir
         self.apply_crf = apply_crf
@@ -24,25 +38,38 @@ class ValidationCallback(Callback):
         random_sample = self.validation_data.take(1)
         x_batch, y_true_batch = next(iter(random_sample))
         # print(f"Validation sample batch shape: {x_batch.shape}, {y_true_batch.shape}")
-        y_pred_batch = self.model.predict(x_batch, verbose=1)
-        # print(f"Prediction batch shape: {y_pred_batch.shape}")
+        x = x_batch[0].numpy()
+        y_true = y_true_batch[0]
+
+        x_rgb = x[..., :3][..., ::-1]
+        
+        # Predict the segmentation map for the selected image
+        y_pred = self.model.predict(tf.expand_dims(x, axis=0), verbose=1)[0]
+
         if self.apply_crf is True:
-            y_pred_batch[0] = apply_crf_to_pred(x_batch[0], y_pred_batch[0])
+            y_pred[0] = apply_crf_to_pred(x, y_pred)
+
+        y_pred_class = np.argmax(y_pred, axis=-1)  # Shape: (height, width)
+        y_pred_colored = map_class_to_color(y_pred_class)  # Shape: (height, width, 3)
+        
+        # Convert true labels to class indices
+        y_true_class = np.argmax(y_true, axis=-1)  # Shape: (height, width)
+        y_true_colored = map_class_to_color(y_true_class) 
 
         safe_predictions_locally(
             range=None,
             iterator=epoch,
-            test_images=x_batch[0],
-            test_masks=y_true_batch[0],
-            predictions=y_pred_batch[0],
+            test_images=x_rgb,
+            test_masks=y_true_colored,
+            predictions=y_pred_colored,
             pred_img_path=self.log_dir,
             val=True,
         )
         log_images_wandb(
             epoch=epoch,
-            x=x_batch[0],
-            y_true=y_true_batch[0],
-            y_pred=y_pred_batch[0],
+            x=x_rgb,
+            y_true=y_true_colored,
+            y_pred=y_pred_colored,
         )
 
 
@@ -57,34 +84,6 @@ def log_images_wandb(epoch, x, y_true, y_pred):
 
     wandb.log({"val_image": wandb_table})
 
-
-def dice_score(y_true, y_pred):
-    y_pred = tf.round(y_pred)
-    intersection = tf.reduce_sum(y_true * y_pred)
-    return (2.0 * intersection + K.epsilon()) / (
-        tf.reduce_sum(y_true) + tf.reduce_sum(y_pred) + K.epsilon()
-    )
-
-
-def specificity_score(y_true, y_pred):
-    y_pred = tf.round(y_pred)
-    y_true = tf.cast(y_true, tf.bool)
-    y_pred = tf.cast(y_pred, tf.bool)
-
-    true_negatives = tf.reduce_sum(
-        tf.cast(
-            tf.logical_and(tf.logical_not(y_true), tf.logical_not(y_pred)),
-            tf.float32,
-        )
-    )
-    false_positives = tf.reduce_sum(
-        tf.cast(tf.logical_and(tf.logical_not(y_true), y_pred), tf.float32)
-    )
-
-    specificity = true_negatives / (
-        true_negatives + false_positives + K.epsilon()
-    )
-    return specificity
 
 def clear_directory(directory_path):
     if os.path.exists(directory_path):

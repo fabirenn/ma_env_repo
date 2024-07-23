@@ -2,17 +2,17 @@ import os
 import sys
 
 import keras.metrics
-from keras.callbacks import EarlyStopping
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from wandb.integration.keras import WandbMetricsLogger, WandbCallback
 
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from unet_model import unet
-
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import ValidationCallback
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from data_loader import create_datasets_for_unet_training
-from loss_functions import combined_loss, dice_loss, iou_loss
+from loss_functions import dice_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -22,20 +22,20 @@ VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 LOG_VAL_PRED = "data/predictions/unet"
-CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.h5"
+CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.keras"
 
-'''
+
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
-VAL_MASK_PATH = "data/local/val/labels"'''
+VAL_MASK_PATH = "data/local/val/labels"
 
-IMG_WIDTH = 128
-IMG_HEIGHT = 128
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 EPOCHS = 200
 PATIENCE = 70
 
@@ -74,14 +74,15 @@ model = unet(
 
 model.compile(
     optimizer="adam",
-    loss=combined_loss,
+    loss=dice_loss,
     metrics=[
         "accuracy",
-        keras.metrics.BinaryIoU(),
-        keras.metrics.Precision(),
-        keras.metrics.Recall(),
-        specificity_score,
-        dice_score,
+        pixel_accuracy,
+        precision,
+        mean_iou,
+        dice_coefficient,
+        f1_score,
+        recall
     ],
 )
 
@@ -92,7 +93,7 @@ model.fit(
     validation_data=val_dataset,
     callbacks=[
         WandbMetricsLogger(log_freq="epoch"),
-        WandbModelCheckpoint(
+        ModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
@@ -100,8 +101,6 @@ model.fit(
             verbose=1,
         ),
         ValidationCallback(
-            model=model,
-            train_data=train_dataset,
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=False,

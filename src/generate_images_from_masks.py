@@ -25,15 +25,19 @@ def apply_mask(image, mask, class_value):
     class_mask = mask == class_value
     return np.where(class_mask[:, :, np.newaxis], image, 0)
 
+
 def replace_fence_pixels(original_image, replacement_image, mask):
     result_image = original_image.copy()
-    
+
     # Iterate over each class channel in the mask
-    for class_channel in range(1, mask.shape[-1]):  # Skip the background channel (0)
+    for class_channel in range(
+        1, mask.shape[-1]
+    ):  # Skip the background channel (0)
         class_mask = mask[:, :, class_channel] == 1
         result_image[class_mask] = replacement_image[class_mask]
 
     return result_image
+
 
 def save_image(image, path):
     image = convert_to_uint8(image)
@@ -56,17 +60,23 @@ def show_image(image):
     plt.axis("off")
     plt.show()
 
+
 def visualize_mask(mask, title=""):
     h, w, c = mask.shape
     combined_mask = np.zeros((h, w, 3), dtype=np.uint8)
     for i in range(1, c):  # Skip the background channel (0)
         class_mask = mask[:, :, i]
-        color = (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))
+        color = (
+            np.random.randint(0, 255),
+            np.random.randint(0, 255),
+            np.random.randint(0, 255),
+        )
         combined_mask[class_mask == 1] = color
     plt.imshow(combined_mask)
     plt.title(title)
     plt.axis("off")
     plt.show()
+
 
 def cv2_greenscreenremover(image, iterator):
     cv2.imwrite("image.png", image)
@@ -120,29 +130,29 @@ background_images = resize_images(background_images, 3000, 2000)
 fence_images = load_images_from_directory(FENCE_IMAGES_PATH)
 fence_images = resize_images(fence_images, 3000, 2000)
 
-#for i in range(68):
-    #img = cv2_greenscreenremover(fence_images[i], i)
-    #make_binary_mask(img, i)
+# for i in range(68):
+# img = cv2_greenscreenremover(fence_images[i], i)
+# make_binary_mask(img, i)
 
 
 fence_images_new = load_images_from_directory(FENCE_IMAGES_PATH_SEGMENTED)
 fence_images_new = resize_images(fence_images_new, 3000, 2000)
 fence_masks = load_masks_from_directory(FENCE_MASKS_PATH)
 fence_masks = resize_images(fence_masks, 3000, 2000)
-#fence_masks = make_binary_masks(fence_masks, 30)
+# fence_masks = make_binary_masks(fence_masks, 30)
 
 
 for i in range(68):
     print(f"Processing image {i + 100}")
     print(f"Background image shape: {background_images[i].shape}")
     print(f"Fence image shape: {fence_images_new[i].shape}")
-    #print(f"Mask shape: {fence_masks[i].shape}")
+    # print(f"Mask shape: {fence_masks[i].shape}")
 
-    #visualize_mask(fence_masks[i], title=f"Mask {i + 100}")
+    # visualize_mask(fence_masks[i], title=f"Mask {i + 100}")
 
     result_image = replace_fence_pixels(
         background_images[i], fence_images_new[i], fence_masks[i]
     )
-    #show_image(result_image)
+    # show_image(result_image)
     save_image()
     save_image(result_image, DESTINATION_PATH + "image" + str(i + 100) + ".png")

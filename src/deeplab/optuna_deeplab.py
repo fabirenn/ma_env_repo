@@ -11,7 +11,12 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import ValidationCallback, dice_score, specificity_score, clear_directory
+from custom_callbacks import (
+    ValidationCallback,
+    clear_directory,
+    dice_score,
+    specificity_score,
+)
 from data_loader import create_datasets_for_segnet_training
 from loss_functions import dice_loss, iou_loss
 
@@ -50,7 +55,7 @@ def objective(trial):
         "iou_loss": iou_loss,
     }
 
-    #tf.keras.backend.clear_session()
+    # tf.keras.backend.clear_session()
 
     try:
         train_dataset, val_dataset = create_datasets_for_segnet_training(
@@ -144,7 +149,7 @@ if __name__ == "__main__":
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=100)
 
-    #clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
+    # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
     print("Best trial:")
     trial = study.best_trial

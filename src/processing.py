@@ -10,6 +10,22 @@ from pydensecrf.utils import (
     create_pairwise_gaussian,
     unary_from_softmax,
 )
+# Define the color mapping for each class in BGR order
+class_colors = {
+    0: (0, 0, 0),  # Background (Black)
+    1: (51, 221, 255),
+    2: (241, 177, 195),
+    3: (245, 147, 49),
+    4: (102, 255, 102),
+}
+
+
+def map_class_to_color(mask):
+    """Map each class in the mask to its corresponding color."""
+    color_mask = np.zeros((*mask.shape[:2], 3), dtype=np.uint8)
+    for class_id, color in class_colors.items():
+        color_mask[mask == class_id] = color
+    return color_mask
 
 
 def calculate_binary_iou(pred_mask, true_mask):
@@ -58,11 +74,11 @@ def safe_predictions_locally(
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        plt.imshow(test_masks, cmap=plt.cm.gray)
+        plt.imshow(test_masks)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
-        plt.imshow(predictions, cmap=plt.cm.gray)
+        plt.imshow(predictions)
 
         file_name = f"val_pred_epoch{iterator+1}.png"
         plt.savefig(os.path.join(pred_img_path, file_name))
@@ -82,11 +98,11 @@ def safe_predictions_locally(
 
             plt.subplot(1, 3, 2)
             plt.title("True Mask")
-            plt.imshow(testmask, cmap=plt.cm.gray)
+            plt.imshow(testmask)
 
             plt.subplot(1, 3, 3)
             plt.title("Pred Mask")
-            plt.imshow(prediction, cmap=plt.cm.gray)
+            plt.imshow(prediction)
 
             file_name = f"test_pred_{i+1}.png"
             plt.savefig(os.path.join(pred_img_path, file_name))
@@ -95,7 +111,7 @@ def safe_predictions_locally(
 
 def add_prediction_to_list(test_dataset, model, batch_size, apply_crf):
     predictions_list = []
-    binary_predictions = []
+    colored_predictions = []
     for image, mask in test_dataset:
         prediction = model.predict(image)
         for j in range(batch_size):
@@ -104,12 +120,16 @@ def add_prediction_to_list(test_dataset, model, batch_size, apply_crf):
                 prediction_image = apply_crf_to_pred(
                     image=image[j], prediction=prediction_image
                 )
-            binary_prediction_image = (prediction_image > 0.5).astype(np.uint8)
-            binary_predictions.append(binary_prediction_image)
-            prediction_image = array_to_img(prediction_image)
-            predictions_list.append(prediction_image)
+            # Convert to class indices
+            prediction_class = np.argmax(prediction_image, axis=-1)
 
-    return predictions_list, binary_predictions
+            # Map to color
+            prediction_colored = map_class_to_color(prediction_class)
+
+            predictions_list.append(array_to_img(prediction_colored))
+            colored_predictions.append(prediction_colored)
+
+    return predictions_list, colored_predictions
 
 
 def apply_crf_to_pred(image, prediction):
@@ -125,32 +145,21 @@ def apply_crf_to_pred(image, prediction):
     """
 
     image = image.numpy() if isinstance(image, tf.Tensor) else image
-    prediction = (
-        prediction.numpy() if isinstance(prediction, tf.Tensor) else prediction
-    )
-
-    # Convert sigmoid output to softmax for binary classification
-    softmax = np.zeros((2, *prediction.shape))
-    softmax[1, :, :] = prediction
-    softmax[0, :, :] = 1 - prediction
+    prediction = prediction.numpy() if isinstance(prediction, tf.Tensor) else prediction
 
     # Convert softmax output to unary potentials
-    unary = unary_from_softmax(softmax)
+    unary = unary_from_softmax(prediction.transpose((2, 0, 1)))
     unary = np.ascontiguousarray(unary)
 
     # Create the dense CRF model
-    d = dcrf.DenseCRF2D(image.shape[1], image.shape[0], 2)
+    d = dcrf.DenseCRF2D(image.shape[1], image.shape[0], prediction.shape[-1])
     d.setUnaryEnergy(unary)
 
     # Create pairwise potentials (bilateral and spatial)
-    pairwise_gaussian = create_pairwise_gaussian(
-        sdims=(3, 3), shape=image.shape[:2]
-    )
+    pairwise_gaussian = create_pairwise_gaussian(sdims=(3, 3), shape=image.shape[:2])
     d.addPairwiseEnergy(pairwise_gaussian, compat=1)
 
-    pairwise_bilateral = create_pairwise_bilateral(
-        sdims=(10, 10), schan=(5, 5, 5), img=image, chdim=2
-    )
+    pairwise_bilateral = create_pairwise_bilateral(sdims=(10, 10), schan=(5, 5, 5), img=image, chdim=2)
     d.addPairwiseEnergy(pairwise_bilateral, compat=1)
 
     # Perform inference

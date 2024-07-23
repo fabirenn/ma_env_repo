@@ -1,12 +1,11 @@
+import gc
 import os
 
 import albumentations as A
 import cv2
 import numpy as np
-from numba import cuda
-import gc
 import tensorflow as tf
-from PIL import Image
+from numba import cuda
 
 cls2bgr = {
     1: (255, 221, 51),  # wire
@@ -15,9 +14,8 @@ cls2bgr = {
     4: (102, 255, 102),  # other
 }
 
-def bgr_mask2cls_mask(
-    bgr_mask, cls2bgr
-) -> np.ndarray:
+
+def bgr_mask2cls_mask(bgr_mask, cls2bgr) -> np.ndarray:
     """Convert BGR mask to class mask."""
     h, w, _ = bgr_mask.shape
     final_mask = np.zeros((h, w, len(cls2bgr) + 1), dtype=np.uint8)
@@ -27,8 +25,9 @@ def bgr_mask2cls_mask(
         bool_mask = (bgr_mask == bgr).all(-1)
         final_mask[:, :, i][bool_mask] = 1
         final_mask[:, :, 0][bool_mask] = 0
-    
+
     return final_mask
+
 
 def load_images_from_directory(directory):
     # puts each .png / .jpg / .jpeg File into a list of images as np-arrays
@@ -46,14 +45,11 @@ def load_images_from_directory(directory):
             # Bildpfad konstruieren
             image_path = os.path.join(directory, filename)
 
-            # Bild laden
-            with Image.open(image_path) as img:
-                # Store Image as np-array
-                img_array = np.array(img)
-
-                # append img_array to list
-                # print(filename)
-                images_list.append(img_array)
+            img = cv2.imread(image_path)
+            if img is not None:
+                images_list.append(img)
+            else:
+                print(f"Failed to read mask: {image_path}")
 
     return images_list
 
@@ -139,17 +135,14 @@ def augment_image_mask(images_list, masks_list):
     augmented_images = []
     augmented_masks = []
     # each image, mask pair goes through the augmentation_pipeline and
-    # is then return back as pair of image & mask
+    # is then returned back as a pair of image & mask
     for img, mask in zip(images_list, masks_list):
-        mask = np.expand_dims(mask, axis=-1)  # Expand mask to have the same number of channels as image (1 channel)
-        mask = np.concatenate([mask] * 3, axis=-1)
-
         augmented = augmentation_pipeline(image=img, mask=mask)
         augmented_image = augmented["image"]
-        augmented_mask = augmented["mask"][:, :, 0]
+        augmented_mask = augmented["mask"]
         augmented_images.append(augmented_image)
         augmented_masks.append(augmented_mask)
-    
+
     return augmented_images, augmented_masks
 
 
@@ -208,9 +201,8 @@ augmentation_pipeline = A.Compose(
         A.RandomBrightnessContrast(p=0.5),
         A.GaussNoise(p=0.2),
         A.GaussianBlur(p=0.2, sigma_limit=4, blur_limit=9),
-
     ],
-    additional_targets={"mask": "image"},
+    additional_targets={"mask": "mask"},
 )
 
 
@@ -283,11 +275,11 @@ def create_datasets_for_unet_training(
     # to 1 dimension
     tensor_train_images = convert_to_tensor(train_images)
     tensor_train_masks = convert_to_tensor(train_masks)
-    #tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+    # tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
 
     tensor_val_images = convert_to_tensor(val_images)
     tensor_val_masks = convert_to_tensor(val_masks)
-    #tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+    # tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
 
     print("Images converted to tensors..")
 
@@ -320,7 +312,7 @@ def create_datasets_for_segnet_training(
     img_height,
     batch_size,
 ):
-    
+
     # loading images and masks from corresponding paths into to separate lists
     train_images = load_images_from_directory(directory_train_images)
     train_masks = load_masks_from_directory(directory_train_masks, cls2bgr)
@@ -352,11 +344,11 @@ def create_datasets_for_segnet_training(
     # to 1 dimension
     tensor_train_images = convert_to_tensor(train_images)
     tensor_train_masks = convert_to_tensor(train_masks)
-    #tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+    # tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
 
     tensor_val_images = convert_to_tensor(val_images)
     tensor_val_masks = convert_to_tensor(val_masks)
-    #tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+    # tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
 
     print("Images converted to tensors..")
 
@@ -410,7 +402,7 @@ def create_testdataset_for_unet_training(
     # to 1 dimension
     tensor_test_images = convert_to_tensor(test_images_normalized)
     tensor_test_masks = convert_to_tensor(test_masks)
-    #tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
+    # tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
     print("Images converted to tensors..")
 
     # create dataset for training purposes
@@ -450,7 +442,7 @@ def create_testdataset_for_segnet_training(
     # to 1 dimension
     tensor_test_images = convert_to_tensor(test_images)
     tensor_test_masks = convert_to_tensor(test_masks)
-    #tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
+    # tensor_test_masks = tf.expand_dims(tensor_test_masks, axis=-1)
     print("Images converted to tensors..")
 
     # create dataset for training purposes
