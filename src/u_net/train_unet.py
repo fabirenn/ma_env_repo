@@ -1,8 +1,6 @@
 import os
 import sys
-
-import keras.metrics
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+import keras
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -30,8 +28,8 @@ TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"'''
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
@@ -94,7 +92,7 @@ model.fit(
     validation_data=val_dataset,
     callbacks=[
         WandbMetricsLogger(log_freq="epoch"),
-        ModelCheckpoint(
+        keras.callbacks.ModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
@@ -107,7 +105,7 @@ model.fit(
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
         ),
-        EarlyStopping(
+        keras.callbacks.EarlyStopping(
             monitor="val_loss",
             mode="min",
             patience=PATIENCE,

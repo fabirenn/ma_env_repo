@@ -1,8 +1,6 @@
 import os
 import sys
-
-import keras.metrics
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+import keras
 from segnet_model import segnet
 from wandb.integration.keras import WandbMetricsLogger, WandbCallback
 
@@ -86,7 +84,7 @@ model.fit(
     validation_data=val_dataset,
     callbacks=[
         WandbMetricsLogger(log_freq="epoch"),
-        ModelCheckpoint(
+        keras.callbacks.ModelCheckpoint(
             filepath=CHECKPOINT_PATH,
             save_best_only=True,
             save_weights_only=False,
@@ -98,7 +96,7 @@ model.fit(
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
         ),
-        EarlyStopping(
+        keras.callbacks.EarlyStopping(
             monitor="val_loss",
             mode="min",
             patience=PATIENCE,

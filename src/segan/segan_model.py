@@ -5,20 +5,6 @@ from keras import layers, models
 from keras.applications import VGG16
 from keras.models import Model
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "segnet"))
-)
-from custom_layers import MaxPoolingWithIndices2D, MaxUnpooling2D
-from segnet_model import segnet
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net"))
-)
-from unet_model import unet
-
-CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.h5"
-CHECKPOINT_PATH_SEGNET = "./artifacts/models/segnet/segnet_checkpoint.h5"
-
 
 def discriminator(input_shape, mask_shape):
     image_input = layers.Input(shape=input_shape, name="input_image")

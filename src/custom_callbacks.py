@@ -2,8 +2,7 @@ import os
 import shutil
 import numpy as np
 import tensorflow as tf
-from keras import backend as K
-from keras.callbacks import Callback
+import keras
 from keras.utils import array_to_img
 
 import wandb
@@ -26,7 +25,7 @@ def map_class_to_color(mask):
     return color_mask
 
 
-class ValidationCallback(Callback):
+class ValidationCallback(keras.callbacks.Callback):
     def __init__(self, model, validation_data, log_dir, apply_crf):
         super().__init__()
         self.validation_data = validation_data

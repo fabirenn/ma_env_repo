@@ -1,6 +1,6 @@
 import os
 import sys
-
+import keras
 import keras.backend
 import numpy as np
 import segmentation_models as sm
@@ -11,13 +11,13 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+from custom_callbacks import ValidationCallback
 from data_loader import (
-    create_datasets_for_segnet_training,
     create_datasets_for_unet_training,
 )
-from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally
+from loss_functions import discriminator_loss, generator_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -89,13 +89,13 @@ generator_model.summary()
 
 
 discriminator_model = discriminator(
-    (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 1)
+    (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5)
 )
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # loss_fn = combined_loss
-gen_optimizer = tf.keras.optimizers.Adam(1e-4)
-disc_optimizer = tf.keras.optimizers.Adam(1e-4)
+gen_optimizer = keras.optimizers.Adam(1e-4)
+disc_optimizer = keras.optimizers.Adam(1e-4)
 checkpoint = tf.train.Checkpoint(
     generator_optimizer=gen_optimizer,
     discriminator_optimizer=disc_optimizer,
@@ -104,28 +104,6 @@ checkpoint = tf.train.Checkpoint(
 )
 
 vgg_model = vgg_model()
-
-
-def discriminator_loss(real_output, fake_output):
-    real_loss = tf.reduce_mean(
-        tf.keras.losses.binary_crossentropy(
-            tf.ones_like(real_output), real_output
-        )
-    )
-    fake_loss = tf.reduce_mean(
-        tf.keras.losses.binary_crossentropy(
-            tf.zeros_like(fake_output), fake_output
-        )
-    )
-    return real_loss + fake_loss
-
-
-def generator_loss(fake_output):
-    return tf.reduce_mean(
-        tf.keras.losses.binary_crossentropy(
-            tf.ones_like(fake_output), fake_output
-        )
-    )
 
 
 def convert_grayscale_to_rgb(images):
@@ -157,10 +135,10 @@ def evaluate_generator(generator, dataset):
     # Calculate metrics over the validation dataset
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
-        accuracy += tf.keras.metrics.BinaryAccuracy()(mask_batch, predictions)
-        iou += tf.keras.metrics.BinaryIoU()(mask_batch, predictions)
-        precision += tf.keras.metrics.Precision()(mask_batch, predictions)
-        recall += tf.keras.metrics.Recall()(mask_batch, predictions)
+        accuracy += keras.metrics.BinaryAccuracy()(mask_batch, predictions)
+        iou += keras.metrics.BinaryIoU()(mask_batch, predictions)
+        precision += keras.metrics.Precision()(mask_batch, predictions)
+        recall += keras.metrics.Recall()(mask_batch, predictions)
         specificity += specificity_score(mask_batch, predictions)
         dice += dice_score(mask_batch, predictions)
 
