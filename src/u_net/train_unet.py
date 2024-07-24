@@ -70,7 +70,7 @@ config = wandb.config
 
 # create model & start training it
 model = unet(
-    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, BATCH_SIZE, DROPOUT_RATE, training=True
+    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, training=True
 )
 
 model.compile(
