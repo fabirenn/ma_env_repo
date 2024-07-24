@@ -1,4 +1,5 @@
 import tensorflow as tf
+import keras
 from keras.layers import BatchNormalization
 
 
@@ -6,14 +7,13 @@ def unet(
     img_width,
     img_height,
     img_channels,
-    batch_size,
     dropout_rate,
     pretrained_weights=None,
     training=True,
 ):
     # build the model
-    inputs = tf.keras.layers.Input(
-        shape=(img_height, img_width, img_channels), batch_size=batch_size
+    inputs = keras.layers.Input(
+        shape=(img_height, img_width, img_channels)
     )
 
     # Contraction
@@ -96,11 +96,11 @@ def unet(
         kernel_size=(3, 3),
     )
 
-    outputs = tf.keras.layers.Conv2D(
+    outputs = keras.layers.Conv2D(
         5, kernel_size=(1, 1), activation="softmax"
     )(u5)
 
-    model = tf.keras.Model(inputs=[inputs], outputs=[outputs], name="U-Net")
+    model = keras.Model(inputs=[inputs], outputs=[outputs], name="U-Net")
 
     model.summary()
     return model
@@ -121,32 +121,32 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     - pool (tf.Tensor): Output tensor from the max pooling layer.
     """
     # First convolutional layer
-    conv = tf.keras.layers.Conv2D(
+    conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
         kernel_initializer="he_normal",
         padding="same",
     )(input_tensor)
 
-    conv = BatchNormalization()(conv)
-    conv = tf.keras.layers.Activation("relu")(conv)
+    conv = keras.layers.BatchNormalization()(conv)
+    conv = keras.layers.Activation("relu")(conv)
 
     # Second convolutional layer
-    conv = tf.keras.layers.Conv2D(
+    conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
         kernel_initializer="he_normal",
         padding="same",
     )(conv)
 
-    conv = BatchNormalization()(conv)
-    conv = tf.keras.layers.Activation("relu")(conv)
+    conv = keras.layers.BatchNormalization()(conv)
+    conv = keras.layers.Activation("relu")(conv)
 
     # Dropout layer
-    conv = tf.keras.layers.Dropout(dropout_rate)(conv)
+    conv = keras.layers.Dropout(dropout_rate)(conv)
 
     # Max pooling layer
-    pool = tf.keras.layers.MaxPooling2D((2, 2))(conv)
+    pool = keras.layers.MaxPooling2D((2, 2))(conv)
 
     print(f"conv_block_down output shape: {conv.shape}, pool shape: {pool.shape}")
 
@@ -173,7 +173,7 @@ def conv_block_up(
     - c (tf.Tensor): Output tensor from the last convolutional layer.
     """
     # First upconvolution
-    u = tf.keras.layers.Conv2DTranspose(
+    u = keras.layers.Conv2DTranspose(
         filters=num_filters,
         kernel_size=(2, 2),
         strides=(2, 2),
@@ -182,32 +182,32 @@ def conv_block_up(
     )(input_tensor)
 
     # Concatenating Upconvolution with Contraction tensor
-    u = tf.keras.layers.concatenate([u, skip_tensor])
+    u = keras.layers.concatenate([u, skip_tensor])
 
     # First convolutional layer
-    c = tf.keras.layers.Conv2D(
+    c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
         kernel_initializer="he_normal",
         padding="same",
     )(u)
 
-    c = BatchNormalization()(c)
-    c = tf.keras.layers.Activation("relu")(c)
+    c = keras.layers.BatchNormalization()(c)
+    c = keras.layers.Activation("relu")(c)
 
     # Second convolutional layer
-    c = tf.keras.layers.Conv2D(
+    c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
         kernel_initializer="he_normal",
         padding="same",
     )(c)
 
-    c = BatchNormalization()(c)
-    c = tf.keras.layers.Activation("relu")(c)
+    c = keras.layers.BatchNormalization()(c)
+    c = keras.layers.Activation("relu")(c)
 
     # Dropout-Layer
-    c = tf.keras.layers.Dropout(dropout_rate)(c)
+    c = keras.layers.Dropout(dropout_rate)(c)
 
     print(f"conv_block_up output shape: {c.shape}")
 
