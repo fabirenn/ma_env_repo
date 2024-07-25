@@ -126,30 +126,34 @@ def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
 
 def evaluate_generator(generator, dataset):
     # Implement the evaluation logic
-    accuracy = 0.0
-    iou = 0.0
-    precision = 0.0
-    recall = 0.0
-    specificity = 0.0
-    dice = 0.0
+    accuracy_value = 0.0
+    pixel_accuracy_value = 0.0
+    precision_value_value = 0.0
+    mean_iou_value = 0.0
+    dice_value = 0.0
+    f1_value = 0.0
+    recall_value = 0.0
+
     # Calculate metrics over the validation dataset
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
-        accuracy += keras.metrics.BinaryAccuracy()(mask_batch, predictions)
-        iou += keras.metrics.BinaryIoU()(mask_batch, predictions)
-        precision += keras.metrics.Precision()(mask_batch, predictions)
-        recall += keras.metrics.Recall()(mask_batch, predictions)
-        specificity += specificity_score(mask_batch, predictions)
-        dice += dice_score(mask_batch, predictions)
+        accuracy_value += keras.metrics.Accuracy()(mask_batch, predictions)
+        pixel_accuracy_value += pixel_accuracy(mask_batch, predictions)
+        precision_value_value += precision(mask_batch, predictions)
+        mean_iou_value += mean_iou(mask_batch, predictions)
+        dice_value += dice_coefficient(mask_batch, predictions)
+        f1_value += f1_score(mask_batch, predictions)
+        recall_value += recall(mask_batch, predictions)
 
     # Average the metrics over the dataset
-    accuracy /= len(dataset)
-    iou /= len(dataset)
-    precision /= len(dataset)
-    recall /= len(dataset)
-    specificity /= len(dataset)
-    dice /= len(dataset)
-    return accuracy, iou, precision, recall, specificity, dice
+    accuracy_value /= len(dataset)
+    pixel_accuracy_value /= len(dataset)
+    precision_value_value /= len(dataset)
+    mean_iou_value /= len(dataset)
+    dice_value /= len(dataset)
+    f1_value /= len(dataset)
+    recall_value /= len(dataset)
+    return accuracy_value, pixel_accuracy_value, precision_value_value, mean_iou_value, dice_value, f1_value, recall_value
 
 
 @tf.function
@@ -222,19 +226,21 @@ def train(train_dataset, val_dataset, epochs, trainingsteps):
 
         (
             train_accuracy,
-            train_iou,
+            train_pixel_accuracy,
             train_precision,
+            train_mean_iou,
+            train_dice_coefficient,
+            train_f1,
             train_recall,
-            train_specificity,
-            train_dice,
         ) = evaluate_generator(generator_model, train_dataset)
         (
             val_accuracy,
-            val_iou,
+            val_pixel_accuracy,
             val_precision,
+            val_mean_iou,
+            val_dice_coefficient,
+            val_f1,
             val_recall,
-            val_specificity,
-            val_dice,
         ) = evaluate_generator(generator_model, val_dataset)
 
         wandb.log(
@@ -243,17 +249,19 @@ def train(train_dataset, val_dataset, epochs, trainingsteps):
                 "gen_loss": gen_loss,
                 "disc_loss": disc_loss,
                 "train_accuracy": train_accuracy,
-                "train_iou": train_iou,
+                "train_pixel_accuracy": train_pixel_accuracy,
                 "train_precision": train_precision,
+                "train_mean_iou": train_mean_iou,
+                "train_dice_coefficient": train_dice_coefficient,
+                "train_f1": train_f1,
                 "train_recall": train_recall,
-                "train_specificity": train_specificity,
-                "train_dice": train_dice,
                 "val_accuracy": val_accuracy,
-                "val_iou": val_iou,
+                "val_pixel_accuracy": val_pixel_accuracy,
                 "val_precision": val_precision,
-                "val_recall": val_recall,
-                "val_specificity": val_specificity,
-                "val_dice": val_dice,
+                "val_mean_iou": val_mean_iou,
+                "val_dice_coefficient": val_dice_coefficient,
+                "val_f1": val_f1,
+                "val_recall": val_recall
             }
         )
 
@@ -262,16 +270,16 @@ def train(train_dataset, val_dataset, epochs, trainingsteps):
             f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f}"
         )
         print(
-            f"Train Metrics - Accuracy: {train_accuracy:.4f}, IoU: {train_iou:.4f}, Precision: {train_precision:.4f}, Recall: {train_recall:.4f}, Specificity: {train_specificity:.4f}, Dice: {train_dice:.4f}"
+            f"Train Metrics - Accuracy: {train_accuracy:.4f}, PA: {train_pixel_accuracy:.4f}, Precision: {train_precision:.4f}, Recall: {train_recall:.4f}, Mean-IOU: {train_mean_iou:.4f}, Dice: {train_dice_coefficient:.4f}, F1: {train_f1:.4f}"
         )
         print(
-            f"Validation Metrics - Accuracy: {val_accuracy:.4f}, IoU: {val_iou:.4f}, Precision: {val_precision:.4f}, Recall: {val_recall:.4f}, Specificity: {val_specificity:.4f}, Dice: {val_dice:.4f}"
+            f"Validation Metrics - Accuracy: {val_accuracy:.4f}, PA: {val_pixel_accuracy:.4f}, Precision: {val_precision:.4f}, Recall: {val_recall:.4f}, IOU: {val_mean_iou:.4f}, Dice: {val_dice_coefficient:.4f}, F1: {val_f1:.4f}"
         )
 
         generate_images(model=generator_model, dataset=val_dataset, epoch=epoch)
 
-        if val_iou > BEST_IOU:
-            BEST_IOU = val_iou
+        if val_mean_iou > BEST_IOU:
+            BEST_IOU = val_mean_iou
             checkpoint.save(file_prefix=CHECKPOINT_PATH)
             generator_model.save(CHECKPOINT_PATH)
             print("Improved & Saved model\n")
