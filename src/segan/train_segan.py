@@ -77,7 +77,7 @@ generator_model = sm.Unet(
     backbone_name="resnet34",
     input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
     classes=5,
-    activation="sigmoid",
+    activation="softmax",
     encoder_weights=None,
     encoder_features="default",
     decoder_block_type="upsampling",
@@ -102,22 +102,6 @@ checkpoint = tf.train.Checkpoint(
     generator=generator_model,
     discriminator=discriminator_model,
 )
-
-vgg_model = vgg_model()
-
-
-def extract_features(model, images):
-    return model(images)
-
-
-def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
-    real_features = extract_features(feature_extractor, real_images)
-    generated_features = extract_features(feature_extractor, generated_images)
-    loss = 0
-    for real, generated in zip(real_features, generated_features):
-        loss += tf.reduce_mean(tf.abs(real - generated))
-    return loss
-
 
 
 def evaluate_generator(generator, dataset):
@@ -161,12 +145,8 @@ def train_step_generator(images, masks):
             [images, generated_masks], training=True
         )
         gen_loss = generator_loss(fake_output)
-        ms_feature_loss = multi_scale_feature_loss(
-            masks, generated_masks, vgg_model
-        )
-        total_gen_loss = gen_loss + ms_feature_loss
     gradients_of_generator = gen_tape.gradient(
-        total_gen_loss, generator_model.trainable_variables
+        gen_loss, generator_model.trainable_variables
     )
     gen_optimizer.apply_gradients(
         zip(gradients_of_generator, generator_model.trainable_variables)
