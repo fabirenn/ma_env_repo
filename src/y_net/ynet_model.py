@@ -10,17 +10,16 @@ sys.path.append(
 )
 from unet_architecture_hcp import unet
 
-CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.h5"
+CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.keras"
 
 
 def semantic_feature_extractor(
-    img_width, img_height, batch_size, channel_size, dropout_rate
+    img_width, img_height, channel_size, dropout_rate
 ):
     unet_model = unet(
         img_width=img_width,
         img_height=img_height,
         img_channels=channel_size,
-        batch_size=batch_size,
         dropout_rate=dropout_rate,
         training=True,
     )
@@ -60,13 +59,12 @@ def fusion_module(y1_output, y2_output):
     return outputs
 
 
-def build_ynet(img_width, img_height, batch_size, channel_size, dropout_rate):
+def build_ynet(img_width, img_height, channel_size, dropout_rate):
     input_shape = (img_width, img_height, channel_size)
     inputs = Input(input_shape)
     y1 = semantic_feature_extractor(
         img_width=img_width,
         img_height=img_height,
-        batch_size=batch_size,
         channel_size=channel_size,
         dropout_rate=dropout_rate,
     )

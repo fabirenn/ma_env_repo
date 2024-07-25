@@ -7,16 +7,17 @@ from keras.models import load_model
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import ValidationCallback
 from data_loader import create_testdataset_for_unet_training
-from loss_functions import combined_loss
+from loss_functions import dice_loss
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from processing import add_prediction_to_list, safe_predictions_locally
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
-CHECKPOINT_PATH = "artifacts/models/ynet/ynet_checkpoint.h5"
+CHECKPOINT_PATH = "artifacts/models/ynet/ynet_checkpoint.keras"
 PRED_IMG_PATH = "artifacts/models/ynet/pred"
 
 IMG_WIDTH = 512
@@ -37,14 +38,15 @@ test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
 model = load_model(CHECKPOINT_PATH, compile=False)
 model.compile(
     optimizer="adam",
-    loss=combined_loss,
+    loss=dice_loss,
     metrics=[
         "accuracy",
-        keras.metrics.BinaryIoU(),
-        keras.metrics.Precision(),
-        keras.metrics.Recall(),
-        specificity_score,
-        dice_score,
+        pixel_accuracy,
+        precision,
+        mean_iou,
+        dice_coefficient,
+        f1_score,
+        recall
     ],
 )
 

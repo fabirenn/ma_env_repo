@@ -16,7 +16,7 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
-CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.h5"
+CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.keras"
 PRED_IMG_PATH = "artifacts/models/deeplab/pred"
 
 IMG_WIDTH = 512

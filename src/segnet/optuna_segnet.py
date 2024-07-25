@@ -27,7 +27,7 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
-CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.h5"
+CHECKPOINT_PATH = "artifacts/models/segnet/segnet_checkpoint.keras"
 LOG_VAL_PRED = "data/predictions/segnet"
 
 IMG_WIDTH = 512

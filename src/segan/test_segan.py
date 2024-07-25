@@ -7,12 +7,12 @@ from keras.models import load_model
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import ValidationCallback, dice_score, specificity_score
+from custom_callbacks import ValidationCallback
 from data_loader import (
-    create_testdataset_for_segnet_training,
     create_testdataset_for_unet_training,
 )
-from loss_functions import combined_loss
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+from loss_functions import dice_loss
 from processing import add_prediction_to_list, safe_predictions_locally
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
@@ -20,7 +20,7 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 TEST_IMG_PATH = "data/training_test/images_mixed"
 TEST_MASK_PATH = "data/training_test/labels_mixed"
 
-CHECKPOINT_PATH = "artifacts/models/segan/segan_checkpoint.h5"
+CHECKPOINT_PATH = "artifacts/models/segan/segan_checkpoint.keras"
 PRED_IMG_PATH = "artifacts/models/segan/pred"
 
 '''TEST_IMG_PATH = "data/local/test/images"
@@ -30,43 +30,31 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
-UNET = True
 BATCH_SIZE = 4
 
-if UNET is True:
-    test_dataset, test_images, test_masks = (
-        create_testdataset_for_unet_training(
-            directory_test_images=TEST_IMG_PATH,
-            directory_test_masks=TEST_MASK_PATH,
-            img_width=IMG_WIDTH,
-            img_height=IMG_HEIGHT,
-            batch_size=BATCH_SIZE,
-        )
+test_dataset, test_images, test_masks = (
+    create_testdataset_for_unet_training(
+        directory_test_images=TEST_IMG_PATH,
+        directory_test_masks=TEST_MASK_PATH,
+        img_width=IMG_WIDTH,
+        img_height=IMG_HEIGHT,
+        batch_size=BATCH_SIZE,
     )
-
-else:
-    test_dataset, test_images, test_masks = (
-        create_testdataset_for_segnet_training(
-            directory_test_images=TEST_IMG_PATH,
-            directory_test_masks=TEST_MASK_PATH,
-            img_width=IMG_WIDTH,
-            img_height=IMG_HEIGHT,
-            batch_size=BATCH_SIZE,
-        )
-    )
+)
 
 model = load_model(CHECKPOINT_PATH, compile=False)
 
 model.compile(
     optimizer="adam",
-    loss=combined_loss,
+    loss=dice_loss,
     metrics=[
         "accuracy",
-        keras.metrics.BinaryIoU(),
-        keras.metrics.Precision(),
-        keras.metrics.Recall(),
-        specificity_score,
-        dice_score,
+        pixel_accuracy,
+        precision,
+        mean_iou,
+        dice_coefficient,
+        f1_score,
+        recall
     ],
 )
 

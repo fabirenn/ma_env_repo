@@ -37,7 +37,7 @@ VAL_MASK_PATH = "data/local/val/labels"
 
 
 LOG_VAL_PRED = "data/predictions/segan"
-CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
+CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512

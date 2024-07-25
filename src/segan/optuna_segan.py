@@ -33,7 +33,7 @@ VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 LOG_VAL_PRED = "data/predictions/segan"
-CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.h5"
+CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
