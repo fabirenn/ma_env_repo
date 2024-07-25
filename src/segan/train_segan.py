@@ -106,13 +106,8 @@ checkpoint = tf.train.Checkpoint(
 vgg_model = vgg_model()
 
 
-def convert_grayscale_to_rgb(images):
-    return tf.image.grayscale_to_rgb(images)
-
-
 def extract_features(model, images):
-    rgb_images = convert_grayscale_to_rgb(images)
-    return model(rgb_images)
+    return model(images)
 
 
 def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
@@ -122,6 +117,7 @@ def multi_scale_feature_loss(real_images, generated_images, feature_extractor):
     for real, generated in zip(real_features, generated_features):
         loss += tf.reduce_mean(tf.abs(real - generated))
     return loss
+
 
 
 def evaluate_generator(generator, dataset):
