@@ -11,15 +11,13 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from unet_model import unet
-
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from custom_callbacks import (
     ValidationCallback,
     clear_directory,
-    dice_score,
-    specificity_score,
 )
 from data_loader import create_datasets_for_unet_training
-from loss_functions import dice_loss, iou_loss
+from loss_functions import dice_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -34,7 +32,7 @@ CHECKPOINT_PATH = "artifacts/models/unet/unet_checkpoint.keras"
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 
-EPOCHS = 50
+EPOCHS = 100
 PATIENCE = 30
 
 os.environ["WANDB_DIR"] = "wandb/train_unet"
@@ -43,21 +41,16 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 def objective(trial):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
+    BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 16])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
-    loss_function = trial.suggest_categorical(
-        "loss_function", ["cross_entropy", "dice_loss", "iou_loss"]
-    )
+    NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)
 
-    # Map the loss function name to the actual function
-    loss_function_map = {
-        "cross_entropy": keras.losses.binary_crossentropy,
-        "dice_loss": dice_loss,
-        "iou_loss": iou_loss,
-    }
+    # Define the possible values for the number of filters
+    filter_options = [16, 32, 64, 128, 256, 512]
 
-    # tf.keras.backend.clear_session()
+    # Select the appropriate number of filters from the filter_options based on num_blocks
+    filters_list = filter_options[:NUM_BLOCKS]
 
     try:
         train_dataset, val_dataset = create_datasets_for_unet_training(
@@ -88,21 +81,22 @@ def objective(trial):
             IMG_WIDTH,
             IMG_HEIGHT,
             IMG_CHANNEL,
-            BATCH_SIZE,
             DROPOUT_RATE,
+            filters_list,
             training=True,
         )
 
         model.compile(
             optimizer="adam",
-            loss=loss_function_map[loss_function],
+            loss=dice_loss,
             metrics=[
                 "accuracy",
-                keras.metrics.BinaryIoU(),
-                keras.metrics.Precision(),
-                keras.metrics.Recall(),
-                specificity_score,
-                dice_score,
+                pixel_accuracy,
+                precision,
+                mean_iou,
+                dice_coefficient,
+                f1_score,
+                recall
             ],
         )
 
@@ -127,7 +121,7 @@ def objective(trial):
                     log_dir=LOG_VAL_PRED,
                     apply_crf=False,
                 ),
-                EarlyStopping(
+                keras.callbacks.EarlyStopping(
                     monitor="val_loss",
                     mode="min",
                     patience=PATIENCE,
@@ -154,7 +148,7 @@ if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
 
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=200)
 
     # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 

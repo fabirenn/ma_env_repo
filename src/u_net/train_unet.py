@@ -66,9 +66,11 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
+filters_list = [16, 32, 64, 128, 256]
+
 # create model & start training it
 model = unet(
-    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, training=True
+    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, filters_list, training=True
 )
 
 model.compile(

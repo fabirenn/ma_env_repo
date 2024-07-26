@@ -8,6 +8,7 @@ def unet(
     img_height,
     img_channels,
     dropout_rate,
+    filters_list,
     pretrained_weights=None,
     training=True,
 ):
@@ -17,88 +18,35 @@ def unet(
     )
 
     # Contraction
-    c1, p1 = conv_block_down(
-        input_tensor=inputs,
-        num_filters=16,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-    c2, p2 = conv_block_down(
-        input_tensor=p1,
-        num_filters=32,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-    c3, p3 = conv_block_down(
-        input_tensor=p2,
-        num_filters=64,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-
-    c4, p4 = conv_block_down(
-        input_tensor=p3,
-        num_filters=128,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-
-    c5, p5 = conv_block_down(
-        input_tensor=p4,
-        num_filters=256,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-
-    c6, p6 = conv_block_down(
-        input_tensor=p5,
-        num_filters=512,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-
+    c, p = [], []
+    for i, filters in enumerate(filters_list):
+        if i == 0:
+            input_tensor = inputs
+        else:
+            input_tensor = p[i-1]
+        c_layer, p_layer = conv_block_down(
+            input_tensor=input_tensor,
+            num_filters=filters,
+            dropout_rate=dropout_rate,
+            kernel_size=(3, 3),
+        )
+        c.append(c_layer)
+        p.append(p_layer)
+    
     # Expansion
-    u1 = conv_block_up(
-        input_tensor=c6,
-        skip_tensor=c5,
-        num_filters=256,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-    u2 = conv_block_up(
-        input_tensor=u1,
-        skip_tensor=c4,
-        num_filters=128,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-
-    u3 = conv_block_up(
-        input_tensor=u2,
-        skip_tensor=c3,
-        num_filters=64,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-
-    u4 = conv_block_up(
-        input_tensor=u3,
-        skip_tensor=c2,
-        num_filters=32,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
-    u5 = conv_block_up(
-        input_tensor=u4,
-        skip_tensor=c1,
-        num_filters=16,
-        dropout_rate=dropout_rate,
-        kernel_size=(3, 3),
-    )
+    u = c[-1]
+    for i in range(len(filters_list)-2, -1, -1):
+        u = conv_block_up(
+            input_tensor=u,
+            skip_tensor=c[i],
+            num_filters=filters_list[i],
+            dropout_rate=dropout_rate,
+            kernel_size=(3, 3),
+        )
 
     outputs = keras.layers.Conv2D(
         5, kernel_size=(1, 1), activation="softmax"
-    )(u5)
+    )(u)
 
     model = keras.Model(inputs=[inputs], outputs=[outputs], name="U-Net")
 
@@ -148,7 +96,7 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     # Max pooling layer
     pool = keras.layers.MaxPooling2D((2, 2))(conv)
 
-    print(f"conv_block_down output shape: {conv.shape}, pool shape: {pool.shape}")
+    #print(f"conv_block_down output shape: {conv.shape}, pool shape: {pool.shape}")
 
     return conv, pool
 
@@ -209,6 +157,6 @@ def conv_block_up(
     # Dropout-Layer
     c = keras.layers.Dropout(dropout_rate)(c)
 
-    print(f"conv_block_up output shape: {c.shape}")
+    #print(f"conv_block_up output shape: {c.shape}")
 
     return c
