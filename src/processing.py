@@ -61,10 +61,22 @@ def calculate_binary_dice(pred_mask, true_mask):
 def safe_predictions_locally(
     range, iterator, test_images, predictions, test_masks, pred_img_path, val
 ):
+    predictions_mapped = []
+    test_masks_mapped = []
     if val is True:
 
         if test_images.ndim == 3 and test_images.shape[2] > 3:
             test_images = test_images[:, :, 3]
+        
+        if predictions.shape[2] > 3:
+            for prediction in predictions:
+                prediction = map_class_to_color(prediction)
+                predictions_mapped.append(prediction)
+        
+        if test_masks.shape[2] > 3:
+            for test_mask in test_masks:
+                test_mask = map_class_to_color(test_mask)
+                test_masks_mapped.append(test_mask)
 
         plt.figure(figsize=(45, 15))
 
@@ -74,11 +86,11 @@ def safe_predictions_locally(
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        plt.imshow(test_masks)
+        plt.imshow(test_masks_mapped)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
-        plt.imshow(predictions)
+        plt.imshow(predictions_mapped)
 
         file_name = f"val_pred_epoch{iterator+1}.png"
         plt.savefig(os.path.join(pred_img_path, file_name))

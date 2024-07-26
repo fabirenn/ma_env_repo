@@ -5,7 +5,6 @@ import keras.metrics
 import optuna
 import tensorflow as tf
 from deeplab_model import DeepLab
-from keras.callbacks import EarlyStopping
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
@@ -13,12 +12,10 @@ import wandb
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import (
     ValidationCallback,
-    clear_directory,
-    dice_score,
-    specificity_score,
 )
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from data_loader import create_datasets_for_segnet_training
-from loss_functions import dice_loss, iou_loss
+from loss_functions import dice_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -44,16 +41,6 @@ def objective(trial):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
-    loss_function = trial.suggest_categorical(
-        "loss_function", ["cross_entropy", "dice_loss", "iou_loss"]
-    )
-
-    # Map the loss function name to the actual function
-    loss_function_map = {
-        "cross_entropy": keras.losses.binary_crossentropy,
-        "dice_loss": dice_loss,
-        "iou_loss": iou_loss,
-    }
 
     # tf.keras.backend.clear_session()
 
@@ -88,14 +75,15 @@ def objective(trial):
 
         model.compile(
             optimizer="adam",
-            loss=loss_function_map[loss_function],
+            loss=dice_loss,
             metrics=[
                 "accuracy",
-                keras.metrics.BinaryIoU(),
-                keras.metrics.Precision(),
-                keras.metrics.Recall(),
-                specificity_score,
-                dice_score,
+                pixel_accuracy,
+                precision,
+                mean_iou,
+                dice_coefficient,
+                f1_score,
+                recall
             ],
         )
 
@@ -106,7 +94,7 @@ def objective(trial):
             validation_data=val_dataset,
             callbacks=[
                 WandbMetricsLogger(log_freq="epoch"),
-                WandbModelCheckpoint(
+                keras.callbacks.ModelCheckpoint(
                     filepath=CHECKPOINT_PATH,
                     save_best_only=True,
                     save_weights_only=False,
@@ -115,12 +103,11 @@ def objective(trial):
                 ),
                 ValidationCallback(
                     model=model,
-                    train_data=train_dataset,
                     validation_data=val_dataset,
                     log_dir=LOG_VAL_PRED,
                     apply_crf=False,
                 ),
-                EarlyStopping(
+                keras.callbacks.EarlyStopping(
                     monitor="val_loss",
                     mode="min",
                     patience=PATIENCE,
