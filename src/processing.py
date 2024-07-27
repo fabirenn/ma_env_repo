@@ -28,41 +28,9 @@ def map_class_to_color(mask):
     return color_mask
 
 
-def calculate_binary_iou(pred_mask, true_mask):
-    pred_mask = np.round(pred_mask).astype(
-        int
-    )  # Thresholding predictions to 0 or 1
-    true_mask = true_mask.astype(int)
-
-    intersection = np.logical_and(pred_mask, true_mask).sum()
-    union = np.logical_or(pred_mask, true_mask).sum()
-
-    if union == 0:
-        return float("nan")  # Avoid division by zero
-    else:
-        return intersection / union
-
-
-def calculate_binary_dice(pred_mask, true_mask):
-    pred_mask = np.round(pred_mask).astype(
-        int
-    )  # Thresholding predictions to 0 or 1
-    true_mask = true_mask.astype(int)
-
-    intersection = 2 * np.logical_and(pred_mask, true_mask).sum()
-    total = pred_mask.sum() + true_mask.sum()
-
-    if total == 0:
-        return float("nan")  # Avoid division by zero
-    else:
-        return intersection / total
-
-
 def safe_predictions_locally(
     range, iterator, test_images, predictions, test_masks, pred_img_path, val
 ):
-    predictions_mapped = []
-    test_masks_mapped = []
     if val is True:
 
         if test_images.ndim == 3 and test_images.shape[2] > 3:
