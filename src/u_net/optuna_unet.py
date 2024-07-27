@@ -107,7 +107,7 @@ def objective(trial):
             validation_data=val_dataset,
             callbacks=[
                 WandbMetricsLogger(log_freq="epoch"),
-                WandbModelCheckpoint(
+                keras.callbacks.ModelCheckpoint(
                     filepath=CHECKPOINT_PATH,
                     save_best_only=True,
                     save_weights_only=False,
@@ -116,7 +116,6 @@ def objective(trial):
                 ),
                 ValidationCallback(
                     model=model,
-                    train_data=train_dataset,
                     validation_data=val_dataset,
                     log_dir=LOG_VAL_PRED,
                     apply_crf=False,
