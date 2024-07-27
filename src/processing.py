@@ -38,11 +38,11 @@ def safe_predictions_locally(
         
         if predictions.shape[2] > 3:
             predictions = np.argmax(predictions, axis=-1)
-            prediction_mask = map_class_to_color(predictions)
+            predictions = map_class_to_color(predictions)
         
         if test_masks.shape[2] > 3:
             test_masks = np.argmax(test_masks, axis=-1)
-            test_mask = map_class_to_color(test_masks)
+            test_masks = map_class_to_color(test_masks)
 
         plt.figure(figsize=(45, 15))
 
@@ -52,11 +52,11 @@ def safe_predictions_locally(
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        plt.imshow(test_mask)
+        plt.imshow(test_masks)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
-        plt.imshow(prediction_mask)
+        plt.imshow(predictions)
 
         file_name = f"val_pred_epoch{iterator+1}.png"
         plt.savefig(os.path.join(pred_img_path, file_name))
@@ -70,9 +70,11 @@ def safe_predictions_locally(
                 testimage = testimage[:, :, 3]
 
             if prediction.shape[2] > 3:
+                prediction = np.argmax(prediction, axis=-1)
                 prediction = map_class_to_color(prediction)
         
             if testmask.shape[2] > 3:
+                testmask = np.argmax(testmask, axis=-1)
                 testmask = map_class_to_color(testmask)
             
             plt.figure(figsize=(45, 15))
