@@ -37,9 +37,11 @@ def safe_predictions_locally(
             test_images = test_images[:, :, 3]
         
         if predictions.shape[2] > 3:
+            predictions = np.argmax(predictions, axis=-1)
             prediction_mask = map_class_to_color(predictions)
         
         if test_masks.shape[2] > 3:
+            test_masks = np.argmax(test_masks, axis=-1)
             test_mask = map_class_to_color(test_masks)
 
         plt.figure(figsize=(45, 15))
