@@ -101,6 +101,18 @@ checkpoint = tf.train.Checkpoint(
     discriminator=discriminator_model,
 )
 
+generator_model.compile(
+    optimizer=gen_optimizer,
+    loss=generator_loss,
+    metrics=['accuracy']
+)
+
+discriminator_model.compile(
+    optimizer=disc_optimizer,
+    loss=discriminator_loss,
+    metrics=['accuracy']
+)
+
 
 def evaluate_generator(generator, dataset):
     # Implement the evaluation logic
