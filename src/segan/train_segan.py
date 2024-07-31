@@ -103,21 +103,21 @@ checkpoint = tf.train.Checkpoint(
 
 generator_model.compile(
     optimizer=gen_optimizer,
-    loss=keras.losses.CategoricalCrossentropy(from_logits=False),
+    loss=generator_loss,
     metrics=['accuracy']
 )
 
 discriminator_model.compile(
     optimizer=disc_optimizer,
-    loss=keras.losses.BinaryCrossentropy(from_logits=False),
+    loss=discriminator_loss,
     metrics=['accuracy']
 )
 
 
 def evaluate_generator(generator, dataset):
     # Implement the evaluation logic
-    accuracy_value = keras.metrics.Accuracy()
-    accuracy_value.reset_state()
+    accuracy_metric = keras.metrics.Accuracy()
+    accuracy_metric.reset_state()
     pixel_accuracy_value = 0.0
     precision_value_value = 0.0
     mean_iou_value = 0.0
@@ -128,7 +128,7 @@ def evaluate_generator(generator, dataset):
     # Calculate metrics over the validation dataset
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
-        accuracy_value.update_state(mask_batch, predictions)
+        accuracy_metric.update_state(mask_batch, predictions)
 
         pixel_accuracy_value += pixel_accuracy(mask_batch, predictions)
         precision_value_value += precision(mask_batch, predictions)
@@ -138,7 +138,7 @@ def evaluate_generator(generator, dataset):
         recall_value += recall(mask_batch, predictions)
 
     # Average the metrics over the dataset
-    accuracy_value = accuracy_value.result().numpy()
+    accuracy_value = accuracy_metric.result().numpy()
     pixel_accuracy_value /= len(dataset)
     precision_value_value /= len(dataset)
     mean_iou_value /= len(dataset)
@@ -160,7 +160,7 @@ def train_step_generator(images, masks):
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
     )
-    gradients_of_generator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_generator]
+    #gradients_of_generator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_generator]
     gen_optimizer.apply_gradients(
         zip(gradients_of_generator, generator_model.trainable_variables)
     )
@@ -180,7 +180,7 @@ def train_step_discriminator(images, masks):
     gradients_of_discriminator = disc_tape.gradient(
         disc_loss, discriminator_model.trainable_variables
     )
-    gradients_of_discriminator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_discriminator]
+    #gradients_of_discriminator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_discriminator]
     disc_optimizer.apply_gradients(
         zip(gradients_of_discriminator, discriminator_model.trainable_variables)
     )
