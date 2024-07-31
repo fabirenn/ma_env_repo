@@ -14,18 +14,14 @@ def pixel_accuracy(y_true, y_pred):
     return correct_pixels / total_pixels
 
 
-def mean_iou(y_true, y_pred, num_classes=num_classes):
-    y_pred = tf.argmax(y_pred, axis=-1)
-    y_true = tf.argmax(y_true, axis=-1)
+def mean_iou(y_true, y_pred, num_classes=5):
+    y_pred = tf.one_hot(tf.argmax(y_pred, axis=-1), depth=num_classes)
+    y_true = tf.one_hot(tf.argmax(y_true, axis=-1), depth=num_classes)
 
     iou = []
     for i in range(num_classes):
-        intersection = tf.reduce_sum(
-            tf.cast((y_pred == i) & (y_true == i), tf.float32)
-        )
-        union = tf.reduce_sum(
-            tf.cast((y_pred == i) | (y_true == i), tf.float32)
-        )
+        intersection = tf.reduce_sum(y_pred[..., i] * y_true[..., i])
+        union = tf.reduce_sum(y_pred[..., i] + y_true[..., i] - y_pred[..., i] * y_true[..., i])
         iou.append(intersection / (union + tf.keras.backend.epsilon()))
     return tf.reduce_mean(iou)
 
