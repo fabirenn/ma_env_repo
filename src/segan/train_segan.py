@@ -156,7 +156,7 @@ def train_step_generator(images, masks):
         fake_output = discriminator_model(
             [images, generated_masks], training=True
         )
-        gen_loss = generator_loss(fake_output)
+        gen_loss = generator_loss(fake_output, generated_masks, masks)
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
     )

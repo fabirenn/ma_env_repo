@@ -33,6 +33,13 @@ def discriminator_loss(real_output, fake_output):
     return real_loss + fake_loss
 
 
-def generator_loss(fake_output):
+def generator_loss(fake_output, gen_output, target):
+    # Adversarial loss
+    bce = keras.losses.BinaryCrossentropy(from_logits=False)
+    adversarial_loss = bce(tf.ones_like(fake_output), fake_output)
+    
+    # Segmentation loss
     cce = keras.losses.CategoricalCrossentropy(from_logits=False)
-    return cce(tf.ones_like(fake_output), fake_output)
+    segmentation_loss = cce(target, gen_output)
+    
+    return adversarial_loss + segmentation_loss
