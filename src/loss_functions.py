@@ -41,8 +41,5 @@ def discriminator_loss(real_output, fake_output):
 
 
 def generator_loss(fake_output):
-    return tf.reduce_mean(
-        keras.losses.CategoricalCrossentropy(
-            tf.ones_like(fake_output), fake_output
-        )
-    )
+    cce = keras.losses.CategoricalCrossentropy(from_logits=True)
+    return cce(tf.ones_like(fake_output), fake_output)
