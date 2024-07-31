@@ -301,7 +301,7 @@ train(
     train_dataset=train_dataset,
     val_dataset=val_dataset,
     epochs=EPOCHS,
-    trainingsteps=5,
+    trainingsteps=10,
 )
 
 wandb.finish()
