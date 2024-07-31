@@ -27,15 +27,11 @@ def dice_loss(y_true, y_pred, smooth=1e-6):
 
 
 def discriminator_loss(real_output, fake_output):
-    real_loss = tf.reduce_mean(
-        keras.losses.BinaryCrossentropy(
-            tf.ones_like(real_output), real_output
-        )
+    real_loss = keras.losses.BinaryCrossentropy(from_logits=True)(
+        tf.ones_like(real_output), real_output
     )
-    fake_loss = tf.reduce_mean(
-        keras.losses.BinaryCrossentropy(
-            tf.zeros_like(fake_output), fake_output
-        )
+    fake_loss = keras.losses.BinaryCrossentropy(from_logits=True)(
+        tf.zeros_like(fake_output), fake_output
     )
     return real_loss + fake_loss
 
