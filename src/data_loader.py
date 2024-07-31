@@ -199,8 +199,8 @@ augmentation_pipeline = A.Compose(
     [
         A.HorizontalFlip(p=0.5),
         A.RandomBrightnessContrast(p=0.5),
-        A.GaussNoise(p=0.2),
-        A.GaussianBlur(p=0.2, sigma_limit=4, blur_limit=9),
+        A.GaussNoise(p=0.5),
+        A.GaussianBlur(p=0.5, sigma_limit=4, blur_limit=9),
     ],
     additional_targets={"mask": "mask"},
 )
