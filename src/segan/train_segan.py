@@ -103,13 +103,13 @@ checkpoint = tf.train.Checkpoint(
 
 generator_model.compile(
     optimizer=gen_optimizer,
-    loss=generator_loss,
+    loss=keras.losses.CategoricalCrossentropy(from_logits=False),
     metrics=['accuracy']
 )
 
 discriminator_model.compile(
     optimizer=disc_optimizer,
-    loss=discriminator_loss,
+    loss=keras.losses.BinaryCrossentropy(from_logits=False),
     metrics=['accuracy']
 )
 
