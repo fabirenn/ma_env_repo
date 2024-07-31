@@ -27,20 +27,18 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
-
-"""
+'''
 TRAIN_IMG_PATH = "data/local/train/images"
 TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
-VAL_MASK_PATH = "data/local/val/labels"
-"""
+VAL_MASK_PATH = "data/local/val/labels"'''
 
 
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
@@ -106,7 +104,8 @@ checkpoint = tf.train.Checkpoint(
 
 def evaluate_generator(generator, dataset):
     # Implement the evaluation logic
-    accuracy_value = 0.0
+    accuracy_value = keras.metrics.Accuracy()
+    accuracy_value.reset_state()
     pixel_accuracy_value = 0.0
     precision_value_value = 0.0
     mean_iou_value = 0.0
@@ -117,7 +116,8 @@ def evaluate_generator(generator, dataset):
     # Calculate metrics over the validation dataset
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
-        accuracy_value += keras.metrics.Accuracy()(mask_batch, predictions)
+        accuracy_value.update_state(mask_batch, predictions)
+
         pixel_accuracy_value += pixel_accuracy(mask_batch, predictions)
         precision_value_value += precision(mask_batch, predictions)
         mean_iou_value += mean_iou(mask_batch, predictions)
@@ -126,7 +126,7 @@ def evaluate_generator(generator, dataset):
         recall_value += recall(mask_batch, predictions)
 
     # Average the metrics over the dataset
-    accuracy_value /= len(dataset)
+    accuracy_value = accuracy_value.result().numpy()
     pixel_accuracy_value /= len(dataset)
     precision_value_value /= len(dataset)
     mean_iou_value /= len(dataset)
@@ -148,6 +148,7 @@ def train_step_generator(images, masks):
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
     )
+    gradients_of_generator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_generator]
     gen_optimizer.apply_gradients(
         zip(gradients_of_generator, generator_model.trainable_variables)
     )
@@ -167,6 +168,7 @@ def train_step_discriminator(images, masks):
     gradients_of_discriminator = disc_tape.gradient(
         disc_loss, discriminator_model.trainable_variables
     )
+    gradients_of_discriminator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_discriminator]
     disc_optimizer.apply_gradients(
         zip(gradients_of_discriminator, discriminator_model.trainable_variables)
     )
@@ -177,11 +179,13 @@ def generate_images(model, dataset, epoch):
     sample = dataset.take(1)
     image_batch, mask_batch = next(iter(sample))
     pred_batch = model.predict(image_batch)
+    x = image_batch[0]
+    x_rgb = x[..., :3][..., ::-1]
 
     safe_predictions_locally(
         range=None,
         iterator=epoch,
-        test_images=image_batch[0],
+        test_images=x_rgb,
         predictions=pred_batch[0],
         test_masks=mask_batch[0],
         pred_img_path=LOG_VAL_PRED,
