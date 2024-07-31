@@ -37,8 +37,8 @@ VAL_MASK_PATH = "data/local/val/labels"'''
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
