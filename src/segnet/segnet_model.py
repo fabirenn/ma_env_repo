@@ -112,6 +112,10 @@ def segnet(input_size, dropout_rate):
     x = Conv2D(64, (3, 3), padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
+    x = Dropout(dropout_rate)(x)
+    x = Conv2D(32, (3, 3), padding="same")(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
 
     outputs = Conv2D(
         5, kernel_size=(1, 1), padding="same", activation="softmax"

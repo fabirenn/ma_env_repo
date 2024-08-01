@@ -41,7 +41,7 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 def objective(trial):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 16])
+    BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 20, 24, 28, 32])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)

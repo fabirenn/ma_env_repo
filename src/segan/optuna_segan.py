@@ -46,7 +46,7 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 
 def objective(trial):
-    BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 24, 32])
+    BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 20, 24, 28, 32])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     BACKBONE = trial.suggest_categorical(
         "backbone", ["resnet34", "resnet50", "efficientnetb0"]
