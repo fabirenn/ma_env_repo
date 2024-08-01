@@ -12,7 +12,6 @@ import wandb
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
-from custom_callbacks import ValidationCallback
 from data_loader import (
     create_datasets_for_unet_training,
 )
@@ -87,7 +86,7 @@ generator_model.summary()
 
 
 discriminator_model = discriminator(
-    (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5)
+    (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5), (16, 32, 64, 128, 256)
 )
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)

@@ -6,7 +6,7 @@ import numpy as np
 import optuna
 import segmentation_models as sm
 import tensorflow as tf
-from segan_model import discriminator, vgg_model
+from segan_model import discriminator
 
 import wandb
 
@@ -19,7 +19,7 @@ from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coeffi
 from data_loader import (
     create_datasets_for_unet_training,
 )
-from loss_functions import dice_loss, generator_loss, discriminator_loss
+from loss_functions import discriminator_loss, generator_loss
 from processing import safe_predictions_locally
 
 
@@ -46,12 +46,17 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 
 def objective(trial):
-    BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
+    BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 24, 32])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     BACKBONE = trial.suggest_categorical(
         "backbone", ["resnet34", "resnet50", "efficientnetb0"]
     )
-    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 2, 5)
+    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 2, 7)
+    FILTERS_DEPTH = trial.suggest_int("filters_depth", 4, 6)
+
+    filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
+    decoder_filters = filters_list[-FILTERS_DEPTH:][::-1]  # Slice and reverse the list
+    discriminator_filters = filters_list[:FILTERS_DEPTH]
 
     train_dataset, val_dataset = create_datasets_for_unet_training(
         directory_train_images=TRAIN_IMG_PATH,
@@ -86,12 +91,12 @@ def objective(trial):
         encoder_weights=None,
         encoder_features="default",
         decoder_block_type="upsampling",
-        decoder_filters=(256, 128, 64, 32, 16),
+        decoder_filters=decoder_filters,
         decoder_use_batchnorm=True,
     )
 
     discriminator_model = discriminator(
-        (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5)
+        (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5), discriminator_filters
     )
 
     gen_optimizer = keras.optimizers.Adam(1e-4)
@@ -104,16 +109,24 @@ def objective(trial):
     )
 
     generator_model.summary()
+    discriminator_model.summary()
 
     generator_model.compile(
         optimizer=gen_optimizer,
+        loss=generator_loss,
+        metrics=['accuracy']
     )
 
-    discriminator_model.compile(optimizer=disc_optimizer)
+    discriminator_model.compile(
+        optimizer=disc_optimizer,
+        loss=discriminator_loss,
+        metrics=['accuracy']
+    )
 
     def evaluate_generator(generator, dataset):
         # Implement the evaluation logic
-        accuracy_value = 0.0
+        accuracy_metric = keras.metrics.Accuracy()
+        accuracy_metric.reset_state()
         pixel_accuracy_value = 0.0
         precision_value_value = 0.0
         mean_iou_value = 0.0
@@ -124,7 +137,8 @@ def objective(trial):
     # Calculate metrics over the validation dataset
         for image_batch, mask_batch in dataset:
             predictions = generator(image_batch, training=False)
-            accuracy_value += keras.metrics.Accuracy()(mask_batch, predictions)
+            accuracy_metric.update_state(mask_batch, predictions)
+
             pixel_accuracy_value += pixel_accuracy(mask_batch, predictions)
             precision_value_value += precision(mask_batch, predictions)
             mean_iou_value += mean_iou(mask_batch, predictions)
@@ -133,7 +147,7 @@ def objective(trial):
             recall_value += recall(mask_batch, predictions)
 
         # Average the metrics over the dataset
-        accuracy_value /= len(dataset)
+        accuracy_value = accuracy_metric.result().numpy()
         pixel_accuracy_value /= len(dataset)
         precision_value_value /= len(dataset)
         mean_iou_value /= len(dataset)
@@ -149,7 +163,7 @@ def objective(trial):
             fake_output = discriminator_model(
                 [images, generated_masks], training=True
             )
-            gen_loss = generator_loss(fake_output)
+            gen_loss = generator_loss(fake_output, generated_masks, masks)
         gradients_of_generator = gen_tape.gradient(
             gen_loss, generator_model.trainable_variables
         )
@@ -246,7 +260,6 @@ def objective(trial):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
-    vgg_model = vgg_model()
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=100)
 
