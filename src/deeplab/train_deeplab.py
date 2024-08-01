@@ -68,8 +68,8 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-model = DeepLab(
-    input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), dropout_rate=DROPOUT_RATE
+model, model_crf = DeepLab(
+    input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), dropout_rate=DROPOUT_RATE, filters=256
 )
 
 model.compile(

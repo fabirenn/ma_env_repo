@@ -39,8 +39,9 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 def objective(trial):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_categorical("batch_size", [4, 8, 12, 16])
+    BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 20, 24, 28, 32])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
+    FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512])
 
     # tf.keras.backend.clear_session()
 
@@ -64,6 +65,7 @@ def objective(trial):
                 "metric": "accuracy",
                 "epochs": EPOCHS,
                 "batch_size": BATCH_SIZE,
+                "filters": FILTERS
             },
             dir=os.environ["WANDB_DIR"],
         )
@@ -71,6 +73,7 @@ def objective(trial):
         model = DeepLab(
             input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
+            filters=FILTERS
         )
 
         model.compile(

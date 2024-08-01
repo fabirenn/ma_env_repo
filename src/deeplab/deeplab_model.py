@@ -130,7 +130,7 @@ def atrous_spatial_pyramid_pooling(inputs, filters):
     return outputs
 
 
-def DeepLab(input_shape, dropout_rate):
+def DeepLab(input_shape, dropout_rate, filters=256):
     inputs = Input(shape=input_shape)
     base_model = ResNet50(
         weights="imagenet", include_top=False, input_tensor=inputs
@@ -140,29 +140,31 @@ def DeepLab(input_shape, dropout_rate):
     x = base_model.get_layer("conv4_block6_2_relu").output
 
     # Atrous Spatial Pyramid Pooling
-    x = atrous_spatial_pyramid_pooling(x, filters=256)
+    x = atrous_spatial_pyramid_pooling(x, filters=filters)
 
     # Decoder
-    x = Conv2D(256, (3, 3), padding="same")(x)
+    x = Conv2D(filters, (3, 3), padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((4, 4), interpolation="bilinear")(x)
-    x = Conv2D(256, (3, 3), padding="same")(x)
+    x = Conv2D(filters, (3, 3), padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
-    x = Conv2D(256, (3, 3), padding="same")(x)
+    x = Conv2D(filters, (3, 3), padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
-    x = Conv2D(5, (1, 1), padding="same", activation="softmax")(x)
+    output = Conv2D(5, (1, 1), padding="same", activation="softmax")(x)
 
-    # crf_output = CRFLayer(input_shape)([inputs, x])
-
-    model = Model(inputs, x)
+    model = Model(inputs, output)
     model.summary()
+    
+    crf_output = CRFLayer(input_shape)([inputs, output])
+    model_crf = Model(inputs, crf_output)
 
-    return model
+    return model, model_crf
+
