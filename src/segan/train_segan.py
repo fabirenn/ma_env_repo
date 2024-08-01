@@ -81,7 +81,7 @@ generator_model = sm.Unet(
     activation="softmax",
     encoder_weights=None,
     encoder_features="default",
-    decoder_block_type="upsampling",
+    decoder_block_type="transpose",
     decoder_filters=decoder_filters,
     decoder_use_batchnorm=True,
 )
