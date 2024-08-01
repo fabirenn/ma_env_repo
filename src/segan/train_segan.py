@@ -75,7 +75,7 @@ decoder_filters = filters_list[-6:][::-1]  # Slice and reverse the list
 discriminator_filters = filters_list[:6]
 
 generator_model = sm.Unet(
-    backbone_name="resnet34",
+    backbone_name="vgg16",
     input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
     classes=5,
     activation="softmax",
