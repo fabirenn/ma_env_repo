@@ -28,10 +28,10 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.keras"
 LOG_VAL_PRED = "data/predictions/deeplab"
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 3
-EPOCHS = 50
+EPOCHS = 100
 PATIENCE = 30
 
 os.environ["WANDB_DIR"] = "wandb/train_deeplab"
