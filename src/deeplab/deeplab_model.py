@@ -76,32 +76,23 @@ class CRFLayer(Layer):
         return input_shape[1]
 
 
-def atrous_spatial_pyramid_pooling(inputs, filters):
+def atrous_spatial_pyramid_pooling(inputs, filters, dilation_rates):
+    # Define atrous convolutions with different rates
     # Define atrous convolutions with different rates
     conv_1x1 = Conv2D(
         filters=filters, kernel_size=(1, 1), padding="same", activation=None
     )(inputs)
-    conv_3x3_rate_6 = Conv2D(
-        filters=filters,
-        kernel_size=(3, 3),
-        padding="same",
-        activation=None,
-        dilation_rate=6,
-    )(inputs)
-    conv_3x3_rate_12 = Conv2D(
-        filters=filters,
-        kernel_size=(3, 3),
-        padding="same",
-        activation=None,
-        dilation_rate=12,
-    )(inputs)
-    conv_3x3_rate_18 = Conv2D(
-        filters=filters,
-        kernel_size=(3, 3),
-        padding="same",
-        activation=None,
-        dilation_rate=18,
-    )(inputs)
+    
+    atrous_convs = [conv_1x1]
+    for rate in dilation_rates:
+        atrous_conv = Conv2D(
+            filters=filters,
+            kernel_size=(3, 3),
+            padding="same",
+            activation=None,
+            dilation_rate=rate,
+        )(inputs)
+        atrous_convs.append(atrous_conv)
 
     # Image-level features
     image_pooling = tf.reduce_mean(inputs, axis=[1, 2], keepdims=True)
@@ -114,13 +105,7 @@ def atrous_spatial_pyramid_pooling(inputs, filters):
 
     # Concatenate all features
     concat = concatenate(
-        [
-            image_pooling,
-            conv_1x1,
-            conv_3x3_rate_6,
-            conv_3x3_rate_12,
-            conv_3x3_rate_18,
-        ],
+        [image_pooling] + atrous_convs,
         axis=3,
     )
     outputs = Conv2D(
@@ -130,7 +115,7 @@ def atrous_spatial_pyramid_pooling(inputs, filters):
     return outputs
 
 
-def DeepLab(input_shape, dropout_rate, filters=256):
+def DeepLab(input_shape, dropout_rate, filters=256, dilation_rates=[1, 2, 4]):
     inputs = Input(shape=input_shape)
     base_model = ResNet50(
         weights="imagenet", include_top=False, input_tensor=inputs
@@ -140,7 +125,7 @@ def DeepLab(input_shape, dropout_rate, filters=256):
     x = base_model.get_layer("conv4_block6_2_relu").output
 
     # Atrous Spatial Pyramid Pooling
-    x = atrous_spatial_pyramid_pooling(x, filters=filters)
+    x = atrous_spatial_pyramid_pooling(x, filters=filters, dilation_rates=dilation_rates)
 
     # Decoder
     x = Conv2D(filters, (3, 3), padding="same")(x)

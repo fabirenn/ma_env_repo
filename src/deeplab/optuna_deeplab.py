@@ -42,6 +42,23 @@ def objective(trial):
     BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 20, 24, 28, 32])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512])
+    DILATION_RATES = trial.suggest_categorical("dilation_rates", [
+        [1, 2, 4],
+        [2, 4, 8],
+        [2, 5, 7],
+        [3, 6, 9],
+        [4, 8, 16],
+        [3, 9, 27],
+        [6, 12, 18],
+        [4, 10, 20],
+        [6, 18, 36],
+        [8, 16, 32],
+        [12, 24, 36],
+        [8, 20, 40],
+        [1, 2, 4, 8],
+        [2, 4, 8, 16],
+        [3, 6, 9, 18]
+    ])
 
     # tf.keras.backend.clear_session()
 
@@ -65,7 +82,8 @@ def objective(trial):
                 "metric": "accuracy",
                 "epochs": EPOCHS,
                 "batch_size": BATCH_SIZE,
-                "filters": FILTERS
+                "filters": FILTERS,
+                "dilation_rates": DILATION_RATES
             },
             dir=os.environ["WANDB_DIR"],
         )
@@ -73,7 +91,8 @@ def objective(trial):
         model = DeepLab(
             input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
-            filters=FILTERS
+            filters=FILTERS,
+            dilation_rates=DILATION_RATES
         )
 
         model.compile(
