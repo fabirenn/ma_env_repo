@@ -52,7 +52,7 @@ def objective(trial):
         "backbone", ["resnet34", "resnet50", "efficientnetb0"]
     )
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 2, 7)
-    FILTERS_DEPTH = trial.suggest_int("filters_depth", 4, 6)
+    FILTERS_DEPTH = trial.suggest_int("filters_depth", 3, 6)
 
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
     decoder_filters = filters_list[-FILTERS_DEPTH:][::-1]  # Slice and reverse the list
@@ -90,7 +90,7 @@ def objective(trial):
         activation="softmax",
         encoder_weights=None,
         encoder_features="default",
-        decoder_block_type="upsampling",
+        decoder_block_type="transpose",
         decoder_filters=decoder_filters,
         decoder_use_batchnorm=True,
     )
