@@ -71,8 +71,8 @@ config = wandb.config
 keras.backend.set_image_data_format("channels_last")
 
 filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-decoder_filters = filters_list[-5:][::-1]  # Slice and reverse the list
-discriminator_filters = filters_list[:5]
+decoder_filters = filters_list[-4:][::-1]  # Slice and reverse the list
+discriminator_filters = filters_list[:4]
 
 generator_model = sm.Unet(
     backbone_name="vgg16",
