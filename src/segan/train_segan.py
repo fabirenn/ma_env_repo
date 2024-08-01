@@ -70,6 +70,10 @@ config = wandb.config
 
 keras.backend.set_image_data_format("channels_last")
 
+filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
+decoder_filters = filters_list[-6:][::-1]  # Slice and reverse the list
+discriminator_filters = filters_list[:6]
+
 generator_model = sm.Unet(
     backbone_name="resnet34",
     input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
@@ -78,7 +82,7 @@ generator_model = sm.Unet(
     encoder_weights=None,
     encoder_features="default",
     decoder_block_type="upsampling",
-    decoder_filters=(256, 128, 64, 32, 16),
+    decoder_filters=decoder_filters,
     decoder_use_batchnorm=True,
 )
 
@@ -86,7 +90,7 @@ generator_model.summary()
 
 
 discriminator_model = discriminator(
-    (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5), (16, 32, 64, 128, 256)
+    (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5), discriminator_filters
 )
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
