@@ -11,6 +11,8 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net")))
 from unet_model import unet
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from data_loader import (
     create_datasets_for_unet_training,
