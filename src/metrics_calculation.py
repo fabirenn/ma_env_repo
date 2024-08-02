@@ -13,6 +13,7 @@ def pixel_accuracy(y_true, y_pred):
     total_pixels = tf.size(y_true, out_type=tf.float32)
     return correct_pixels / total_pixels
 
+
 def accuracy(y_true, y_pred):
     y_true = tf.argmax(y_true, axis=-1)
     y_pred = tf.argmax(y_pred, axis=-1)
@@ -40,7 +41,7 @@ def dice_coefficient(y_true, y_pred, smooth=1e-6):
     )
 
 
-def precision(y_true, y_pred, num_classes=num_classes):
+def precision(y_true, y_pred, num_classes=5):
     y_pred = tf.argmax(y_pred, axis=-1)
     y_true = tf.argmax(y_true, axis=-1)
 
@@ -51,12 +52,12 @@ def precision(y_true, y_pred, num_classes=num_classes):
         )
         predicted_positives = tf.reduce_sum(tf.cast(y_pred == i, tf.float32))
         precisions.append(
-            true_positives / (predicted_positives + tf.keras.backend.epsilon())
+            true_positives / (predicted_positives + keras.backend.epsilon())
         )
     return tf.reduce_mean(precisions)
 
 
-def recall(y_true, y_pred, num_classes=num_classes):
+def recall(y_true, y_pred, num_classes=5):
     y_pred = tf.argmax(y_pred, axis=-1)
     y_true = tf.argmax(y_true, axis=-1)
 
@@ -72,7 +73,7 @@ def recall(y_true, y_pred, num_classes=num_classes):
     return tf.reduce_mean(recalls)
 
 
-def f1_score(y_true, y_pred, num_classes=num_classes):
+def f1_score(y_true, y_pred, num_classes=5):
     prec = precision(y_true, y_pred, num_classes)
     rec = recall(y_true, y_pred, num_classes)
     return 2 * (prec * rec) / (prec + rec + tf.keras.backend.epsilon())
