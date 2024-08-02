@@ -36,15 +36,15 @@ VAL_MASK_PATH = "data/local/val/labels"'''
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
-IMG_WIDTH = 512
-IMG_HEIGHT = 512
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
-EPOCHS = 200
+EPOCHS = 100
 
-GENERATOR_TRAINING_STEPS = 5
+GENERATOR_TRAINING_STEPS = 3
 
 PATIENCE = 70
 BEST_IOU = 0
@@ -71,7 +71,7 @@ config = wandb.config
 keras.backend.set_image_data_format("channels_last")
 
 filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-discriminator_filters = filters_list[:4]
+discriminator_filters = filters_list[:5]
 
 generator_model = unet(
         IMG_WIDTH,
