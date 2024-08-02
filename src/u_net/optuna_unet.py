@@ -47,7 +47,7 @@ def objective(trial):
     NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)
 
     # Define the possible values for the number of filters
-    filter_options = [16, 32, 64, 128, 256, 512]
+    filter_options = [16, 32, 64, 128, 256, 512, 1024]
 
     # Select the appropriate number of filters from the filter_options based on num_blocks
     filters_list = filter_options[:NUM_BLOCKS]
