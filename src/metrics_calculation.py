@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-
+import keras 
 num_classes = 5
 
 
@@ -13,6 +13,11 @@ def pixel_accuracy(y_true, y_pred):
     total_pixels = tf.size(y_true, out_type=tf.float32)
     return correct_pixels / total_pixels
 
+def accuracy(y_true, y_pred):
+    y_true = tf.argmax(y_true, axis=-1)
+    y_pred = tf.argmax(y_pred, axis=-1)
+    return tf.reduce_mean(tf.cast(tf.equal(y_true, y_pred), tf.float32))
+
 
 def mean_iou(y_true, y_pred, num_classes=5):
     y_pred = tf.one_hot(tf.argmax(y_pred, axis=-1), depth=num_classes)
@@ -21,8 +26,8 @@ def mean_iou(y_true, y_pred, num_classes=5):
     iou = []
     for i in range(num_classes):
         intersection = tf.reduce_sum(y_pred[..., i] * y_true[..., i])
-        union = tf.reduce_sum(y_pred[..., i] + y_true[..., i] - y_pred[..., i] * y_true[..., i])
-        iou.append(intersection / (union + tf.keras.backend.epsilon()))
+        union = tf.reduce_sum(y_pred[..., i] + y_true[..., i]) - intersection
+        iou.append(intersection / (union + keras.backend.epsilon()))
     return tf.reduce_mean(iou)
 
 

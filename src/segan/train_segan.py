@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u
 from unet_model import unet
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score, accuracy
 from data_loader import (
     create_datasets_for_unet_training,
 )
@@ -83,8 +83,6 @@ generator_model = unet(
         discriminator_filters
     )
 
-generator_model.summary()
-
 
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), (IMG_WIDTH, IMG_HEIGHT, 5), discriminator_filters
@@ -116,7 +114,7 @@ discriminator_model.compile(
 
 def evaluate_generator(generator, dataset):
     # Implement the evaluation logic
-    accuracy_metric = keras.metrics.Accuracy()
+    accuracy_metric = keras.metrics.Mean(name='accuracy')
     accuracy_metric.reset_state()
     pixel_accuracy_value = 0.0
     precision_value_value = 0.0
@@ -128,7 +126,7 @@ def evaluate_generator(generator, dataset):
     # Calculate metrics over the validation dataset
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
-        accuracy_metric.update_state(mask_batch, predictions)
+        accuracy_metric.update_state(accuracy(mask_batch, predictions))
 
         pixel_accuracy_value += pixel_accuracy(mask_batch, predictions)
         precision_value_value += precision(mask_batch, predictions)
