@@ -11,11 +11,13 @@ from segan_model import discriminator
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net")))
+from unet_model import unet
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import (
     ValidationCallback,
 )
-from unet_model import unet
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score, accuracy
 from data_loader import (
     create_datasets_for_unet_training,
 )
@@ -49,7 +51,7 @@ def objective(trial):
     BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 20, 24, 28, 32])
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
-    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 2, 7)
+    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 3, 7)
     FILTERS_DEPTH = trial.suggest_int("filters_depth", 3, 6)
 
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters

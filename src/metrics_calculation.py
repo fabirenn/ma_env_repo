@@ -68,7 +68,7 @@ def recall(y_true, y_pred, num_classes=5):
         )
         actual_positives = tf.reduce_sum(tf.cast(y_true == i, tf.float32))
         recalls.append(
-            true_positives / (actual_positives + tf.keras.backend.epsilon())
+            true_positives / (actual_positives + keras.backend.epsilon())
         )
     return tf.reduce_mean(recalls)
 
@@ -76,4 +76,4 @@ def recall(y_true, y_pred, num_classes=5):
 def f1_score(y_true, y_pred, num_classes=5):
     prec = precision(y_true, y_pred, num_classes)
     rec = recall(y_true, y_pred, num_classes)
-    return 2 * (prec * rec) / (prec + rec + tf.keras.backend.epsilon())
+    return 2 * (prec * rec) / (prec + rec + keras.backend.epsilon())
