@@ -1,6 +1,6 @@
 import os
 import sys
-
+import tensorflow as tf
 from keras import layers, models
 from keras.layers import Conv2D, Input, Concatenate, BatchNormalization, MaxPooling2D, Conv2DTranspose, Cropping2D, Add
 from keras.models import Model
@@ -101,7 +101,9 @@ def detail_feature_extractor(input_shape):
 
 
 def fusion_module(y1_output, y2_output):
-    f1 = Concatenate([y1_output, y2_output], name="concat")
+    f1 = Concatenate(name="concatenate")([y1_output, y2_output])
+    # Ensure that f1 is a tensor
+    f1 = tf.convert_to_tensor(f1)
     c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f1")(f1)
     c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f2")(c1)
     c3 = Conv2D(32, (3, 3), activation="relu", padding="same", name="f3")(c2)
@@ -112,20 +114,19 @@ def fusion_module(y1_output, y2_output):
 
 def build_ynet(img_width, img_height, channel_size, dropout_rate):
     input_shape = (img_width, img_height, channel_size)
-    inputs = Input(input_shape)
     y1 = semantic_feature_extractor(
         img_width=img_width,
         img_height=img_height,
         channel_size=channel_size,
         dropout_rate=dropout_rate,
     )
-    y1_output = y1(inputs)
+    y1_output = y1.output
     y2 = detail_feature_extractor(input_shape)
-    y2_output = y2(inputs)
+    y2_output = y2.output
 
     outputs = fusion_module(y1_output, y2_output)
 
-    model = Model(inputs, outputs, name="Y-Net")
+    model = Model(inputs=[y1.input, y2.input], outputs=outputs, name="Y-Net")
 
     model.summary()
     return model
