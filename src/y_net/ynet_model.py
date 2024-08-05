@@ -114,6 +114,7 @@ def fusion_module(y1_output, y2_output):
 
 def build_ynet(img_width, img_height, channel_size, dropout_rate):
     input_shape = (img_width, img_height, channel_size)
+    inputs = Input(input_shape)
     y1 = semantic_feature_extractor(
         img_width=img_width,
         img_height=img_height,
@@ -126,7 +127,7 @@ def build_ynet(img_width, img_height, channel_size, dropout_rate):
 
     outputs = fusion_module(y1_output, y2_output)
 
-    model = Model(inputs=[y1.input, y2.input], outputs=outputs, name="Y-Net")
+    model = Model(inputs, outputs, name="Y-Net")
 
     model.summary()
     return model
