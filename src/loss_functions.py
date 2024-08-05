@@ -48,17 +48,14 @@ def generator_loss(fake_output, gen_output, target):
 
 
 def multi_scale_l1_loss(critic, real_images, real_labels, generated_labels):
-    # The discriminator should be able to handle these inputs directly
-    real_features = critic([real_images, real_labels])
-    generated_features = critic([real_images, generated_labels])
-    
-    loss = 0.0
-    num_scales = len(real_features)
-    
+    real_features = get_features(critic, [real_images, real_labels])
+    generated_features = get_features(critic, [real_images, generated_labels])
+
+    loss = 0
     for real_feature, generated_feature in zip(real_features, generated_features):
         loss += tf.reduce_mean(tf.abs(real_feature - generated_feature))
-    
-    return loss / num_scales
+
+    return loss
 
 
 def combined_generator_loss(critic, real_images, real_labels, generated_labels):
@@ -73,3 +70,12 @@ def combined_discriminator_loss(
     disc_loss = discriminator_loss(real_output, fake_output)
     multi_scale_loss = multi_scale_l1_loss(critic, real_images, real_labels, generated_labels)
     return disc_loss + multi_scale_loss
+
+
+def get_features(model, inputs):
+    outputs = []
+    for layer in model.layers:
+        if 'conv' in layer.name:
+            outputs.append(layer.output)
+    intermediate_model = tf.keras.models.Model(inputs=model.inputs, outputs=outputs)
+    return intermediate_model.predict(inputs)
