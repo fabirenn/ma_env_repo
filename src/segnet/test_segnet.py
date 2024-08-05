@@ -6,7 +6,15 @@ from keras.models import load_model
 
 import wandb
 from loss_functions import dice_loss
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+from metrics_calculation import (
+    dice_coefficient,
+    f1_score,
+    mean_iou,
+    pixel_accuracy,
+    precision,
+    recall,
+)
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_layers import custom_objects
 
@@ -48,7 +56,7 @@ model.compile(
         mean_iou,
         dice_coefficient,
         f1_score,
-        recall
+        recall,
     ],
 )
 

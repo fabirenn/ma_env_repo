@@ -1,5 +1,5 @@
-import tensorflow as tf
 import keras
+import tensorflow as tf
 from keras.layers import BatchNormalization
 
 
@@ -13,9 +13,7 @@ def unet(
     training=True,
 ):
     # build the model
-    inputs = keras.layers.Input(
-        shape=(img_height, img_width, img_channels)
-    )
+    inputs = keras.layers.Input(shape=(img_height, img_width, img_channels))
 
     # Contraction
     c, p = [], []
@@ -23,7 +21,7 @@ def unet(
         if i == 0:
             input_tensor = inputs
         else:
-            input_tensor = p[i-1]
+            input_tensor = p[i - 1]
         c_layer, p_layer = conv_block_down(
             input_tensor=input_tensor,
             num_filters=filters,
@@ -32,10 +30,10 @@ def unet(
         )
         c.append(c_layer)
         p.append(p_layer)
-    
+
     # Expansion
     u = c[-1]
-    for i in range(len(filters_list)-2, -1, -1):
+    for i in range(len(filters_list) - 2, -1, -1):
         u = conv_block_up(
             input_tensor=u,
             skip_tensor=c[i],
@@ -44,9 +42,9 @@ def unet(
             kernel_size=(3, 3),
         )
 
-    outputs = keras.layers.Conv2D(
-        5, kernel_size=(1, 1), activation="softmax"
-    )(u)
+    outputs = keras.layers.Conv2D(5, kernel_size=(1, 1), activation="softmax")(
+        u
+    )
 
     model = keras.Model(inputs=[inputs], outputs=[outputs], name="U-Net")
 
@@ -96,11 +94,9 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     # Max pooling layer
     pool = keras.layers.MaxPooling2D((2, 2))(conv)
 
-    #print(f"conv_block_down output shape: {conv.shape}, pool shape: {pool.shape}")
+    # print(f"conv_block_down output shape: {conv.shape}, pool shape: {pool.shape}")
 
     return conv, pool
-
-    
 
 
 def conv_block_up(
@@ -126,7 +122,7 @@ def conv_block_up(
         kernel_size=(2, 2),
         strides=(2, 2),
         padding="same",
-        activation="relu"
+        activation="relu",
     )(input_tensor)
 
     # Concatenating Upconvolution with Contraction tensor
@@ -157,6 +153,6 @@ def conv_block_up(
     # Dropout-Layer
     c = keras.layers.Dropout(dropout_rate)(c)
 
-    #print(f"conv_block_up output shape: {c.shape}")
+    # print(f"conv_block_up output shape: {c.shape}")
 
     return c

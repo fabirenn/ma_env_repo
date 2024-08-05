@@ -9,10 +9,18 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from ynet_model import build_ynet
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+
 from custom_callbacks import ValidationCallback
 from data_loader import create_datasets_for_unet_training
 from loss_functions import dice_loss
+from metrics_calculation import (
+    dice_coefficient,
+    f1_score,
+    mean_iou,
+    pixel_accuracy,
+    precision,
+    recall,
+)
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -80,7 +88,7 @@ model.compile(
         mean_iou,
         dice_coefficient,
         f1_score,
-        recall
+        recall,
     ],
 )
 

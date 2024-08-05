@@ -82,7 +82,7 @@ def atrous_spatial_pyramid_pooling(inputs, filters, dilation_rates):
     conv_1x1 = Conv2D(
         filters=filters, kernel_size=(1, 1), padding="same", activation=None
     )(inputs)
-    
+
     atrous_convs = [conv_1x1]
     for rate in dilation_rates:
         atrous_conv = Conv2D(
@@ -125,7 +125,9 @@ def DeepLab(input_shape, dropout_rate, filters=256, dilation_rates=[1, 2, 4]):
     x = base_model.get_layer("conv4_block6_2_relu").output
 
     # Atrous Spatial Pyramid Pooling
-    x = atrous_spatial_pyramid_pooling(x, filters=filters, dilation_rates=dilation_rates)
+    x = atrous_spatial_pyramid_pooling(
+        x, filters=filters, dilation_rates=dilation_rates
+    )
 
     # Decoder
     x = Conv2D(filters, (3, 3), padding="same")(x)
@@ -147,9 +149,8 @@ def DeepLab(input_shape, dropout_rate, filters=256, dilation_rates=[1, 2, 4]):
 
     model = Model(inputs, output)
     model.summary()
-    
+
     crf_output = CRFLayer(input_shape)([inputs, output])
     model_crf = Model(inputs, crf_output)
 
     return model, model_crf
-

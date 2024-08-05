@@ -1,8 +1,9 @@
 import os
 import shutil
+
+import keras
 import numpy as np
 import tensorflow as tf
-import keras
 from keras.utils import array_to_img
 
 import wandb
@@ -42,7 +43,7 @@ class ValidationCallback(keras.callbacks.Callback):
         y_true = y_true_batch[0]
 
         x_rgb = x[..., :3][..., ::-1]
-        
+
         try:
             y_pred = self.model.predict(tf.expand_dims(x, axis=0), verbose=1)[0]
             if self.apply_crf:

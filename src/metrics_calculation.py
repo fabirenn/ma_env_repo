@@ -1,6 +1,7 @@
+import keras
 import numpy as np
 import tensorflow as tf
-import keras 
+
 num_classes = 5
 
 

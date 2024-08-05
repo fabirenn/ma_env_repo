@@ -1,5 +1,6 @@
 import os
 import sys
+
 import keras
 from wandb.integration.keras import WandbMetricsLogger
 
@@ -7,10 +8,18 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from deeplab_model import DeepLab
+
 from custom_callbacks import ValidationCallback
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from data_loader import create_datasets_for_segnet_training
 from loss_functions import dice_loss
+from metrics_calculation import (
+    dice_coefficient,
+    f1_score,
+    mean_iou,
+    pixel_accuracy,
+    precision,
+    recall,
+)
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -69,7 +78,9 @@ config = wandb.config
 
 # create model & start training it
 model, model_crf = DeepLab(
-    input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), dropout_rate=DROPOUT_RATE, filters=256
+    input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
+    dropout_rate=DROPOUT_RATE,
+    filters=256,
 )
 
 model.compile(
@@ -82,7 +93,7 @@ model.compile(
         mean_iou,
         dice_coefficient,
         f1_score,
-        recall
+        recall,
     ],
 )
 

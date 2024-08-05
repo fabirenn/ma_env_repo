@@ -8,11 +8,16 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
-from data_loader import (
-    create_testdataset_for_unet_training,
-)
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+from data_loader import create_testdataset_for_unet_training
 from loss_functions import dice_loss
+from metrics_calculation import (
+    dice_coefficient,
+    f1_score,
+    mean_iou,
+    pixel_accuracy,
+    precision,
+    recall,
+)
 from processing import add_prediction_to_list, safe_predictions_locally
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
@@ -32,14 +37,12 @@ IMG_CHANNEL = 8
 
 BATCH_SIZE = 4
 
-test_dataset, test_images, test_masks = (
-    create_testdataset_for_unet_training(
-        directory_test_images=TEST_IMG_PATH,
-        directory_test_masks=TEST_MASK_PATH,
-        img_width=IMG_WIDTH,
-        img_height=IMG_HEIGHT,
-        batch_size=BATCH_SIZE,
-    )
+test_dataset, test_images, test_masks = create_testdataset_for_unet_training(
+    directory_test_images=TEST_IMG_PATH,
+    directory_test_masks=TEST_MASK_PATH,
+    img_width=IMG_WIDTH,
+    img_height=IMG_HEIGHT,
+    batch_size=BATCH_SIZE,
 )
 
 model = load_model(CHECKPOINT_PATH, compile=False)
@@ -54,7 +57,7 @@ model.compile(
         mean_iou,
         dice_coefficient,
         f1_score,
-        recall
+        recall,
     ],
 )
 

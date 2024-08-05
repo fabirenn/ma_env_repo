@@ -11,7 +11,7 @@ def discriminator(input_shape, mask_shape, filters):
     mask_input = layers.Input(shape=mask_shape, name="mask_image")
 
     x = layers.Concatenate()([image_input, mask_input])
-    
+
     # Create layers dynamically based on the decoder filters
     for filter in filters:
         x = layers.Conv2D(filter, kernel_size=3, strides=2, padding="same")(x)
@@ -26,5 +26,3 @@ def discriminator(input_shape, mask_shape, filters):
 
     model.summary()
     return model
-
-

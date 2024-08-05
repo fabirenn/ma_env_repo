@@ -1,5 +1,6 @@
 import os
 import sys
+
 import keras
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
@@ -7,10 +8,18 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from unet_model import unet
+
 from custom_callbacks import ValidationCallback
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
 from data_loader import create_datasets_for_unet_training
 from loss_functions import dice_loss
+from metrics_calculation import (
+    dice_coefficient,
+    f1_score,
+    mean_iou,
+    pixel_accuracy,
+    precision,
+    recall,
+)
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -70,7 +79,12 @@ filters_list = [16, 32, 64, 128, 256]
 
 # create model & start training it
 model = unet(
-    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, filters_list, training=True
+    IMG_WIDTH,
+    IMG_HEIGHT,
+    IMG_CHANNEL,
+    DROPOUT_RATE,
+    filters_list,
+    training=True,
 )
 
 model.compile(
@@ -83,7 +97,7 @@ model.compile(
         mean_iou,
         dice_coefficient,
         f1_score,
-        recall
+        recall,
     ],
 )
 

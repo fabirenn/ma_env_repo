@@ -10,6 +10,7 @@ from pydensecrf.utils import (
     create_pairwise_gaussian,
     unary_from_softmax,
 )
+
 # Define the color mapping for each class in BGR order
 class_colors = {
     0: (0, 0, 0),  # Background (Black)
@@ -35,11 +36,11 @@ def safe_predictions_locally(
 
         if test_images.ndim == 3 and test_images.shape[2] > 3:
             test_images = test_images[:, :, 3]
-        
+
         if predictions.shape[2] > 3:
             predictions = np.argmax(predictions, axis=-1)
             predictions = map_class_to_color(predictions)
-        
+
         if test_masks.shape[2] > 3:
             test_masks = np.argmax(test_masks, axis=-1)
             test_masks = map_class_to_color(test_masks)
@@ -72,11 +73,11 @@ def safe_predictions_locally(
             if prediction.shape[2] > 3:
                 prediction = np.argmax(prediction, axis=-1)
                 prediction = map_class_to_color(prediction)
-        
+
             if testmask.shape[2] > 3:
                 testmask = np.argmax(testmask, axis=-1)
                 testmask = map_class_to_color(testmask)
-            
+
             plt.figure(figsize=(45, 15))
 
             plt.subplot(1, 3, 1)
@@ -132,7 +133,9 @@ def apply_crf_to_pred(image, prediction):
     """
 
     image = image.numpy() if isinstance(image, tf.Tensor) else image
-    prediction = prediction.numpy() if isinstance(prediction, tf.Tensor) else prediction
+    prediction = (
+        prediction.numpy() if isinstance(prediction, tf.Tensor) else prediction
+    )
 
     # Convert softmax output to unary potentials
     unary = unary_from_softmax(prediction.transpose((2, 0, 1)))
@@ -143,10 +146,14 @@ def apply_crf_to_pred(image, prediction):
     d.setUnaryEnergy(unary)
 
     # Create pairwise potentials (bilateral and spatial)
-    pairwise_gaussian = create_pairwise_gaussian(sdims=(3, 3), shape=image.shape[:2])
+    pairwise_gaussian = create_pairwise_gaussian(
+        sdims=(3, 3), shape=image.shape[:2]
+    )
     d.addPairwiseEnergy(pairwise_gaussian, compat=1)
 
-    pairwise_bilateral = create_pairwise_bilateral(sdims=(10, 10), schan=(5, 5, 5), img=image, chdim=2)
+    pairwise_bilateral = create_pairwise_bilateral(
+        sdims=(10, 10), schan=(5, 5, 5), img=image, chdim=2
+    )
     d.addPairwiseEnergy(pairwise_bilateral, compat=1)
 
     # Perform inference

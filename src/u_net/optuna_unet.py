@@ -11,13 +11,18 @@ import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from unet_model import unet
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
-from custom_callbacks import (
-    ValidationCallback,
-    clear_directory,
-)
+
+from custom_callbacks import ValidationCallback, clear_directory
 from data_loader import create_datasets_for_unet_training
 from loss_functions import dice_loss
+from metrics_calculation import (
+    dice_coefficient,
+    f1_score,
+    mean_iou,
+    pixel_accuracy,
+    precision,
+    recall,
+)
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -41,7 +46,9 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 def objective(trial):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 20, 24, 28, 32])
+    BATCH_SIZE = trial.suggest_categorical(
+        "batch_size", [8, 12, 16, 20, 24, 28, 32]
+    )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)
@@ -96,7 +103,7 @@ def objective(trial):
                 mean_iou,
                 dice_coefficient,
                 f1_score,
-                recall
+                recall,
             ],
         )
 

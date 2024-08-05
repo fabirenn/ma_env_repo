@@ -1,6 +1,6 @@
+import ast
 import os
 import sys
-import ast
 
 import keras.metrics
 import optuna
@@ -11,12 +11,17 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import (
-    ValidationCallback,
-)
-from metrics_calculation import pixel_accuracy, precision, mean_iou, dice_coefficient, recall, f1_score
+from custom_callbacks import ValidationCallback
 from data_loader import create_datasets_for_segnet_training
 from loss_functions import dice_loss
+from metrics_calculation import (
+    dice_coefficient,
+    f1_score,
+    mean_iou,
+    pixel_accuracy,
+    precision,
+    recall,
+)
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -40,26 +45,31 @@ os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 def objective(trial):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_categorical("batch_size", [8, 12, 16, 20, 24, 28, 32])
+    BATCH_SIZE = trial.suggest_categorical(
+        "batch_size", [8, 12, 16, 20, 24, 28, 32]
+    )
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
     FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512])
-    DILATION_RATES = trial.suggest_categorical("dilation_rates", [
-        "[1, 2, 4]",
-        "[2, 4, 8]",
-        "[2, 5, 7]",
-        "[3, 6, 9]",
-        "[4, 8, 16]",
-        "[3, 9, 27]",
-        "[6, 12, 18]",
-        "[4, 10, 20]",
-        "[6, 18, 36]",
-        "[8, 16, 32]",
-        "[12, 24, 36]",
-        "[8, 20, 40]",
-        "[1, 2, 4, 8]",
-        "[2, 4, 8, 16]",
-        "[3, 6, 9, 18]"
-    ])
+    DILATION_RATES = trial.suggest_categorical(
+        "dilation_rates",
+        [
+            "[1, 2, 4]",
+            "[2, 4, 8]",
+            "[2, 5, 7]",
+            "[3, 6, 9]",
+            "[4, 8, 16]",
+            "[3, 9, 27]",
+            "[6, 12, 18]",
+            "[4, 10, 20]",
+            "[6, 18, 36]",
+            "[8, 16, 32]",
+            "[12, 24, 36]",
+            "[8, 20, 40]",
+            "[1, 2, 4, 8]",
+            "[2, 4, 8, 16]",
+            "[3, 6, 9, 18]",
+        ],
+    )
 
     # tf.keras.backend.clear_session()
 
@@ -84,7 +94,7 @@ def objective(trial):
                 "epochs": EPOCHS,
                 "batch_size": BATCH_SIZE,
                 "filters": FILTERS,
-                "dilation_rates": DILATION_RATES
+                "dilation_rates": DILATION_RATES,
             },
             dir=os.environ["WANDB_DIR"],
         )
@@ -94,7 +104,7 @@ def objective(trial):
             input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
             filters=FILTERS,
-            dilation_rates=dilation_rates
+            dilation_rates=dilation_rates,
         )
 
         model.compile(
@@ -107,7 +117,7 @@ def objective(trial):
                 mean_iou,
                 dice_coefficient,
                 f1_score,
-                recall
+                recall,
             ],
         )
 
