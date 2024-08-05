@@ -2,7 +2,7 @@ import os
 import sys
 
 from keras import layers, models
-from keras.layers import Conv2D, Input, concatenate, BatchNormalization, MaxPooling2D, Conv2DTranspose, Cropping2D
+from keras.layers import Conv2D, Input, Concatenate, BatchNormalization, MaxPooling2D, Conv2DTranspose, Cropping2D, Add
 from keras.models import Model
 
 sys.path.append(
@@ -18,123 +18,63 @@ def semantic_feature_extractor(
 ):
     inputs = Input(shape=(img_width, img_height, channel_size))
 
-    # Block Y1
-    # Layer C1^1
-    x1 = Conv2D(64, (3, 3), padding='same', activation='relu')(inputs)
+    # Encoder Path
+    c1 = Conv2D(64, (3, 3), padding='same', activation='relu')(inputs)
+    b1 = BatchNormalization()(c1)
+    c2 = Conv2D(64, (3, 3), padding='same', activation='relu')(b1)
+    p1 = MaxPooling2D((2, 2), strides=2)(c2)
     
-    # Layer B1^1
-    x1 = BatchNormalization()(x1)
+    c3 = Conv2D(128, (3, 3), padding='same', activation='relu')(p1)
+    b2 = BatchNormalization()(c3)
+    c4 = Conv2D(128, (3, 3), padding='same', activation='relu')(b2)
+    p2 = MaxPooling2D((2, 2), strides=2)(c4)
     
-    # Layer C2^1
-    x1 = Conv2D(64, (3, 3), padding='same', activation='relu')(x1)
+    c5 = Conv2D(256, (3, 3), padding='same', activation='relu')(p2)
+    c6 = Conv2D(256, (3, 3), padding='same', activation='relu')(c5)
+    b3 = BatchNormalization()(c6)
+    c7 = Conv2D(256, (3, 3), padding='same', activation='relu')(b3)
+    p3 = MaxPooling2D((2, 2), strides=2)(c7)
     
-    # Layer P1^1
-    x1 = MaxPooling2D(pool_size=(2, 2), strides=2)(x1)
+    c8 = Conv2D(512, (3, 3), padding='same', activation='relu')(p3)
+    c9 = Conv2D(512, (3, 3), padding='same', activation='relu')(c8)
+    b4 = BatchNormalization()(c9)
+    c10 = Conv2D(512, (3, 3), padding='same', activation='relu')(b4)
+    p4 = MaxPooling2D((2, 2), strides=2)(c10)
     
-    # Layer C3^1
-    x1 = Conv2D(128, (3, 3), padding='same', activation='relu')(x1)
+    c11 = Conv2D(512, (3, 3), padding='same', activation='relu')(p4)
+    c12 = Conv2D(512, (3, 3), padding='same', activation='relu')(c11)
+    b5 = BatchNormalization()(c12)
+    c13 = Conv2D(512, (3, 3), padding='same', activation='relu')(b5)
+    p5 = MaxPooling2D((2, 2), strides=2)(c13)
     
-    # Layer B2^1
-    x1 = BatchNormalization()(x1)
+    c14 = Conv2D(4096, (3, 3), padding='same', activation='relu')(p5)
+    c15 = Conv2D(4096, (1, 1), padding='same', activation='relu')(c14)
+    c16 = Conv2D(5, (1, 1), padding='same', activation='relu')(c15)
     
-    # Layer C4^1
-    x1 = Conv2D(128, (3, 3), padding='same', activation='relu')(x1)
+    # Decoder Path
+    d1 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(c16)
+    c17 = Conv2D(5, (1, 1), padding='same', activation='relu')(d1)
+    skip1 = Concatenate()([c13, c17])
+    r1 = Cropping2D(cropping=((0, 0), (0, 0)))(skip1)  # Adjust the cropping values based on dimensions
+    s1 = Add()([r1, c13])
     
-    # Layer P2^1
-    x1 = MaxPooling2D(pool_size=(2, 2), strides=2)(x1)
+    d2 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(s1)
+    c18 = Conv2D(5, (1, 1), padding='same', activation='relu')(d2)
+    skip2 = Concatenate()([c10, c18])
+    r2 = Cropping2D(cropping=((0, 0), (0, 0)))(skip2)  # Adjust the cropping values based on dimensions
+    s2 = Add()([r2, c10])
     
-    # Layer C5^1
-    x1 = Conv2D(256, (3, 3), padding='same', activation='relu')(x1)
-    
-    # Layer C6^1
-    x1 = Conv2D(256, (3, 3), padding='same', activation='relu')(x1)
-    
-    # Block Y2
-    # Layer B3^1
-    x2 = BatchNormalization()(x1)
-    
-    # Layer C7^1
-    x2 = Conv2D(256, (3, 3), padding='same', activation='relu')(x2)
-    
-    # Layer P3^1
-    x2 = MaxPooling2D(pool_size=(2, 2), strides=2)(x2)
-    
-    # Layer C8^1
-    x2 = Conv2D(512, (3, 3), padding='same', activation='relu')(x2)
-    
-    # Layer C9^1
-    x2 = Conv2D(512, (3, 3), padding='same', activation='relu')(x2)
-    
-    # Layer B4^1
-    x2 = BatchNormalization()(x2)
-    
-    # Layer C10^1
-    x2 = Conv2D(512, (3, 3), padding='same', activation='relu')(x2)
-    
-    # Layer P4^1
-    x2 = MaxPooling2D(pool_size=(2, 2), strides=2)(x2)
-    
-    # Layer C11^1
-    x2 = Conv2D(512, (3, 3), padding='same', activation='relu')(x2)
-    
-    # Layer C12^1
-    x2 = Conv2D(512, (3, 3), padding='same', activation='relu')(x2)
-    
-    # Block Y3
-    # Layer B5^1
-    x3 = BatchNormalization()(x2)
-    
-    # Layer C13^1
-    x3 = Conv2D(512, (3, 3), padding='same', activation='relu')(x3)
-    
-    # Layer P5^1
-    x3 = MaxPooling2D(pool_size=(2, 2), strides=2)(x3)
-    
-    # Layer C14^1
-    x3 = Conv2D(4096, (3, 3), padding='same', activation='relu')(x3)
-    
-    # Layer C15^1
-    x3 = Conv2D(4096, (1, 1), padding='same', activation='relu')(x3)
-    
-    # Layer C16^1
-    x3 = Conv2D(5, (1, 1), padding='same', activation='relu')(x3)
-    
-    # Layer D1^1
-    x3 = Conv2DTranspose(5, (4, 4), strides=2)(x3)
-    
-    # Layer C17^1
-    x3 = Conv2D(5, (1, 1), padding='same', activation='relu')(x3)
-    
-    # Layer D3^1
-    x3 = Cropping2D()(x3)
-    
-    
-    # Layer D4^1
-    x3 = Conv2D(512, (4, 4), strides=2, padding='same')(x3)
-    x3 = BatchNormalization()(x3)
-    x3 = Activation('relu')(x3)
-    
-    # Layer D5^1
-    x3 = Conv2D(512, (4, 4), strides=2, padding='same')(x3)
-    x3 = BatchNormalization()(x3)
-    x3 = Activation('relu')(x3)
-    
-    # Layer C18^1
-    x3 = Conv2D(2, (1, 1), padding='same', activation='softmax')(x3)
-    
-    # Concatenate the outputs of Y1, Y2, and Y3
-    y1_score = Flatten()(x1)
-    y2_score = Flatten()(x2)
-    y3_score = Flatten()(x3)
+    d3 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(s2)
+    d4 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(d3)
+    d5 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(d4)
+    r3 = Cropping2D(cropping=((0, 0), (0, 0)))(d5)  # Adjust the cropping values based on dimensions
 
-    # Combine Y1, Y2, Y3 scores
-    combined_scores = Concatenate()([y1_score, y2_score, y3_score])
-    
-    # Final output
-    outputs = Dense(2, activation='softmax')(combined_scores)
+    # Output
+    y1_score = Conv2D(5, (1, 1), padding='same', activation='softmax')(r3)
 
     # Model definition
-    model = Model(inputs, outputs, name='Y-Net')
+    model = models.Model(inputs, y1_score, name='Y-Net')
+    model.summary()
     return model
 
 
@@ -161,7 +101,7 @@ def detail_feature_extractor(input_shape):
 
 
 def fusion_module(y1_output, y2_output):
-    f1 = concatenate([y1_output, y2_output], name="concat")
+    f1 = Concatenate([y1_output, y2_output], name="concat")
     c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f1")(f1)
     c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f2")(c1)
     c3 = Conv2D(32, (3, 3), activation="relu", padding="same", name="f3")(c2)

@@ -40,7 +40,7 @@ VAL_MASK_PATH = "data/local/val/labels"'''
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-IMG_CHANNEL = 8
+IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
