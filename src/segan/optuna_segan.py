@@ -117,8 +117,8 @@ def objective(trial):
         discriminator=discriminator_model,
     )
 
-    generator_model.summary()
-    discriminator_model.summary()
+    #generator_model.summary()
+    #discriminator_model.summary()
 
     generator_model.compile(
         optimizer=gen_optimizer, loss=generator_loss, metrics=["accuracy"]
@@ -243,6 +243,12 @@ def objective(trial):
                 if WAIT >= PATIENCE:
                     print("Early stopping triggered\n")
                     return best_gen_loss
+                
+        # Ensure we return the best loss found
+        if best_gen_loss == float("inf"):
+            return None
+
+        return best_gen_loss
 
     best_gen_loss = train(
         train_dataset=train_dataset,
