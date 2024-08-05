@@ -100,6 +100,12 @@ discriminator_model = discriminator(
     discriminator_filters,
 )
 
+# Create the intermediate model
+intermediate_layer_model = keras.Model(
+    inputs=discriminator_model.input,
+    outputs=[layer.output for layer in discriminator_model.layers if 'conv' in layer.name or 'bn' in layer.name]
+)
+
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # loss_fn = combined_loss
 gen_optimizer = keras.optimizers.Adam(1e-4)
@@ -158,9 +164,7 @@ def train_step_generator(images, masks):
         fake_output = discriminator_model(
             [images, generated_masks], training=True
         )
-        gen_loss = combined_generator_loss(
-            discriminator_model, images, masks, generated_masks
-        )
+        gen_loss = combined_generator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
     )
