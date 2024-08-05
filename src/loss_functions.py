@@ -48,33 +48,22 @@ def generator_loss(fake_output, gen_output, target):
 
 
 def multi_scale_l1_loss(critic, real_images, real_labels, generated_labels):
-    # Concatenate images with labels to match dimensions
-    real_input = tf.concat([real_images, real_labels], axis=-1)
-    generated_input = tf.concat([real_images, generated_labels], axis=-1)
-
-    real_features = critic(real_input)
-    generated_features = critic(generated_input)
-
+    # The discriminator should be able to handle these inputs directly
+    real_features = critic([real_images, real_labels])
+    generated_features = critic([real_images, generated_labels])
+    
     loss = 0.0
     num_scales = len(real_features)
-
-    for real_feature, generated_feature in zip(
-        real_features, generated_features
-    ):
+    
+    for real_feature, generated_feature in zip(real_features, generated_features):
         loss += tf.reduce_mean(tf.abs(real_feature - generated_feature))
-
+    
     return loss / num_scales
 
 
 def combined_generator_loss(critic, real_images, real_labels, generated_labels):
-    generated_input = tf.concat([real_images, generated_labels], axis=-1)
-
-    gen_loss = generator_loss(
-        critic(generated_input), generated_labels, real_labels
-    )
-    multi_scale_loss = multi_scale_l1_loss(
-        critic, real_images, real_labels, generated_labels
-    )
+    gen_loss = generator_loss(critic([real_images, generated_labels]), generated_labels, real_labels)
+    multi_scale_loss = multi_scale_l1_loss(critic, real_images, real_labels, generated_labels)
     return gen_loss + multi_scale_loss
 
 
@@ -82,7 +71,5 @@ def combined_discriminator_loss(
     real_output, fake_output, critic, real_images, real_labels, generated_labels
 ):
     disc_loss = discriminator_loss(real_output, fake_output)
-    multi_scale_loss = multi_scale_l1_loss(
-        critic, real_images, real_labels, generated_labels
-    )
+    multi_scale_loss = multi_scale_l1_loss(critic, real_images, real_labels, generated_labels)
     return disc_loss + multi_scale_loss
