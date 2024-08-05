@@ -63,7 +63,7 @@ def objective(trial):
     )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
-    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 3, 7)
+    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 3, 10)
     FILTERS_DEPTH = trial.suggest_int("filters_depth", 3, 6)
 
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
@@ -102,6 +102,11 @@ def objective(trial):
         (IMG_WIDTH, IMG_HEIGHT, 5),
         discriminator_filters,
     )
+    # Create the intermediate model
+    intermediate_layer_model = keras.Model(
+    inputs=discriminator_model.input,
+    outputs=[layer.output for layer in discriminator_model.layers if 'conv' in layer.name or 'bn' in layer.name]
+)
 
     gen_optimizer = keras.optimizers.Adam(1e-4)
     disc_optimizer = keras.optimizers.Adam(1e-4)
@@ -160,12 +165,7 @@ def objective(trial):
     def train_step_generator(images, masks):
         with tf.GradientTape() as gen_tape:
             generated_masks = generator_model(images, training=True)
-            fake_output = discriminator_model(
-                [images, generated_masks], training=True
-            )
-            gen_loss = combined_generator_loss(
-                discriminator_model, images, masks, generated_masks
-            )
+            gen_loss = combined_generator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
         gradients_of_generator = gen_tape.gradient(
             gen_loss, generator_model.trainable_variables
         )
@@ -178,18 +178,7 @@ def objective(trial):
     def train_step_discriminator(images, masks):
         with tf.GradientTape() as disc_tape:
             generated_masks = generator_model(images, training=True)
-            real_output = discriminator_model([images, masks], training=True)
-            fake_output = discriminator_model(
-                [images, generated_masks], training=True
-            )
-            disc_loss = combined_discriminator_loss(
-                real_output,
-                fake_output,
-                discriminator_model,
-                images,
-                masks,
-                generated_masks,
-            )
+            disc_loss = combined_discriminator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
         gradients_of_discriminator = disc_tape.gradient(
             disc_loss, discriminator_model.trainable_variables
         )

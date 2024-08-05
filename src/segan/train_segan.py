@@ -52,15 +52,15 @@ VAL_MASK_PATH = "data/local/val/labels"'''
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 EPOCHS = 100
 
-GENERATOR_TRAINING_STEPS = 3
+GENERATOR_TRAINING_STEPS = 7
 
 PATIENCE = 70
 BEST_IOU = 0
@@ -87,7 +87,7 @@ config = wandb.config
 keras.backend.set_image_data_format("channels_last")
 
 filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-discriminator_filters = filters_list[:5]
+discriminator_filters = filters_list[:4]
 
 generator_model = unet(
     IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, discriminator_filters
@@ -161,9 +161,6 @@ def train_step_generator(images, masks):
 
     with tf.GradientTape() as gen_tape:
         generated_masks = generator_model(images, training=True)
-        fake_output = discriminator_model(
-            [images, generated_masks], training=True
-        )
         gen_loss = combined_generator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
@@ -180,10 +177,6 @@ def train_step_discriminator(images, masks):
 
     with tf.GradientTape() as disc_tape:
         generated_masks = generator_model(images, training=True)
-        real_output = discriminator_model([images, masks], training=True)
-        fake_output = discriminator_model(
-            [images, generated_masks], training=True
-        )
         disc_loss = combined_discriminator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
     gradients_of_discriminator = disc_tape.gradient(
         disc_loss, discriminator_model.trainable_variables
@@ -293,7 +286,7 @@ train(
     train_dataset=train_dataset,
     val_dataset=val_dataset,
     epochs=EPOCHS,
-    trainingsteps=7,
+    trainingsteps=5,
 )
 
 wandb.finish()
