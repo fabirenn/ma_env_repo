@@ -52,21 +52,21 @@ def semantic_feature_extractor(
     c16 = Conv2D(5, (1, 1), padding='same', activation='relu')(c15)
     
     # Decoder Path
-    d1 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(c16)
+    d1 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(c16)
     c17 = Conv2D(5, (1, 1), padding='same', activation='relu')(d1)
-    skip1 = Concatenate()([c13, c17])
-    r1 = Cropping2D(cropping=((0, 0), (0, 0)))(skip1)  # Adjust the cropping values based on dimensions
-    s1 = Add()([r1, c13])
+    r1 = Cropping2D(cropping=((2, 2), (2, 2)))(c13)
+    r1 = Conv2D(5, (1, 1), padding='same', activation='relu')(r1)  # Match channels to 5
+    s1 = Add()([r1, c17])
     
-    d2 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(s1)
+    d2 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(s1)
     c18 = Conv2D(5, (1, 1), padding='same', activation='relu')(d2)
-    skip2 = Concatenate()([c10, c18])
-    r2 = Cropping2D(cropping=((0, 0), (0, 0)))(skip2)  # Adjust the cropping values based on dimensions
-    s2 = Add()([r2, c10])
+    r2 = Cropping2D(cropping=((2, 2), (2, 2)))(c10)
+    r2 = Conv2D(5, (1, 1), padding='same', activation='relu')(r2)  # Match channels to 5
+    s2 = Add()([r2, c18])
     
-    d3 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(s2)
-    d4 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(d3)
-    d5 = Conv2DTranspose(512, (4, 4), strides=(2, 2), padding='same', activation='relu')(d4)
+    d3 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(s2)
+    d4 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(d3)
+    d5 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(d4)
     r3 = Cropping2D(cropping=((0, 0), (0, 0)))(d5)  # Adjust the cropping values based on dimensions
 
     # Output
