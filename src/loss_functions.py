@@ -50,11 +50,9 @@ def generator_loss(fake_output, gen_output, target):
 def multi_scale_l1_loss(critic, real_images, real_labels, generated_labels):
     real_features = get_features(critic, [real_images, real_labels])
     generated_features = get_features(critic, [real_images, generated_labels])
-
-    loss = 0
+    loss = 0.0
     for real_feature, generated_feature in zip(real_features, generated_features):
         loss += tf.reduce_mean(tf.abs(real_feature - generated_feature))
-
     return loss
 
 
@@ -73,9 +71,5 @@ def combined_discriminator_loss(
 
 
 def get_features(model, inputs):
-    outputs = []
-    for layer in model.layers:
-        if 'conv' in layer.name:
-            outputs.append(layer.output)
-    intermediate_model = tf.keras.models.Model(inputs=model.inputs, outputs=outputs)
-    return intermediate_model.predict(inputs)
+    intermediate_layer_model = keras.Model(inputs=model.input, outputs=[layer.output for layer in model.layers if 'conv' in layer.name or 'bn' in layer.name])
+    return intermediate_layer_model(inputs)
