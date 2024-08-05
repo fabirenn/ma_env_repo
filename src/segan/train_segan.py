@@ -18,7 +18,7 @@ from data_loader import (
     create_datasets_for_unet_training,
 )
 from processing import safe_predictions_locally
-from loss_functions import discriminator_loss, generator_loss
+from loss_functions import discriminator_loss, generator_loss, combined_generator_loss, combined_discriminator_loss
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -146,7 +146,7 @@ def train_step_generator(images, masks):
         fake_output = discriminator_model(
             [images, generated_masks], training=True
         )
-        gen_loss = generator_loss(fake_output, generated_masks, masks)
+        gen_loss = combined_generator_loss(discriminator_model, images, masks, generated_masks)
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
     )
@@ -166,7 +166,7 @@ def train_step_discriminator(images, masks):
         fake_output = discriminator_model(
             [images, generated_masks], training=True
         )
-        disc_loss = discriminator_loss(real_output, fake_output)
+        disc_loss = combined_discriminator_loss(real_output, fake_output, discriminator_model, images, masks, generated_masks)
     gradients_of_discriminator = disc_tape.gradient(
         disc_loss, discriminator_model.trainable_variables
     )

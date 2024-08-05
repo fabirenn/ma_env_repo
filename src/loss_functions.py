@@ -43,3 +43,28 @@ def generator_loss(fake_output, gen_output, target):
     segmentation_loss = cce(target, gen_output)
     
     return adversarial_loss + segmentation_loss
+
+
+def multi_scale_l1_loss(critic, real_images, real_labels, generated_labels):
+    real_features = critic(real_images * real_labels)
+    generated_features = critic(real_images * generated_labels)
+    
+    loss = 0.0
+    num_scales = len(real_features)
+    
+    for real_feature, generated_feature in zip(real_features, generated_features):
+        loss += tf.reduce_mean(tf.abs(real_feature - generated_feature))
+    
+    return loss / num_scales
+
+
+def combined_generator_loss(critic, real_images, real_labels, generated_labels):
+    gen_loss = generator_loss(critic(real_images * generated_labels), generated_labels, real_labels)
+    multi_scale_loss = multi_scale_l1_loss(critic, real_images, real_labels, generated_labels)
+    return gen_loss + multi_scale_loss
+
+
+def combined_discriminator_loss(real_output, fake_output, critic, real_images, real_labels, generated_labels):
+    disc_loss = discriminator_loss(real_output, fake_output)
+    multi_scale_loss = multi_scale_l1_loss(critic, real_images, real_labels, generated_labels)
+    return disc_loss + multi_scale_loss
