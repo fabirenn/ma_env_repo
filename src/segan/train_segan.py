@@ -184,14 +184,7 @@ def train_step_discriminator(images, masks):
         fake_output = discriminator_model(
             [images, generated_masks], training=True
         )
-        disc_loss = combined_discriminator_loss(
-            real_output,
-            fake_output,
-            discriminator_model,
-            images,
-            masks,
-            generated_masks,
-        )
+        disc_loss = combined_discriminator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
     gradients_of_discriminator = disc_tape.gradient(
         disc_loss, discriminator_model.trainable_variables
     )
