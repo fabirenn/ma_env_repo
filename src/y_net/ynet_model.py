@@ -54,13 +54,13 @@ def semantic_feature_extractor(
     # Decoder Path
     d1 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(c16)
     c17 = Conv2D(5, (1, 1), padding='same', activation='relu')(d1)
-    r1 = Cropping2D(cropping=((2, 2), (2, 2)))(c13)
+    r1 = Cropping2D(cropping=((0, 0), (0, 0)))(c13)
     r1 = Conv2D(5, (1, 1), padding='same', activation='relu')(r1)  # Match channels to 5
     s1 = Add()([r1, c17])
     
     d2 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(s1)
     c18 = Conv2D(5, (1, 1), padding='same', activation='relu')(d2)
-    r2 = Cropping2D(cropping=((2, 2), (2, 2)))(c10)
+    r2 = Cropping2D(cropping=((0, 0), (0, 0)))(c10)
     r2 = Conv2D(5, (1, 1), padding='same', activation='relu')(r2)  # Match channels to 5
     s2 = Add()([r2, c18])
     
