@@ -13,7 +13,7 @@ from unet_model import unet
 CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.keras"
 
 
-def semantic_feature_extractor(input_tensor):
+def semantic_feature_extractor(input_tensor, dropout_rate):
 
     # Encoder Path
     c1 = Conv2D(64, (3, 3), padding='same', activation='relu')(input_tensor)

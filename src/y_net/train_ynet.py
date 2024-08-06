@@ -8,7 +8,7 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from ynet_model import build_ynet
+from ynet_model import build_ynet, build_feature_extractor_for_pretraining
 
 from custom_callbacks import ValidationCallback
 from data_loader import create_datasets_for_unet_training
@@ -38,14 +38,14 @@ TRAIN_MASK_PATH = "data/local/train/labels"
 VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"'''
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
-DROPOUT_RATE = 0.1
-BATCH_SIZE = 4
-EPOCHS = 50
-PATIENCE = 30
+DROPOUT_RATE = 0.0
+BATCH_SIZE = 8
+EPOCHS = 30
+PATIENCE = 10
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -76,7 +76,7 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-model = build_ynet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
 
 model.compile(
     optimizer="adam",
