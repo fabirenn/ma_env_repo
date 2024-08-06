@@ -13,13 +13,10 @@ from unet_model import unet
 CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.keras"
 
 
-def semantic_feature_extractor(
-    img_width, img_height, channel_size, dropout_rate
-):
-    inputs = Input(shape=(img_width, img_height, channel_size))
+def semantic_feature_extractor(input_tensor):
 
     # Encoder Path
-    c1 = Conv2D(64, (3, 3), padding='same', activation='relu')(inputs)
+    c1 = Conv2D(64, (3, 3), padding='same', activation='relu')(input_tensor)
     b1 = BatchNormalization()(c1)
     c2 = Conv2D(64, (3, 3), padding='same', activation='relu')(b1)
     p1 = MaxPooling2D((2, 2), strides=2)(c2)
@@ -70,17 +67,13 @@ def semantic_feature_extractor(
     r3 = Cropping2D(cropping=((0, 0), (0, 0)))(d5)  # Adjust the cropping values based on dimensions
 
     # Output
-    y1_score = Conv2D(5, (1, 1), padding='same', activation='softmax')(r3)
+    output = Conv2D(5, (1, 1), padding='same', activation='softmax')(r3)
 
-    # Model definition
-    model = models.Model(inputs, y1_score, name='Y-Net')
-    model.summary()
-    return model
+    return output
 
 
-def detail_feature_extractor(input_shape):
-    input = layers.Input(shape=input_shape, name="input_shape")
-    c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c1")(input)
+def detail_feature_extractor(input_tensor):
+    c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c1")(input_tensor)
     c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c2")(c1)
     c3 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c3")(c2)
     c4 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c4")(c3)
@@ -94,16 +87,11 @@ def detail_feature_extractor(input_shape):
     c12 = Conv2D(64, (5, 5), activation="relu", padding="same", name="c12")(c11)
     output = Conv2D(5, (1, 1), activation="softmax", name="c13")(c12)
 
-    model = models.Model(input, output, name="Detailed-Feature-Extractor")
-    model.summary()
-
-    return model
+    return output
 
 
 def fusion_module(y1_output, y2_output):
     f1 = Concatenate(name="concatenate")([y1_output, y2_output])
-    # Ensure that f1 is a tensor
-    f1 = tf.convert_to_tensor(f1)
     c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f1")(f1)
     c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f2")(c1)
     c3 = Conv2D(32, (3, 3), activation="relu", padding="same", name="f3")(c2)
@@ -115,19 +103,27 @@ def fusion_module(y1_output, y2_output):
 def build_ynet(img_width, img_height, channel_size, dropout_rate):
     input_shape = (img_width, img_height, channel_size)
     inputs = Input(input_shape)
-    y1 = semantic_feature_extractor(
-        img_width=img_width,
-        img_height=img_height,
-        channel_size=channel_size,
-        dropout_rate=dropout_rate,
-    )
-    y1_output = y1.output
-    y2 = detail_feature_extractor(input_shape)
-    y2_output = y2.output
-
+    
+    # Semantic Feature Extractor
+    y1_output = semantic_feature_extractor(inputs, dropout_rate)
+    
+    # Detail Feature Extractor
+    y2_output = detail_feature_extractor(inputs)
     outputs = fusion_module(y1_output, y2_output)
 
     model = Model(inputs, outputs, name="Y-Net")
 
+    model.summary()
+    return model
+
+
+def build_feature_extractor_for_pretraining(img_width, img_height, channel_size, dropout_rate):
+    input_shape = (img_width, img_height, channel_size)
+    inputs = Input(input_shape)
+    
+    # Semantic Feature Extractor
+    y1_output = semantic_feature_extractor(inputs, dropout_rate)
+
+    model = Model(inputs, y1_output, name="Pretraining Y-Net-Model")
     model.summary()
     return model

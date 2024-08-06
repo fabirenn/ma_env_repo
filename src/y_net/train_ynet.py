@@ -44,8 +44,8 @@ IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
-EPOCHS = 200
-PATIENCE = 70
+EPOCHS = 50
+PATIENCE = 30
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
