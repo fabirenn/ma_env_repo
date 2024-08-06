@@ -1,14 +1,13 @@
 import os
 import sys
 
-import keras.metrics
-from keras.callbacks import EarlyStopping
+import keras
 from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from ynet_model import build_ynet, build_feature_extractor_for_pretraining
+from ynet_model import build_ynet, build_feature_extractor_for_pretraining, build_ynet_with_pretrained_semantic_extractor
 
 from custom_callbacks import ValidationCallback
 from data_loader import create_datasets_for_unet_training
@@ -76,7 +75,7 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, CHECKPOINT_PATH)
 
 model.compile(
     optimizer="adam",
