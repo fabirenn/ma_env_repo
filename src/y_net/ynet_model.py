@@ -124,6 +124,6 @@ def build_feature_extractor_for_pretraining(img_width, img_height, channel_size,
     # Semantic Feature Extractor
     y1_output = semantic_feature_extractor(inputs, dropout_rate)
 
-    model = Model(inputs, y1_output, name="Pretraining Y-Net-Model")
+    model = Model(inputs, y1_output, name="Pretraining_Model")
     model.summary()
     return model
