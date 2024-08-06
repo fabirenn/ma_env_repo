@@ -45,11 +45,11 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 LOG_VAL_PRED = "data/predictions/segan"
 CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
-IMG_WIDTH = 256
-IMG_HEIGHT = 256
+IMG_WIDTH = 512
+IMG_HEIGHT = 512
 
-EPOCHS = 50
-PATIENCE = 30
+EPOCHS = 100
+PATIENCE = 20
 BEST_IOU = 0
 WAIT = 0
 
