@@ -44,7 +44,7 @@ def generator_loss(fake_output, gen_output, target):
     cce = keras.losses.CategoricalCrossentropy(from_logits=False)
     segmentation_loss = cce(target, gen_output)
 
-    return adversarial_loss + segmentation_loss
+    return adversarial_loss + segmentation_loss, segmentation_loss
 
 
 def multi_scale_l1_loss(real_images, real_labels, generated_labels, intermediate_model):
@@ -55,9 +55,9 @@ def multi_scale_l1_loss(real_images, real_labels, generated_labels, intermediate
 
 
 def combined_generator_loss(critic, intermediate_model, real_images, real_labels, generated_labels):
-    gen_loss = generator_loss(critic([real_images, generated_labels]), generated_labels, real_labels)
+    gen_loss, segmentation_loss = generator_loss(critic([real_images, generated_labels]), generated_labels, real_labels)
     multi_scale_loss = multi_scale_l1_loss(real_images, real_labels, generated_labels, intermediate_model)
-    return gen_loss + multi_scale_loss
+    return gen_loss + multi_scale_loss, segmentation_loss
 
 
 def combined_discriminator_loss(

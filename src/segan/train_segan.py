@@ -161,7 +161,7 @@ def train_step_generator(images, masks):
 
     with tf.GradientTape() as gen_tape:
         generated_masks = generator_model(images, training=True)
-        gen_loss = combined_generator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
+        gen_loss, segmentation_loss = combined_generator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
     )
@@ -169,7 +169,7 @@ def train_step_generator(images, masks):
     gen_optimizer.apply_gradients(
         zip(gradients_of_generator, generator_model.trainable_variables)
     )
-    return gen_loss
+    return segmentation_loss
 
 
 @tf.function
