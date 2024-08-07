@@ -9,8 +9,6 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
 
-CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.keras"
-
 
 def semantic_feature_extractor(input_tensor, dropout_rate):
 
@@ -134,11 +132,12 @@ def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel
     # Semantic Feature Extractor
     y1_output = semantic_feature_extractor(inputs, dropout_rate)
 
-    
-    for layer in semantic_extractor_model.layers:
+    pretrained_semantic_model = Model(inputs=inputs, outputs=y1_output, name='Semantic-Feature-Extractor')
+
+    for layer in pretrained_semantic_model.layers:
         try:
-            target_layer = inputs.get_layer(layer.name)
-            target_layer.set_weights(layer.get_weights())
+            target_layer = semantic_extractor_model.get_layer(layer.name)
+            target_layer.set_weights(target_layer.get_weights())
         except StopIteration:
             pass
 
