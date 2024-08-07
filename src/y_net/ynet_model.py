@@ -66,7 +66,7 @@ def semantic_feature_extractor(input_tensor, dropout_rate):
     # Output
     output = Conv2D(5, (1, 1), padding='same', activation='softmax')(r3)
 
-    return output
+    return input_tensor, output
 
 
 def detail_feature_extractor(input_tensor):
@@ -119,7 +119,7 @@ def build_feature_extractor_for_pretraining(img_width, img_height, channel_size,
     inputs = Input(input_shape)
     
     # Semantic Feature Extractor
-    y1_output = semantic_feature_extractor(inputs, dropout_rate)
+    semantic_input, y1_output = semantic_feature_extractor(inputs, dropout_rate)
 
     model = Model(inputs, y1_output, name="Pretraining_Model")
     model.summary()
@@ -130,16 +130,14 @@ def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel
     inputs = Input(input_shape)
     
     # Semantic Feature Extractor
-    y1_output = semantic_feature_extractor(inputs, dropout_rate)
+    semantic_inputs, y1_output = semantic_feature_extractor(inputs, dropout_rate)
 
-    pretrained_semantic_model = Model(inputs=inputs, outputs=y1_output, name='Semantic-Feature-Extractor')
+    pretrained_semantic_model = Model(inputs=semantic_inputs, outputs=y1_output, name='Semantic-Feature-Extractor')
 
     for layer in pretrained_semantic_model.layers:
-        try:
+        if layer.name in [l.name for l in semantic_extractor_model.layers]:
             target_layer = semantic_extractor_model.get_layer(layer.name)
-            target_layer.set_weights(target_layer.get_weights())
-        except StopIteration:
-            pass
+            layer.set_weights(target_layer.get_weights())
 
     y2_output = detail_feature_extractor(input_shape)
     
