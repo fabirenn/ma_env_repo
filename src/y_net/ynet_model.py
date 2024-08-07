@@ -10,61 +10,61 @@ sys.path.append(
 )
 
 
-def semantic_feature_extractor(input_shape, dropout_rate):
-    input_tensor = layers.Input(shape=input_shape)
+def semantic_feature_extractor(input_shape, dropout_rate, name_prefix=""):
+    input_tensor = layers.Input(shape=input_shape, name=name_prefix + "input")
     # Encoder Path
-    c1 = Conv2D(64, (3, 3), padding='same', activation='relu')(input_tensor)
-    b1 = BatchNormalization()(c1)
-    c2 = Conv2D(64, (3, 3), padding='same', activation='relu')(b1)
-    p1 = MaxPooling2D((2, 2), strides=2)(c2)
+    c1 = Conv2D(64, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_1")(input_tensor)
+    b1 = BatchNormalization(name=name_prefix + "batch_normalization_1")(c1)
+    c2 = Conv2D(64, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_2")(b1)
+    p1 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_1")(c2)
     
-    c3 = Conv2D(128, (3, 3), padding='same', activation='relu')(p1)
-    b2 = BatchNormalization()(c3)
-    c4 = Conv2D(128, (3, 3), padding='same', activation='relu')(b2)
-    p2 = MaxPooling2D((2, 2), strides=2)(c4)
+    c3 = Conv2D(128, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_3")(p1)
+    b2 = BatchNormalization(name=name_prefix + "batch_normalization_2")(c3)
+    c4 = Conv2D(128, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_4")(b2)
+    p2 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_2")(c4)
     
-    c5 = Conv2D(256, (3, 3), padding='same', activation='relu')(p2)
-    c6 = Conv2D(256, (3, 3), padding='same', activation='relu')(c5)
-    b3 = BatchNormalization()(c6)
-    c7 = Conv2D(256, (3, 3), padding='same', activation='relu')(b3)
-    p3 = MaxPooling2D((2, 2), strides=2)(c7)
+    c5 = Conv2D(256, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_5")(p2)
+    c6 = Conv2D(256, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_6")(c5)
+    b3 = BatchNormalization(name=name_prefix + "batch_normalization_3")(c6)
+    c7 = Conv2D(256, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_7")(b3)
+    p3 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_3")(c7)
     
-    c8 = Conv2D(512, (3, 3), padding='same', activation='relu')(p3)
-    c9 = Conv2D(512, (3, 3), padding='same', activation='relu')(c8)
-    b4 = BatchNormalization()(c9)
-    c10 = Conv2D(512, (3, 3), padding='same', activation='relu')(b4)
-    p4 = MaxPooling2D((2, 2), strides=2)(c10)
+    c8 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_8")(p3)
+    c9 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_9")(c8)
+    b4 = BatchNormalization(name=name_prefix + "batch_normalization_4")(c9)
+    c10 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_10")(b4)
+    p4 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_4")(c10)
     
-    c11 = Conv2D(512, (3, 3), padding='same', activation='relu')(p4)
-    c12 = Conv2D(512, (3, 3), padding='same', activation='relu')(c11)
-    b5 = BatchNormalization()(c12)
-    c13 = Conv2D(512, (3, 3), padding='same', activation='relu')(b5)
-    p5 = MaxPooling2D((2, 2), strides=2)(c13)
+    c11 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_11")(p4)
+    c12 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_12")(c11)
+    b5 = BatchNormalization(name=name_prefix + "batch_normalization_5")(c12)
+    c13 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_13")(b5)
+    p5 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_5")(c13)
     
-    c14 = Conv2D(4096, (3, 3), padding='same', activation='relu')(p5)
-    c15 = Conv2D(4096, (1, 1), padding='same', activation='relu')(c14)
-    c16 = Conv2D(5, (1, 1), padding='same', activation='relu')(c15)
+    c14 = Conv2D(4096, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_14")(p5)
+    c15 = Conv2D(4096, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_15")(c14)
+    c16 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_16")(c15)
     
     # Decoder Path
-    d1 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(c16)
-    c17 = Conv2D(5, (1, 1), padding='same', activation='relu')(d1)
-    r1 = Cropping2D(cropping=((0, 0), (0, 0)))(c13)
-    r1 = Conv2D(5, (1, 1), padding='same', activation='relu')(r1)  # Match channels to 5
-    s1 = Add()([r1, c17])
+    d1 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu', name=name_prefix + "conv2d_transpose_1")(c16)
+    c17 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_17")(d1)
+    r1 = Cropping2D(cropping=((0, 0), (0, 0)), name=name_prefix + "cropping2d_1")(c13)
+    r1 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_18")(r1)  # Match channels to 5
+    s1 = Add(name=name_prefix + "add_1")([r1, c17])
     
-    d2 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(s1)
-    c18 = Conv2D(5, (1, 1), padding='same', activation='relu')(d2)
-    r2 = Cropping2D(cropping=((0, 0), (0, 0)))(c10)
-    r2 = Conv2D(5, (1, 1), padding='same', activation='relu')(r2)  # Match channels to 5
-    s2 = Add()([r2, c18])
+    d2 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu', name=name_prefix + "conv2d_transpose_2")(s1)
+    c18 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_19")(d2)
+    r2 = Cropping2D(cropping=((0, 0), (0, 0)), name=name_prefix + "cropping2d_2")(c10)
+    r2 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_20")(r2)  # Match channels to 5
+    s2 = Add(name=name_prefix + "add_2")([r2, c18])
     
-    d3 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(s2)
-    d4 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(d3)
-    d5 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu')(d4)
-    r3 = Cropping2D(cropping=((0, 0), (0, 0)))(d5)  # Adjust the cropping values based on dimensions
+    d3 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu', name=name_prefix + "conv2d_transpose_3")(s2)
+    d4 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu', name=name_prefix + "conv2d_transpose_4")(d3)
+    d5 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu', name=name_prefix + "conv2d_transpose_5")(d4)
+    r3 = Cropping2D(cropping=((0, 0), (0, 0)), name=name_prefix + "cropping2d_3")(d5)  # Adjust the cropping values based on dimensions
 
     # Output
-    output = Conv2D(5, (1, 1), padding='same', activation='softmax')(r3)
+    output = Conv2D(5, (1, 1), padding='same', activation='softmax', name=name_prefix + "conv2d_21")(r3)
 
     return input_tensor, output
 
@@ -122,7 +122,7 @@ def build_feature_extractor_for_pretraining(img_width, img_height, channel_size,
     input_shape = (img_width, img_height, channel_size)
     
     # Semantic Feature Extractor
-    semantic_input, y1_output = semantic_feature_extractor(input_shape, dropout_rate)
+    semantic_input, y1_output = semantic_feature_extractor(input_shape, dropout_rate, name_prefix="pretrain_")
 
     model = Model(semantic_input, y1_output, name="Pretraining_Model")
     model.summary()

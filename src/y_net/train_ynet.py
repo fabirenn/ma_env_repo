@@ -76,10 +76,10 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
-semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
+model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+#semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
-model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
+#model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
 model.compile(
     optimizer="adam",
@@ -103,7 +103,7 @@ model.fit(
     callbacks=[
         WandbMetricsLogger(log_freq="epoch"),
         keras.callbacks.ModelCheckpoint(
-            filepath=CHECKPOINT_PATH_YNET,
+            filepath=CHECKPOINT_PATH_PRETRAINED,
             save_best_only=True,
             save_weights_only=False,
             monitor="val_loss",
@@ -123,5 +123,6 @@ model.fit(
         ),
     ],
 )
+model.save_weights(CHECKPOINT_PATH_PRETRAINED)
 
 wandb.finish()
