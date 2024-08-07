@@ -150,7 +150,7 @@ def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel
     y2 = Model(inputs=y2_input, outputs=y2_output, name="Detail-Extractor")
     
     # Fusion Module
-    outputs = fusion_module(pretrained_y1.output, y2.output)
+    outputs = fusion_module(pretrained_y1(inputs), y2(inputs))
 
     # Model definition
     model = Model(inputs, outputs, name="Y-Net")
