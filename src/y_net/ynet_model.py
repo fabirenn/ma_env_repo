@@ -6,9 +6,8 @@ from keras.layers import Conv2D, Input, Concatenate, BatchNormalization, MaxPool
 from keras.models import Model
 
 sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net"))
+    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
-from unet_model import unet
 
 CHECKPOINT_PATH_UNET = "./artifacts/models/unet/unet_checkpoint.keras"
 
@@ -128,29 +127,27 @@ def build_feature_extractor_for_pretraining(img_width, img_height, channel_size,
     model.summary()
     return model
 
-def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel_size, dropout_rate, pretrained_weights_path):
+def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel_size, dropout_rate, semantic_extractor_model):
     input_shape = (img_width, img_height, channel_size)
     inputs = Input(input_shape)
     
     # Semantic Feature Extractor
     y1_output = semantic_feature_extractor(inputs, dropout_rate)
+
     
-    # Detail Feature Extractor
-    y2_output = detail_feature_extractor(inputs)
+    for layer in semantic_extractor_model.layers:
+        try:
+            target_layer = inputs.get_layer(layer.name)
+            target_layer.set_weights(layer.get_weights())
+        except StopIteration:
+            pass
+
+    y2_output = detail_feature_extractor(input_shape)
     
     # Fusion Module
     outputs = fusion_module(y1_output, y2_output)
 
     # Model definition
     model = Model(inputs, outputs, name="Y-Net")
-
-    # Load pretrained weights
-    semantic_extractor_model = build_feature_extractor_for_pretraining(img_width, img_height, channel_size, dropout_rate)
-    semantic_extractor_model.load_weights(pretrained_weights_path, by_name=True)
-    
-    for layer in model.layers:
-        if layer.name.startswith('conv') or layer.name.startswith('batch_normalization'):
-            layer.set_weights(semantic_extractor_model.get_layer(layer.name).get_weights())
-
     model.summary()
     return model

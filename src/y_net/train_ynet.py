@@ -75,7 +75,10 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, CHECKPOINT_PATH)
+semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+semantic_extractor_model.load_weights(CHECKPOINT_PATH)
+
+model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
 model.compile(
     optimizer="adam",
