@@ -14,7 +14,6 @@ from data_loader import create_datasets_for_unet_training
 from loss_functions import dice_loss
 from metrics_calculation import (
     dice_coefficient,
-    f1_score,
     mean_iou,
     pixel_accuracy,
     precision,
@@ -90,7 +89,6 @@ model.compile(
         precision,
         mean_iou,
         dice_coefficient,
-        f1_score,
         recall,
     ],
 )

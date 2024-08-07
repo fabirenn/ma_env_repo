@@ -27,7 +27,6 @@ from loss_functions import (
 from metrics_calculation import (
     accuracy,
     dice_coefficient,
-    f1_score,
     mean_iou,
     pixel_accuracy,
     precision,
@@ -136,7 +135,6 @@ def objective(trial):
             "pixel_accuracy": keras.metrics.Mean(name="pixel_accuracy"),
             "precision": keras.metrics.Mean(name="precision"),
             "recall": keras.metrics.Mean(name="recall"),
-            "f1": keras.metrics.Mean(name="f1"),
         }
 
         # Calculate metrics over the validation dataset
@@ -154,7 +152,6 @@ def objective(trial):
                 precision(mask_batch, predictions)
             )
             metrics["recall"].update_state(recall(mask_batch, predictions))
-            metrics["f1"].update_state(f1_score(mask_batch, predictions))
 
         results = {
             name: metric.result().numpy() for name, metric in metrics.items()
@@ -211,14 +208,12 @@ def objective(trial):
                     "train_precision": train_metrics["precision"],
                     "train_mean_iou": train_metrics["mean_iou"],
                     "train_dice_coefficient": train_metrics["dice"],
-                    "train_f1": train_metrics["f1"],
                     "train_recall": train_metrics["recall"],
                     "val_accuracy": val_metrics["accuracy"],
                     "val_pixel_accuracy": val_metrics["pixel_accuracy"],
                     "val_precision": val_metrics["precision"],
                     "val_mean_iou": val_metrics["mean_iou"],
                     "val_dice_coefficient": val_metrics["dice"],
-                    "val_f1": val_metrics["f1"],
                     "val_recall": val_metrics["recall"],
                 }
             )
@@ -226,10 +221,10 @@ def objective(trial):
                 f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f}"
             )
             print(
-                f"Train Metrics - Accuracy: {train_metrics['accuracy']:.4f}, PA: {train_metrics['pixel_accuracy']:.4f}, Precision: {train_metrics['precision']:.4f}, Recall: {train_metrics['recall']:.4f}, IOU: {train_metrics['mean_iou']:.4f}, Dice: {train_metrics['dice']:.4f}, F1: {train_metrics['f1']:.4f}"
+                f"Train Metrics - Accuracy: {train_metrics['accuracy']:.4f}, PA: {train_metrics['pixel_accuracy']:.4f}, Precision: {train_metrics['precision']:.4f}, Recall: {train_metrics['recall']:.4f}, IOU: {train_metrics['mean_iou']:.4f}, Dice: {train_metrics['dice']:.4f}"
             )
             print(
-                f"Validation Metrics - Accuracy: {val_metrics['accuracy']:.4f}, PA: {val_metrics['pixel_accuracy']:.4f}, Precision: {val_metrics['precision']:.4f}, Recall: {val_metrics['recall']:.4f}, IOU: {val_metrics['mean_iou']:.4f}, Dice: {val_metrics['dice']:.4f}, F1: {val_metrics['f1']:.4f}"
+                f"Validation Metrics - Accuracy: {val_metrics['accuracy']:.4f}, PA: {val_metrics['pixel_accuracy']:.4f}, Precision: {val_metrics['precision']:.4f}, Recall: {val_metrics['recall']:.4f}, IOU: {val_metrics['mean_iou']:.4f}, Dice: {val_metrics['dice']:.4f}"
             )
 
             if gen_loss < best_gen_loss:

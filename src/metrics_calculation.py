@@ -72,9 +72,3 @@ def recall(y_true, y_pred, num_classes=5):
             true_positives / (actual_positives + keras.backend.epsilon())
         )
     return tf.reduce_mean(recalls)
-
-
-def f1_score(y_true, y_pred, num_classes=5):
-    prec = precision(y_true, y_pred, num_classes)
-    rec = recall(y_true, y_pred, num_classes)
-    return 2 * (prec * rec) / (prec + rec + keras.backend.epsilon())
