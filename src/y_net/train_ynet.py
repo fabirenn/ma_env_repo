@@ -83,7 +83,7 @@ model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANN
 
 model.compile(
     optimizer="adam",
-    loss=dice_loss,
+    loss=keras.losses.CategoricalCrossentropy(),
     metrics=[
         "accuracy",
         pixel_accuracy,
