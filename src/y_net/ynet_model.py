@@ -10,8 +10,8 @@ sys.path.append(
 )
 
 
-def semantic_feature_extractor(input_tensor, dropout_rate):
-
+def semantic_feature_extractor(input_shape, dropout_rate):
+    input_tensor = layers.Input(shape=input_shape)
     # Encoder Path
     c1 = Conv2D(64, (3, 3), padding='same', activation='relu')(input_tensor)
     b1 = BatchNormalization()(c1)
@@ -69,7 +69,8 @@ def semantic_feature_extractor(input_tensor, dropout_rate):
     return input_tensor, output
 
 
-def detail_feature_extractor(input_tensor):
+def detail_feature_extractor(input_shape):
+    input_tensor = layers.Input(shape=input_shape)
     c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c1")(input_tensor)
     c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c2")(c1)
     c3 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c3")(c2)
@@ -99,13 +100,13 @@ def fusion_module(y1_output, y2_output):
 
 def build_ynet(img_width, img_height, channel_size, dropout_rate):
     input_shape = (img_width, img_height, channel_size)
-    inputs = Input(input_shape)
+    inputs = Input(shape=input_shape)
     
     # Semantic Feature Extractor
-    y1_output = semantic_feature_extractor(inputs, dropout_rate)
+    y1_output = semantic_feature_extractor(input_shape, dropout_rate)
     
     # Detail Feature Extractor
-    y2_output = detail_feature_extractor(inputs)
+    y2_output = detail_feature_extractor(input_shape)
     outputs = fusion_module(y1_output, y2_output)
 
     model = Model(inputs, outputs, name="Y-Net")
@@ -119,7 +120,7 @@ def build_feature_extractor_for_pretraining(img_width, img_height, channel_size,
     inputs = Input(input_shape)
     
     # Semantic Feature Extractor
-    semantic_input, y1_output = semantic_feature_extractor(inputs, dropout_rate)
+    semantic_input, y1_output = semantic_feature_extractor(input_shape, dropout_rate)
 
     model = Model(inputs, y1_output, name="Pretraining_Model")
     model.summary()
