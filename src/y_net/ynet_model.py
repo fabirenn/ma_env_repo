@@ -138,9 +138,13 @@ def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel
     pretrained_y1 = Model(inputs=y1_inputs, outputs=y1_output, name='Pretrained-Semantic-Feature-Extractor')
 
     for layer in pretrained_y1.layers:
-        if isinstance(layer, layers.Conv2D) or isinstance(layer, layers.BatchNormalization):
-            layer.set_weights(semantic_extractor_model.get_layer(layer.name).get_weights())
-
+        if isinstance(layer, (layers.Conv2D, layers.BatchNormalization, layers.Conv2DTranspose, layers.Add, layers.Cropping2D)):
+            try:
+                layer.set_weights(semantic_extractor_model.get_layer(layer.name).get_weights())
+            
+            except ValueError:
+                print(f"Layer {layer.name} not found in the pretrained model. Skipping.")
+    
     y2_input, y2_output = detail_feature_extractor(input_shape)
 
     y2 = Model(inputs=y2_input, outputs=y2_output, name="Detail-Extractor")
