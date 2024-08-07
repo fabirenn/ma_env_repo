@@ -1,8 +1,15 @@
 import keras
 import numpy as np
 import tensorflow as tf
+from data_loader import train_class_frequencies, val_class_frequencies, test_class_frequencies
 
 num_classes = 5
+
+
+def calculate_class_weights(class_counts, num_classes):
+    total_pixels = sum(class_counts)
+    class_weights = [total_pixels / (num_classes * count) for count in class_counts]
+    return tf.constant(class_weights, dtype=tf.float32)
 
 
 def pixel_accuracy(y_true, y_pred):

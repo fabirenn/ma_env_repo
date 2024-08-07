@@ -140,7 +140,7 @@ def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel
     for layer in pretrained_y1.layers:
         if isinstance(layer, (layers.Conv2D, layers.BatchNormalization, layers.Conv2DTranspose, layers.Add, layers.Cropping2D)):
             try:
-                layer.set_weights(semantic_extractor_model.get_layer(layer.name).get_weights())
+                layer.set_weights(semantic_extractor_model.get_layer("pretrain_" + layer.name).get_weights())
             
             except ValueError:
                 print(f"Layer {layer.name} not found in the pretrained model. Skipping.")

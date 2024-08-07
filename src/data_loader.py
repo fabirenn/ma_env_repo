@@ -14,6 +14,10 @@ cls2bgr = {
     4: (102, 255, 102),  # other
 }
 
+train_class_frequencies = []
+val_class_frequencies = []
+test_class_frequencies = []
+
 def count_class_pixels(masks_list, num_classes):
     """
     Count the number of pixels for each class in a list of masks.
@@ -31,7 +35,7 @@ def count_class_pixels(masks_list, num_classes):
         # Sum the number of pixels in each class for this mask
         class_pixel_counts += np.sum(mask, axis=(0, 1)).astype(np.int64)
 
-    return class_pixel_counts
+    return class_pixel_counts.tolist()
 
 def bgr_mask2cls_mask(bgr_mask, cls2bgr) -> np.ndarray:
     """Convert BGR mask to class mask."""
@@ -256,6 +260,8 @@ def create_datasets_for_unet_training(
     batch_size,
     channel_size,
 ):
+    global train_class_frequencies
+    global val_class_frequencies
     # loading img and masks from corresponding paths into to separate lists
     train_images = load_images_from_directory(directory_train_images)
     train_masks = load_masks_from_directory(directory_train_masks, cls2bgr)
@@ -272,11 +278,11 @@ def create_datasets_for_unet_training(
     val_masks = resize_images(val_masks, img_width, img_height)
     print("All images resized..")
 
-    train_class_pixel_counts = count_class_pixels(train_masks, 5)
-    val_class_pixel_counts = count_class_pixels(val_masks, 5)
+    train_class_frequencies = count_class_pixels(train_masks, 5)
+    val_class_frequencies = count_class_pixels(val_masks, 5)
 
-    print("Train class pixel counts: ", train_class_pixel_counts)
-    print("Validation class pixel counts: ", val_class_pixel_counts)
+    print("Train class pixel counts: ", train_class_frequencies)
+    print("Validation class pixel counts: ", val_class_frequencies)
 
     # applying augmentation to each image / mask pair
     train_images, train_masks = augment_image_mask(train_images, train_masks)
@@ -336,7 +342,8 @@ def create_datasets_for_segnet_training(
     img_height,
     batch_size,
 ):
-
+    global train_class_frequencies
+    global val_class_frequencies
     # loading images and masks from corresponding paths into to separate lists
     train_images = load_images_from_directory(directory_train_images)
     train_masks = load_masks_from_directory(directory_train_masks, cls2bgr)
@@ -353,11 +360,11 @@ def create_datasets_for_segnet_training(
     val_masks = resize_images(val_masks, img_width, img_height)
     print("All images resized..")
 
-    train_class_pixel_counts = count_class_pixels(train_masks, 5)
-    val_class_pixel_counts = count_class_pixels(val_masks, 5)
+    train_class_frequencies = count_class_pixels(train_masks, 5)
+    val_class_frequencies = count_class_pixels(val_masks, 5)
 
-    print("Train class pixel counts: ", train_class_pixel_counts)
-    print("Validation class pixel counts: ", val_class_pixel_counts)
+    print("Train class pixel counts: ", train_class_frequencies)
+    print("Validation class pixel counts: ", val_class_frequencies)
 
     # applying augmentation to each image / mask pair
     train_images, train_masks = augment_image_mask(train_images, train_masks)
@@ -410,7 +417,7 @@ def create_testdataset_for_unet_training(
     batch_size,
     channel_size,
 ):
-
+    global test_class_frequencies
     # loading images and masks from corresponding paths into to separate lists
     test_images = load_images_from_directory(directory_test_images)
     test_masks = load_masks_from_directory(directory_test_masks, cls2bgr)
@@ -421,8 +428,8 @@ def create_testdataset_for_unet_training(
     test_masks = resize_images(test_masks, img_width, img_height)
     print("Test-Images resized..")
 
-    test_class_pixel_counts = count_class_pixels(test_masks, 5)
-    print("Test class pixel counts: ", test_class_pixel_counts)
+    test_class_frequencies = count_class_pixels(test_masks, 5)
+    print("Test class pixel counts: ", test_class_frequencies)
 
     # normalizing the values of the images and binarizing the image masks
     test_images_normalized = normalize_image_data(test_images)
@@ -458,6 +465,7 @@ def create_testdataset_for_segnet_training(
     img_height,
     batch_size,
 ):
+    global test_class_frequencies
     # loading images and masks from corresponding paths into to separate lists
     test_images = load_images_from_directory(directory_test_images)
     test_masks = load_masks_from_directory(directory_test_masks, cls2bgr)
@@ -468,8 +476,8 @@ def create_testdataset_for_segnet_training(
     test_masks = resize_images(test_masks, img_width, img_height)
     print("Test-Images resized..")
 
-    test_class_pixel_counts = count_class_pixels(test_masks, 5)
-    print("Test class pixel counts: ", test_class_pixel_counts)
+    test_class_frequencies = count_class_pixels(test_masks, 5)
+    print("Test class pixel counts: ", test_class_frequencies)
 
     # normalizing the values of the images and binarizing the image masks
     test_images = normalize_image_data(test_images)
@@ -495,6 +503,7 @@ def create_testdataset_for_segnet_training(
 
 
 def create_dataset_for_image_segmentation(img_dir, mask_dir):
+    global test_class_frequencies
     images = []
     preprocessed_images = []
     images = load_images_from_directory(img_dir)
@@ -505,6 +514,7 @@ def create_dataset_for_image_segmentation(img_dir, mask_dir):
     masks = []
     masks = load_masks_from_directory(mask_dir, cls2bgr)
     masks = resize_images(masks, 1500, 1000)
+    test_class_frequencies = count_class_pixels(masks, 5)
     #masks = make_binary_masks(masks, threshold=30)
 
     return images, preprocessed_images, masks
