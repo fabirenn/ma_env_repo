@@ -29,7 +29,7 @@ def count_class_pixels(masks_list, num_classes):
 
     for mask in masks_list:
         # Sum the number of pixels in each class for this mask
-        class_pixel_counts += np.sum(mask, axis=(0, 1))
+        class_pixel_counts += np.sum(mask, axis=(0, 1)).astype(np.int64)
 
     return class_pixel_counts
 
