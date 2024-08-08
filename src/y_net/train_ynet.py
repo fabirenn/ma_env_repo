@@ -42,8 +42,8 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.0
-BATCH_SIZE = 8
-EPOCHS = 70
+BATCH_SIZE = 16
+EPOCHS = 100
 PATIENCE = 30
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
@@ -95,7 +95,7 @@ optimizer = keras.optimizers.SGD(
 
 model.compile(
     optimizer=optimizer,
-    loss=keras.losses.CategoricalCrossentropy(),
+    loss=dice_loss,
     metrics=[
         "accuracy",
         pixel_accuracy,
