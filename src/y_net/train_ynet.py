@@ -80,8 +80,21 @@ semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
 model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
+# Set the optimizer parameters
+momentum = 0.9
+weight_decay = 0.0001
+learning_rate = 0.001
+
+# Create the SGD optimizer
+optimizer = keras.optimizers.SGD(
+    learning_rate=learning_rate,
+    momentum=momentum,
+    decay=weight_decay,
+    nesterov=False  # You can set this to True if you want to use Nesterov momentum
+)
+
 model.compile(
-    optimizer="adam",
+    optimizer=optimizer,
     loss=keras.losses.CategoricalCrossentropy(),
     metrics=[
         "accuracy",
