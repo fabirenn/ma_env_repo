@@ -16,34 +16,34 @@ def semantic_feature_extractor(input_shape, dropout_rate, name_prefix=""):
     c1 = Conv2D(64, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_1")(input_tensor)
     b1 = BatchNormalization(name=name_prefix + "batch_normalization_1")(c1)
     c2 = Conv2D(64, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_2")(b1)
-    d1 = Dropout(dropout_rate)(c2)
+    d1 = Dropout(dropout_rate, name=name_prefix + "dropoutd_1")(c2)
     p1 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_1")(d1)
     
     c3 = Conv2D(128, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_3")(p1)
     b2 = BatchNormalization(name=name_prefix + "batch_normalization_2")(c3)
     c4 = Conv2D(128, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_4")(b2)
-    d2 = Dropout(dropout_rate)(c4)
+    d2 = Dropout(dropout_rate, name=name_prefix + "dropoutd_2")(c4)
     p2 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_2")(d2)
     
     c5 = Conv2D(256, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_5")(p2)
     c6 = Conv2D(256, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_6")(c5)
     b3 = BatchNormalization(name=name_prefix + "batch_normalization_3")(c6)
     c7 = Conv2D(256, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_7")(b3)
-    d3 = Dropout(dropout_rate)(c7)
+    d3 = Dropout(dropout_rate, name=name_prefix + "dropoutd_3")(c7)
     p3 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_3")(d3)
     
     c8 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_8")(p3)
     c9 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_9")(c8)
     b4 = BatchNormalization(name=name_prefix + "batch_normalization_4")(c9)
     c10 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_10")(b4)
-    d4 = Dropout(dropout_rate)(c10)
+    d4 = Dropout(dropout_rate, name=name_prefix + "dropoutd_4")(c10)
     p4 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_4")(d4)
     
     c11 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_11")(p4)
     c12 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_12")(c11)
     b5 = BatchNormalization(name=name_prefix + "batch_normalization_5")(c12)
     c13 = Conv2D(512, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_13")(b5)
-    d5 = Dropout(dropout_rate)(c13)
+    d5 = Dropout(dropout_rate, name=name_prefix + "dropoutd_5")(c13)
     p5 = MaxPooling2D((2, 2), strides=2, name=name_prefix + "max_pooling2d_5")(d5)
     
     c14 = Conv2D(4096, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_14")(p5)
@@ -55,14 +55,14 @@ def semantic_feature_extractor(input_shape, dropout_rate, name_prefix=""):
     c17 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_17")(d1)
     r1 = Cropping2D(cropping=((0, 0), (0, 0)), name=name_prefix + "cropping2d_1")(c13)
     r1 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_18")(r1)  # Match channels to 5
-    d6 = Dropout(dropout_rate)(r1)
+    d6 = Dropout(dropout_rate, name=name_prefix + "dropoutd_6")(r1)
     s1 = Add(name=name_prefix + "add_1")([d6, c17])
     
     d2 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu', name=name_prefix + "conv2d_transpose_2")(s1)
     c18 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_19")(d2)
     r2 = Cropping2D(cropping=((0, 0), (0, 0)), name=name_prefix + "cropping2d_2")(c10)
     r2 = Conv2D(5, (1, 1), padding='same', activation='relu', name=name_prefix + "conv2d_20")(r2)  # Match channels to 5
-    d7 = Dropout(dropout_rate)(r2)
+    d7 = Dropout(dropout_rate, name=name_prefix + "dropoutd_7")(r2)
     s2 = Add(name=name_prefix + "add_2")([d7, c18])
     
     d3 = Conv2DTranspose(5, (4, 4), strides=(2, 2), padding='same', activation='relu', name=name_prefix + "conv2d_transpose_3")(s2)
