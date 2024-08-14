@@ -41,7 +41,7 @@ IMG_CHANNEL = 3
 EPOCHS = 100
 PATIENCE = 30
 
-os.environ["WANDB_DIR"] = "wandb/train_unet"
+os.environ["WANDB_DIR"] = "wandb/train_ynet"
 os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
 
 

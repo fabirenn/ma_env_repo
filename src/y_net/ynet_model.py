@@ -154,7 +154,7 @@ def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel
             except ValueError:
                 print(f"Layer {layer.name} not found in the pretrained model. Skipping.")
     
-    y2_input, y2_output = detail_feature_extractor(input_shape)
+    y2_input, y2_output = detail_feature_extractor(input_shape, dropout_rate)
 
     y2 = Model(inputs=y2_input, outputs=y2_output, name="Detail-Extractor")
     
