@@ -94,7 +94,7 @@ optimizer = keras.optimizers.SGD(
 )
 
 model.compile(
-    optimizer=optimizer,
+    optimizer="adam",
     loss=dice_loss,
     metrics=[
         "accuracy",
