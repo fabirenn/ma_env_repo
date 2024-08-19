@@ -41,8 +41,49 @@ def objective(trial):
     BATCH_SIZE = trial.suggest_categorical(
         "batch_size", [8, 12, 16, 20, 24, 28, 32]
     )
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    # Number of filters and model depth tuning
+    NUM_FILTERS = trial.suggest_categorical(
+        "num_filters",
+        [
+            [16, 32, 64]
+            [32, 64, 128],
+            [64, 128, 256],
+            [128, 256, 512],
+            [256, 512, 1024],
+            [16, 32, 64, 128],
+            [32, 64, 128, 256],
+            [64, 128, 256, 512],
+            [128, 256, 512, 1024],
+            [16, 32, 64, 128, 256],
+            [32, 64, 128, 256, 512],
+            [64, 128, 256, 512, 1024],
+        ]
+    )
+    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [(3, 3), (5, 5)])
+    OPTIMIZER = trial.suggest_categorical(
+        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
+    )
+    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
+    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
+    INITIALIZER = trial.suggest_categorical(
+            "weight_initializer", ["he_normal", "he_uniform"]
+        )
+    
+    if INITIALIZER == "he_normal":
+        initializer_function = keras.initializers.HeNormal()
+    elif INITIALIZER == "he_uniform":
+        initializer_function = keras.initializers.HeUniform()
 
+    if OPTIMIZER == "sgd":
+        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adagrad":
+        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "rmsprop":
+        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adam":
+        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
     # tf.keras.backend.clear_session()
 
     try:
@@ -59,10 +100,15 @@ def objective(trial):
         model = segnet(
             input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
+            num_filters=NUM_FILTERS,
+            kernel_size=KERNEL_SIZE,
+            activation=ACTIVATION,
+            use_batchnorm=USE_BATCHNORM,
+            initializer_function=initializer_function
         )
 
         model.compile(
-            optimizer="adam",
+            optimizer=optimizer,
             loss=dice_loss,
             metrics=[
                 "accuracy",

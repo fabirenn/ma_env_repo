@@ -3,123 +3,43 @@ from keras.layers import Activation, BatchNormalization, Conv2D, Dropout, Input
 from keras.models import Model
 
 
-def segnet(input_size, dropout_rate):
+def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_batchnorm, initializer_function):
     inputs = Input(input_size)
-
+    
     # Encoder
-    x = Conv2D(64, (3, 3), padding="same")(inputs)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(64, (3, 3), padding="same")(x)
-    x = Activation("relu")(x)
-    x = BatchNormalization()(x)
-    p1, ind1 = MaxPoolingWithIndices2D((2, 2))(x)
-
-    x = Conv2D(128, (3, 3), padding="same")(p1)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(128, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    p2, ind2 = MaxPoolingWithIndices2D((2, 2))(x)
-
-    x = Conv2D(256, (3, 3), padding="same")(p2)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(256, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Conv2D(256, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    p3, ind3 = MaxPoolingWithIndices2D((2, 2))(x)
-
-    x = Conv2D(512, (3, 3), padding="same")(p3)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    p4, ind4 = MaxPoolingWithIndices2D((2, 2))(x)
-
-    x = Conv2D(512, (3, 3), padding="same")(p4)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-
-    p5, ind5 = MaxPoolingWithIndices2D((2, 2))(x)
+    pool_indices = []
+    x = inputs
+    for filters in num_filters:
+        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer_function)(x)
+        if use_batchnorm:
+            x = BatchNormalization()(x)
+        x = Activation(activation)(x)
+        x = Dropout(dropout_rate)(x)
+        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer_function)(x)
+        if use_batchnorm:
+            x = BatchNormalization()(x)
+        x = Activation(activation)(x)
+        p, ind = MaxPoolingWithIndices2D((2, 2))(x)
+        pool_indices.append(ind)
+        x = p
 
     # Decoder
-    x = MaxUnpooling2D((2, 2))([p5, ind5])
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-
-    x = MaxUnpooling2D((2, 2))([x, ind4])
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(512, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Conv2D(256, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-
-    x = MaxUnpooling2D((2, 2))([x, ind3])
-    x = Conv2D(256, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(256, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Conv2D(128, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-
-    x = MaxUnpooling2D((2, 2))([x, ind2])
-    x = Conv2D(128, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(64, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-
-    x = MaxUnpooling2D((2, 2))([x, ind1])
-    x = Conv2D(64, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(dropout_rate)(x)
-    x = Conv2D(32, (3, 3), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
+    for filters, ind in zip(reversed(num_filters), reversed(pool_indices)):
+        x = MaxUnpooling2D((2, 2))([x, ind])
+        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer_function)(x)
+        if use_batchnorm:
+            x = BatchNormalization()(x)
+        x = Activation(activation)(x)
+        x = Dropout(dropout_rate)(x)
+        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer_function)(x)
+        if use_batchnorm:
+            x = BatchNormalization()(x)
+        x = Activation(activation)(x)
 
     outputs = Conv2D(
         5, kernel_size=(1, 1), padding="same", activation="softmax"
     )(x)
+
     model = Model(inputs, outputs, name="SegNet")
     model.summary()
     return model
