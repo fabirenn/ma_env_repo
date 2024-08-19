@@ -5,9 +5,6 @@ import keras.metrics
 import optuna
 import tensorflow as tf
 from keras.callbacks import EarlyStopping
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
-
-import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from ynet_model import build_ynet, build_feature_extractor_for_pretraining, build_ynet_with_pretrained_semantic_extractor
@@ -41,9 +38,6 @@ IMG_CHANNEL = 3
 EPOCHS = 100
 PATIENCE = 30
 
-os.environ["WANDB_DIR"] = "wandb/train_ynet"
-os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
-
 
 def objective(trial):
     # Hyperparameter tuning
@@ -67,19 +61,6 @@ def objective(trial):
             img_height=IMG_HEIGHT,
             batch_size=BATCH_SIZE,
             channel_size=IMG_CHANNEL,
-        )       
-
-        wandb.init(
-            project="ynet",
-            entity="fabio-renn",
-            mode="offline",
-            name=f"train-ynet-{trial.number}",
-            config={
-                "metric": "accuracy",
-                "epochs": EPOCHS,
-                "batch_size": BATCH_SIZE,
-            },
-            dir=os.environ["WANDB_DIR"],
         )
 
         # create model & start training it
@@ -109,13 +90,14 @@ def objective(trial):
             ],
         )
 
+        current_epoch = 0
+
         history = model.fit(
             train_dataset,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
             validation_data=val_dataset,
             callbacks=[
-                WandbMetricsLogger(log_freq="epoch"),
                 keras.callbacks.ModelCheckpoint(
                     filepath=CHECKPOINT_PATH_YNET,
                     save_best_only=True,
@@ -128,6 +110,7 @@ def objective(trial):
                     validation_data=val_dataset,
                     log_dir=LOG_VAL_PRED,
                     apply_crf=False,
+                    log_wandb=False
                 ),
                 keras.callbacks.EarlyStopping(
                     monitor="val_loss",
@@ -139,23 +122,30 @@ def objective(trial):
         )
 
         val_loss = min(history.history["val_loss"])
-        wandb.finish()
-
+        current_epoch = len(history.history["loss"])
         return val_loss
-    except tf.errors.ResourceExhaustedError:
-        print(
-            "Resource exhausted error caught. GPU may not have enough memory."
-        )
-        return float("inf")
+    except tf.errors.ResourceExhaustedError as e:
+        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
     except Exception as e:
-        print(f"An exception occurred: {e}")
-        return float("inf")
+        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
+        return val_loss
+
+
+def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
+    print(f"The following error occured: {e}")
+    trial.report(best_loss, step=current_epoch)
+    raise optuna.TrialPruned()
 
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
 
-    study = optuna.create_study(direction="minimize")
+    study = optuna.create_study(
+        direction="minimize",
+        storage="sqlite:///optuna_study.db",  # Save the study in a SQLite database file
+        study_name="ynet_tuning",
+        load_if_exists=True,
+    )
     study.optimize(objective, n_trials=200)
 
     # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")

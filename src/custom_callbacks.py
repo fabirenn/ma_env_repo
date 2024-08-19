@@ -27,12 +27,13 @@ def map_class_to_color(mask):
 
 
 class ValidationCallback(keras.callbacks.Callback):
-    def __init__(self, model, validation_data, log_dir, apply_crf):
+    def __init__(self, model, validation_data, log_dir, apply_crf, log_wandb):
         super().__init__()
         self.validation_data = validation_data
         self.log_dir = log_dir
         self.model = model
         self.apply_crf = apply_crf
+        self.log_wandb = log_wandb
         os.makedirs(log_dir, exist_ok=True)
 
     def on_epoch_end(self, epoch, logs=None):
@@ -64,12 +65,13 @@ class ValidationCallback(keras.callbacks.Callback):
                 pred_img_path=self.log_dir,
                 val=True,
             )
-            log_images_wandb(
-                epoch=epoch,
-                x=x_rgb,
-                y_true=y_true_colored,
-                y_pred=y_pred_colored,
-            )
+            if self.log_wandb:
+                log_images_wandb(
+                    epoch=epoch,
+                    x=x_rgb,
+                    y_true=y_true_colored,
+                    y_pred=y_pred_colored,
+                )
         except Exception as e:
             print(f"Error during prediction in on_epoch_end: {e}")
 

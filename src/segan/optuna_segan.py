@@ -8,8 +8,6 @@ import segmentation_models as sm
 import tensorflow as tf
 from segan_model import discriminator
 
-import wandb
-
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "u_net"))
 )
@@ -52,9 +50,6 @@ PATIENCE = 20
 BEST_IOU = 0
 WAIT = 0
 
-os.environ["WANDB_DIR"] = "wandb/train_segan"
-os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
-
 
 def objective(trial):
     BATCH_SIZE = trial.suggest_categorical(
@@ -68,6 +63,8 @@ def objective(trial):
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
     discriminator_filters = filters_list[:FILTERS_DEPTH]
 
+    try:
+        
     train_dataset, val_dataset = create_datasets_for_unet_training(
         directory_train_images=TRAIN_IMG_PATH,
         directory_train_masks=TRAIN_MASK_PATH,
@@ -79,19 +76,6 @@ def objective(trial):
         channel_size=IMG_CHANNEL,
     )
 
-    # Initialize Wandb
-    wandb.init(
-        project="segan",
-        entity="fabio-renn",
-        mode="offline",
-        name=f"train-segan-{trial.number}",
-        config={
-            "metric": "accuracy",
-            "epochs": EPOCHS,
-            "batch_size": BATCH_SIZE,
-        },
-        dir=os.environ["WANDB_DIR"],
-    )
     generator_model = unet(
         IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, discriminator_filters
     )
@@ -103,9 +87,9 @@ def objective(trial):
     )
     # Create the intermediate model
     intermediate_layer_model = keras.Model(
-    inputs=discriminator_model.input,
-    outputs=[layer.output for layer in discriminator_model.layers if 'conv' in layer.name or 'bn' in layer.name]
-)
+        inputs=discriminator_model.input,
+        outputs=[layer.output for layer in discriminator_model.layers if 'conv' in layer.name or 'bn' in layer.name]
+    )
 
     gen_optimizer = keras.optimizers.Adam(1e-4)
     disc_optimizer = keras.optimizers.Adam(1e-4)
@@ -190,54 +174,39 @@ def objective(trial):
     def train(train_dataset, val_dataset, epochs, trainingsteps):
         global WAIT
         best_gen_loss = float("inf")
-        for epoch in range(epochs):
-            print(f"Epoch {epoch+1}/{EPOCHS}")
-            for image_batch, mask_batch in train_dataset:
-                for _ in range(trainingsteps):
-                    gen_loss = train_step_generator(image_batch, mask_batch)
-                disc_loss = train_step_discriminator(image_batch, mask_batch)
-            train_metrics = evaluate_generator(generator_model, train_dataset)
-            val_metrics = evaluate_generator(generator_model, val_dataset)
-            wandb.log(
-                {
-                    "epoch": epoch + 1,
-                    "gen_loss": gen_loss,
-                    "disc_loss": disc_loss,
-                    "train_accuracy": train_metrics["accuracy"],
-                    "train_pixel_accuracy": train_metrics["pixel_accuracy"],
-                    "train_precision": train_metrics["precision"],
-                    "train_mean_iou": train_metrics["mean_iou"],
-                    "train_dice_coefficient": train_metrics["dice"],
-                    "train_recall": train_metrics["recall"],
-                    "val_accuracy": val_metrics["accuracy"],
-                    "val_pixel_accuracy": val_metrics["pixel_accuracy"],
-                    "val_precision": val_metrics["precision"],
-                    "val_mean_iou": val_metrics["mean_iou"],
-                    "val_dice_coefficient": val_metrics["dice"],
-                    "val_recall": val_metrics["recall"],
-                }
-            )
-            print(
-                f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f}"
-            )
-            print(
-                f"Train Metrics - Accuracy: {train_metrics['accuracy']:.4f}, PA: {train_metrics['pixel_accuracy']:.4f}, Precision: {train_metrics['precision']:.4f}, Recall: {train_metrics['recall']:.4f}, IOU: {train_metrics['mean_iou']:.4f}, Dice: {train_metrics['dice']:.4f}"
-            )
-            print(
-                f"Validation Metrics - Accuracy: {val_metrics['accuracy']:.4f}, PA: {val_metrics['pixel_accuracy']:.4f}, Precision: {val_metrics['precision']:.4f}, Recall: {val_metrics['recall']:.4f}, IOU: {val_metrics['mean_iou']:.4f}, Dice: {val_metrics['dice']:.4f}"
-            )
-
-            if gen_loss < best_gen_loss:
-                best_gen_loss = gen_loss
-                checkpoint.save(file_prefix=CHECKPOINT_PATH)
-                generator_model.save(CHECKPOINT_PATH)
-                print("Improved & Saved model\n")
-                WAIT = 0
-            else:
-                WAIT += 1
-                if WAIT >= PATIENCE:
-                    print("Early stopping triggered\n")
-                    return best_gen_loss
+        try:
+            for epoch in range(epochs):
+                print(f"Epoch {epoch+1}/{EPOCHS}")
+                for image_batch, mask_batch in train_dataset:
+                    for _ in range(trainingsteps):
+                        gen_loss = train_step_generator(image_batch, mask_batch)
+                    disc_loss = train_step_discriminator(image_batch, mask_batch)
+                train_metrics = evaluate_generator(generator_model, train_dataset)
+                val_metrics = evaluate_generator(generator_model, val_dataset)
+                print(
+                    f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f}"
+                )
+                print(
+                    f"Train Metrics - Accuracy: {train_metrics['accuracy']:.4f}, PA: {train_metrics['pixel_accuracy']:.4f}, Precision: {train_metrics['precision']:.4f}, Recall: {train_metrics['recall']:.4f}, IOU: {train_metrics['mean_iou']:.4f}, Dice: {train_metrics['dice']:.4f}"
+                )
+                print(
+                    f"Validation Metrics - Accuracy: {val_metrics['accuracy']:.4f}, PA: {val_metrics['pixel_accuracy']:.4f}, Precision: {val_metrics['precision']:.4f}, Recall: {val_metrics['recall']:.4f}, IOU: {val_metrics['mean_iou']:.4f}, Dice: {val_metrics['dice']:.4f}"
+                )
+                if gen_loss < best_gen_loss:
+                    best_gen_loss = gen_loss
+                    checkpoint.save(file_prefix=CHECKPOINT_PATH)
+                    generator_model.save(CHECKPOINT_PATH)
+                    print("Improved & Saved model\n")
+                    WAIT = 0
+                else:
+                    WAIT += 1
+                    if WAIT >= PATIENCE:
+                        print("Early stopping triggered\n")
+                        return best_gen_loss
+        except tf.errors.ResourceExhaustedError:
+            handle_errors_during_tuning(trial=trial, best_loss=best_gen_loss, e=e, current_epoch=epoch)
+        except Exception as e:
+            handle_errors_during_tuning(trial=trial, best_loss=best_gen_loss, e=e, current_epoch=epoch)
                 
         # Ensure we return the best loss found
         if best_gen_loss == float("inf"):
@@ -252,15 +221,25 @@ def objective(trial):
         trainingsteps=GENERATOR_TRAINING_STEPS,
     )
 
-    wandb.finish()
-
     return best_gen_loss
+
+
+def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
+    print(f"The following error occured: {e}")
+    trial.report(best_loss, step=current_epoch)
+    raise optuna.TrialPruned()
 
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
-    study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=100)
+    study = optuna.create_study(
+        direction="minimize",
+        storage="sqlite:///optuna_study.db",  # Save the study in a SQLite database file
+        study_name="segan_tuning",
+        load_if_exists=True,
+    )
+
+    study.optimize(objective, n_trials=200)
 
     # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 

@@ -6,9 +6,6 @@ import optuna
 import tensorflow as tf
 from keras.callbacks import EarlyStopping
 from segnet_model import segnet
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
-
-import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
@@ -38,9 +35,6 @@ IMG_CHANNEL = 3
 EPOCHS = 100
 PATIENCE = 30
 
-os.environ["WANDB_DIR"] = "wandb/train_segnet"
-os.environ["WANDB_DATA_DIR"] = "/work/fi263pnye-ma_data/tmp"
-
 
 def objective(trial):
     # Hyperparameter tuning
@@ -62,19 +56,6 @@ def objective(trial):
             batch_size=BATCH_SIZE,
         )
 
-        wandb.init(
-            project="segnet",
-            entity="fabio-renn",
-            mode="offline",
-            name=f"train-segnet-{trial.number}",
-            config={
-                "metric": "accuracy",
-                "epochs": EPOCHS,
-                "batch_size": BATCH_SIZE,
-            },
-            dir=os.environ["WANDB_DIR"],
-        )
-
         model = segnet(
             input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
@@ -92,6 +73,7 @@ def objective(trial):
                 recall,
             ],
         )
+        current_epoch = 0
 
         history = model.fit(
             train_dataset,
@@ -99,7 +81,6 @@ def objective(trial):
             epochs=EPOCHS,
             validation_data=val_dataset,
             callbacks=[
-                WandbMetricsLogger(log_freq="epoch"),
                 keras.callbacks.ModelCheckpoint(
                     filepath=CHECKPOINT_PATH,
                     save_best_only=True,
@@ -112,6 +93,7 @@ def objective(trial):
                     validation_data=val_dataset,
                     log_dir=LOG_VAL_PRED,
                     apply_crf=False,
+                    log_wandb=False
                 ),
                 keras.callbacks.EarlyStopping(
                     monitor="val_loss",
@@ -123,24 +105,30 @@ def objective(trial):
         )
 
         val_loss = min(history.history["val_loss"])
-        wandb.finish()
-
+        current_epoch = len(history.history["loss"])
         return val_loss
     except tf.errors.ResourceExhaustedError:
-        print(
-            "Resource exhausted error caught. GPU may not have enough memory."
-        )
-        return float("inf")
+        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
     except Exception as e:
-        print(f"An exception occurred: {e}")
-        return float("inf")
+        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
+
+
+def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
+    print(f"The following error occured: {e}")
+    trial.report(best_loss, step=current_epoch)
+    raise optuna.TrialPruned()
 
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
 
-    study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=100)
+    study = optuna.create_study(
+        direction="minimize",
+        storage="sqlite:///optuna_study.db",  # Save the study in a SQLite database file
+        study_name="segnet_tuning",
+        load_if_exists=True,
+    )
+    study.optimize(objective, n_trials=200)
 
     print("Best trial:")
     trial = study.best_trial
