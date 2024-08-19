@@ -9,6 +9,10 @@ def unet(
     img_channels,
     dropout_rate,
     filters_list,
+    kernel_size, 
+    activation, 
+    use_batchnorm, 
+    initializer_function
     pretrained_weights=None,
     training=True,
 ):
@@ -26,7 +30,10 @@ def unet(
             input_tensor=input_tensor,
             num_filters=filters,
             dropout_rate=dropout_rate,
-            kernel_size=(3, 3),
+            kernel_size=kernel_size,
+            activation=activation, 
+            use_batchnorm=use_batchnorm,
+            initializer_function=initializer_function
         )
         c.append(c_layer)
         p.append(p_layer)
@@ -39,7 +46,10 @@ def unet(
             skip_tensor=c[i],
             num_filters=filters_list[i],
             dropout_rate=dropout_rate,
-            kernel_size=(3, 3),
+            kernel_size=kernel_size,
+            activation=activation, 
+            use_batchnorm=use_batchnorm,
+            initializer_function=initializer_function
         )
 
     outputs = keras.layers.Conv2D(5, kernel_size=(1, 1), activation="softmax")(
@@ -52,7 +62,7 @@ def unet(
     return model
 
 
-def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
+def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function):
     """
     Creates a convolutional block for U-Net architecture.
 
@@ -70,23 +80,24 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
     conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer="he_normal",
+        kernel_initializer=initializer_function,
         padding="same",
     )(input_tensor)
-
-    conv = keras.layers.BatchNormalization()(conv)
-    conv = keras.layers.Activation("relu")(conv)
+    if use_batchnorm:
+        conv = keras.layers.BatchNormalization()(conv)
+    conv = keras.layers.Activation(activation)(conv)
 
     # Second convolutional layer
     conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer="he_normal",
+        kernel_initializer=initializer_function,
         padding="same",
     )(conv)
 
-    conv = keras.layers.BatchNormalization()(conv)
-    conv = keras.layers.Activation("relu")(conv)
+    if use_batchnorm:
+        conv = keras.layers.BatchNormalization()(conv)
+    conv = keras.layers.Activation(activation)(conv)
 
     # Dropout layer
     conv = keras.layers.Dropout(dropout_rate)(conv)
@@ -100,7 +111,7 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size):
 
 
 def conv_block_up(
-    input_tensor, skip_tensor, num_filters, dropout_rate, kernel_size
+    input_tensor, skip_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function
 ):
     """
     Creates a upsampling convolutional block for U-Net architecture.
@@ -122,7 +133,7 @@ def conv_block_up(
         kernel_size=(2, 2),
         strides=(2, 2),
         padding="same",
-        activation="relu",
+        activation=activation,
     )(input_tensor)
 
     # Concatenating Upconvolution with Contraction tensor
@@ -132,23 +143,24 @@ def conv_block_up(
     c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer="he_normal",
+        kernel_initializer=initializer_function,
         padding="same",
     )(u)
-
-    c = keras.layers.BatchNormalization()(c)
-    c = keras.layers.Activation("relu")(c)
+    if use_batchnorm:
+        c = keras.layers.BatchNormalization()(c)
+    c = keras.layers.Activation(activation)(c)
 
     # Second convolutional layer
     c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer="he_normal",
+        kernel_initializer=initializer_function,
         padding="same",
     )(c)
 
-    c = keras.layers.BatchNormalization()(c)
-    c = keras.layers.Activation("relu")(c)
+    if use_batchnorm:
+        c = keras.layers.BatchNormalization()(c)
+    c = keras.layers.Activation(activation)(c)
 
     # Dropout-Layer
     c = keras.layers.Dropout(dropout_rate)(c)

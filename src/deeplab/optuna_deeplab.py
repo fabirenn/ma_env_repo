@@ -180,9 +180,8 @@ if __name__ == "__main__":
         study_name="deeplab_tuning",
         load_if_exists=True,
     )
+    
     study.optimize(objective, n_trials=200)
-
-    # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 
     print("Best trial:")
     trial = study.best_trial

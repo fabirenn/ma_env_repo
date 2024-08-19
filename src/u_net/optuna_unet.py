@@ -43,8 +43,32 @@ def objective(trial):
         "batch_size", [8, 12, 16, 20, 24, 28, 32]
     )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
     NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)
+    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [(3, 3), (5, 5)])
+    OPTIMIZER = trial.suggest_categorical(
+        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
+    )
+    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
+    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
+    INITIALIZER = trial.suggest_categorical(
+            "weight_initializer", ["he_normal", "he_uniform"]
+        )
+    
+    if INITIALIZER == "he_normal":
+        initializer_function = keras.initializers.HeNormal()
+    elif INITIALIZER == "he_uniform":
+        initializer_function = keras.initializers.HeUniform()
+
+    if OPTIMIZER == "sgd":
+        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adagrad":
+        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "rmsprop":
+        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adam":
+        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
     # Define the possible values for the number of filters
     filter_options = [16, 32, 64, 128, 256, 512, 1024]
@@ -70,11 +94,15 @@ def objective(trial):
             IMG_CHANNEL,
             DROPOUT_RATE,
             filters_list,
+            kernel_size=KERNEL_SIZE,
+            activation=ACTIVATION,
+            use_batchnorm=USE_BATCHNORM,
+            initializer_function=initializer_function,
             training=True,
         )
 
         model.compile(
-            optimizer="adam",
+            optimizer=optimizer,
             loss=dice_loss,
             metrics=[
                 "accuracy",
@@ -118,11 +146,10 @@ def objective(trial):
         val_loss = min(history.history["val_loss"])
         current_epoch = len(history.history["loss"])
         return val_loss
-    except tf.errors.ResourceExhaustedError:
+    except tf.errors.ResourceExhaustedError as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
     except Exception as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
-        return float("inf")
 
 
 def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
