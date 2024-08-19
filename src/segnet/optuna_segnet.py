@@ -84,7 +84,6 @@ def objective(trial):
         optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
     elif OPTIMIZER == "adam":
         optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-    # tf.keras.backend.clear_session()
 
     try:
         train_dataset, val_dataset = create_datasets_for_segnet_training(
@@ -153,7 +152,7 @@ def objective(trial):
         val_loss = min(history.history["val_loss"])
         current_epoch = len(history.history["loss"])
         return val_loss
-    except tf.errors.ResourceExhaustedError:
+    except tf.errors.ResourceExhaustedError as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
     except Exception as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)

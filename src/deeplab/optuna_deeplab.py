@@ -43,7 +43,17 @@ def objective(trial):
         "batch_size", [8, 12, 16, 20, 24, 28, 32]
     )
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
-    FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512])
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512, 1024])
+    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [(3, 3), (5, 5)])
+    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
+    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
+    INITIALIZER = trial.suggest_categorical(
+            "weight_initializer", ["he_normal", "he_uniform"]
+        )
+    OPTIMIZER = trial.suggest_categorical(
+        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
+    )
     DILATION_RATES = trial.suggest_categorical(
         "dilation_rates",
         [
@@ -65,7 +75,19 @@ def objective(trial):
         ],
     )
 
-    # tf.keras.backend.clear_session()
+    if INITIALIZER == "he_normal":
+        initializer_function = keras.initializers.HeNormal()
+    elif INITIALIZER == "he_uniform":
+        initializer_function = keras.initializers.HeUniform()
+
+    if OPTIMIZER == "sgd":
+        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adagrad":
+        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "rmsprop":
+        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adam":
+        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
     try:
         train_dataset, val_dataset = create_datasets_for_segnet_training(
@@ -80,15 +102,19 @@ def objective(trial):
 
         dilation_rates = ast.literal_eval(DILATION_RATES)
 
-        model, model_crf = DeepLab(
+        model = DeepLab(
             input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
             filters=FILTERS,
             dilation_rates=dilation_rates,
+            use_batchnorm=USE_BATCHNORM,
+            kernel_size=KERNEL_SIZE,
+            initializer_function=initializer_function,
+            activation=ACTIVATION
         )
 
         model.compile(
-            optimizer="adam",
+            optimizer=optimizer,
             loss=dice_loss,
             metrics=[
                 "accuracy",
@@ -133,7 +159,7 @@ def objective(trial):
         val_loss = min(history.history["val_loss"])
         current_epoch = len(history.history["loss"])
         return val_loss
-    except tf.errors.ResourceExhaustedError:
+    except tf.errors.ResourceExhaustedError as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
     except Exception as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
