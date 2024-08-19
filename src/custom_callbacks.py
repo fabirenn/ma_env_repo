@@ -74,6 +74,8 @@ class ValidationCallback(keras.callbacks.Callback):
                 )
         except Exception as e:
             print(f"Error during prediction in on_epoch_end: {e}")
+        
+        
 
 
 def log_images_wandb(epoch, x, y_true, y_pred):

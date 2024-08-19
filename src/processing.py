@@ -122,43 +122,28 @@ def add_prediction_to_list(test_dataset, model, batch_size, apply_crf):
 
 def apply_crf_to_pred(image, prediction):
     """
-    Apply CRF to the prediction.
-
-    Parameters:
-    image: The original image
-    prediction: The model's sigmoid output
-
-    Returns:
-    result: The CRF-refined segmentation
+    Apply CRF post-processing to the model outputs.
+    :param image: Original image (H, W, 3).
+    :param output_probs: Probability map output by the model (H, W, num_classes).
+    :return: Refined segmentation map.
     """
-
-    image = image.numpy() if isinstance(image, tf.Tensor) else image
-    prediction = (
-        prediction.numpy() if isinstance(prediction, tf.Tensor) else prediction
-    )
-
-    # Convert softmax output to unary potentials
-    unary = unary_from_softmax(prediction.transpose((2, 0, 1)))
-    unary = np.ascontiguousarray(unary)
+    h, w = image.shape[:2]
+    num_classes = prediction.shape[-1]
 
     # Create the dense CRF model
-    d = dcrf.DenseCRF2D(image.shape[1], image.shape[0], prediction.shape[-1])
+    d = dcrf.DenseCRF2D(w, h, num_classes)
+
+    # Get unary potentials (negative log of probabilities)
+    unary = unary_from_softmax(prediction.transpose(2, 0, 1))
     d.setUnaryEnergy(unary)
 
-    # Create pairwise potentials (bilateral and spatial)
-    pairwise_gaussian = create_pairwise_gaussian(
-        sdims=(3, 3), shape=image.shape[:2]
-    )
-    d.addPairwiseEnergy(pairwise_gaussian, compat=1)
+    # Create pairwise potentials
+    gaussian_pairwise = create_pairwise_gaussian(sdims=(3, 3), shape=(w, h))
+    d.addPairwiseEnergy(gaussian_pairwise, compat=3)
 
-    pairwise_bilateral = create_pairwise_bilateral(
-        sdims=(10, 10), schan=(5, 5, 5), img=image, chdim=2
-    )
-    d.addPairwiseEnergy(pairwise_bilateral, compat=1)
-
+    bilateral_pairwise = create_pairwise_bilateral(sdims=(50, 50), schan=(13, 13, 13), img=image, chdim=2)
+    d.addPairwiseEnergy(bilateral_pairwise, compat=10)
+    
     # Perform inference
-    Q = d.inference(2)
-
-    # Convert the Q array to the final prediction
-    result = np.argmax(Q, axis=0).reshape((image.shape[0], image.shape[1]))
-    return result[..., np.newaxis]
+    Q = d.inference(5)
+    return np.argmax(Q, axis=0).reshape((h, w))
