@@ -12,7 +12,7 @@ def unet(
     kernel_size, 
     activation, 
     use_batchnorm, 
-    initializer_function
+    initializer_function,
     pretrained_weights=None,
     training=True,
 ):
