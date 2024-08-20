@@ -3,8 +3,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:v100:2
-#SBATCH --time=08:00:00
-#SBATCH --mem=400G
+#SBATCH --mem=256GB
+#SBATCH --time=10:00:00
+#SBATCH --job-name="deeplab-tune"
 #SBATCH --partition=clara
 #SBATCH --output=../log/%x.out-%j
 #SBATCH --error=../log/%x.error-%j

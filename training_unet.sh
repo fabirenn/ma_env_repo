@@ -3,9 +3,10 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:v100:2
-#SBATCH --time=4-0
-#SBATCH --mem=400G
-#SBATCH --partition=clara-long	
+#SBATCH --mem=256GB
+#SBATCH --time=10:00:00
+#SBATCH --job-name="unet-tune"
+#SBATCH --partition=clara
 #SBATCH --output=../log/%x.out-%j
 #SBATCH --error=../log/%x.error-%j
 #SBATCH --mail-type=END
