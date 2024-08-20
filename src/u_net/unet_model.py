@@ -2,6 +2,8 @@ import keras
 import tensorflow as tf
 from keras.layers import BatchNormalization
 
+INITIALIZER = ""
+
 
 def unet(
     img_width,
@@ -16,6 +18,7 @@ def unet(
     pretrained_weights=None,
     training=True,
 ):
+    INITIALIZER = initializer_function
     # build the model
     inputs = keras.layers.Input(shape=(img_height, img_width, img_channels))
 
@@ -31,9 +34,8 @@ def unet(
             num_filters=filters,
             dropout_rate=dropout_rate,
             kernel_size=kernel_size,
-            activation=activation, 
+            activation=activation,
             use_batchnorm=use_batchnorm,
-            initializer_function=initializer_function
         )
         c.append(c_layer)
         p.append(p_layer)
@@ -47,9 +49,8 @@ def unet(
             num_filters=filters_list[i],
             dropout_rate=dropout_rate,
             kernel_size=kernel_size,
-            activation=activation, 
+            activation=activation,
             use_batchnorm=use_batchnorm,
-            initializer_function=initializer_function
         )
 
     outputs = keras.layers.Conv2D(5, kernel_size=(1, 1), activation="softmax")(
@@ -62,7 +63,16 @@ def unet(
     return model
 
 
-def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function):
+def get_initializer():
+    if INITIALIZER == "he_normal":
+        return keras.initializers.HeNormal()
+    elif INITIALIZER == "he_uniform":
+        return keras.initializers.HeUniform()
+    else:
+        return ""
+    
+
+def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm):
     """
     Creates a convolutional block for U-Net architecture.
 
@@ -80,7 +90,7 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
     conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=initializer_function,
+        kernel_initializer=get_initializer(),
         padding="same",
     )(input_tensor)
     if use_batchnorm:
@@ -91,7 +101,7 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
     conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=initializer_function,
+        kernel_initializer=get_initializer(),
         padding="same",
     )(conv)
 
@@ -111,7 +121,7 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
 
 
 def conv_block_up(
-    input_tensor, skip_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function
+    input_tensor, skip_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm
 ):
     """
     Creates a upsampling convolutional block for U-Net architecture.
@@ -143,7 +153,7 @@ def conv_block_up(
     c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=initializer_function,
+        kernel_initializer=get_initializer(),
         padding="same",
     )(u)
     if use_batchnorm:
@@ -154,7 +164,7 @@ def conv_block_up(
     c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=initializer_function,
+        kernel_initializer=get_initializer(),
         padding="same",
     )(c)
 

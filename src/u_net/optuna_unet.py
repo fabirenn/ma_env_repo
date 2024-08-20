@@ -56,10 +56,6 @@ def objective(trial):
             "weight_initializer", ["he_normal", "he_uniform"]
         )
     
-    if INITIALIZER == "he_normal":
-        initializer_function = keras.initializers.HeNormal()
-    elif INITIALIZER == "he_uniform":
-        initializer_function = keras.initializers.HeUniform()
 
     if OPTIMIZER == "sgd":
         optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
@@ -97,7 +93,7 @@ def objective(trial):
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
             use_batchnorm=USE_BATCHNORM,
-            initializer_function=initializer_function,
+            initializer_function=INITIALIZER,
             training=True,
         )
 
