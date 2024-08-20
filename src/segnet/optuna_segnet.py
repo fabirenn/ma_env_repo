@@ -47,7 +47,7 @@ def objective(trial):
     NUM_FILTERS = trial.suggest_categorical(
         "num_filters",
         [
-            [16, 32, 64]
+            [16, 32, 64],
             [32, 64, 128],
             [64, 128, 256],
             [128, 256, 512],
