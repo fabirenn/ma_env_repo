@@ -46,7 +46,7 @@ def objective(trial):
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
     NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)
-    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [(3, 3), (5, 5)])
+    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
     )
@@ -94,7 +94,7 @@ def objective(trial):
             IMG_CHANNEL,
             DROPOUT_RATE,
             filters_list,
-            kernel_size=KERNEL_SIZE,
+            kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
             use_batchnorm=USE_BATCHNORM,
             initializer_function=initializer_function,

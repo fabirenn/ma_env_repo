@@ -1,5 +1,6 @@
 import os
 import sys
+import ast
 
 import keras.metrics
 import optuna
@@ -47,21 +48,21 @@ def objective(trial):
     NUM_FILTERS = trial.suggest_categorical(
         "num_filters",
         [
-            [16, 32, 64],
-            [32, 64, 128],
-            [64, 128, 256],
-            [128, 256, 512],
-            [256, 512, 1024],
-            [16, 32, 64, 128],
-            [32, 64, 128, 256],
-            [64, 128, 256, 512],
-            [128, 256, 512, 1024],
-            [16, 32, 64, 128, 256],
-            [32, 64, 128, 256, 512],
-            [64, 128, 256, 512, 1024],
+            "[16, 32, 64]",
+            "[32, 64, 128]",
+            "[64, 128, 256]",
+            "[128, 256, 512]",
+            "[256, 512, 1024]",
+            "[16, 32, 64, 128]",
+            "[32, 64, 128, 256]",
+            "[64, 128, 256, 512]",
+            "[128, 256, 512, 1024]",
+            "[16, 32, 64, 128, 256]",
+            "[32, 64, 128, 256, 512]",
+            "[64, 128, 256, 512, 1024]"
         ]
     )
-    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [(3, 3), (5, 5)])
+    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
     )
@@ -70,6 +71,8 @@ def objective(trial):
     INITIALIZER = trial.suggest_categorical(
             "weight_initializer", ["he_normal", "he_uniform"]
         )
+    
+    num_filters = ast.literal_eval(NUM_FILTERS)
     
     if INITIALIZER == "he_normal":
         initializer_function = keras.initializers.HeNormal()
@@ -99,8 +102,8 @@ def objective(trial):
         model = segnet(
             input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
-            num_filters=NUM_FILTERS,
-            kernel_size=KERNEL_SIZE,
+            num_filters=num_filters,
+            kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
             use_batchnorm=USE_BATCHNORM,
             initializer_function=initializer_function

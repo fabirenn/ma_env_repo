@@ -42,10 +42,10 @@ def objective(trial):
     BATCH_SIZE = trial.suggest_categorical(
         "batch_size", [8, 12, 16, 20, 24, 28, 32]
     )
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
     FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512, 1024])
-    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [(3, 3), (5, 5)])
+    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
     ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
     INITIALIZER = trial.suggest_categorical(
@@ -108,7 +108,7 @@ def objective(trial):
             filters=FILTERS,
             dilation_rates=dilation_rates,
             use_batchnorm=USE_BATCHNORM,
-            kernel_size=KERNEL_SIZE,
+            kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             initializer_function=initializer_function,
             activation=ACTIVATION
         )
