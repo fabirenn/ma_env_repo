@@ -52,7 +52,7 @@ def atrous_spatial_pyramid_pooling(inputs, filters, dilation_rates, kernel_size)
     return outputs
 
 
-def DeepLab(input_shape, dropout_rate, filters=256, dilation_rates=[1, 2, 4], use_batchnorm, kernel_size, initializer_function, activation):
+def DeepLab(input_shape, dropout_rate, filters, dilation_rates, use_batchnorm, kernel_size, initializer_function, activation):
     inputs = Input(shape=input_shape)
     base_model = ResNet50(
         weights="imagenet", include_top=False, input_tensor=inputs
