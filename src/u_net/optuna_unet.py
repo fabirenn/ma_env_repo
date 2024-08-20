@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from unet_model import unet
 
 from custom_callbacks import ValidationCallback, clear_directory
-from data_loader import create_datasets_for_unet_training
+from data_loader import load_images_for_unet_tuning, create_dataset_for_unet_tuning
 from loss_functions import dice_loss
 from metrics_calculation import (
     dice_coefficient,
@@ -37,7 +37,7 @@ EPOCHS = 100
 PATIENCE = 30
 
 
-def objective(trial):
+def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_categorical(
         "batch_size", [8, 12, 16, 20, 24, 28, 32]
@@ -75,17 +75,17 @@ def objective(trial):
     try:
         current_epoch = 0
         val_loss = 1000
-        
-        train_dataset, val_dataset = create_datasets_for_unet_training(
-            directory_train_images=TRAIN_IMG_PATH,
-            directory_train_masks=TRAIN_MASK_PATH,
-            directory_val_images=VAL_IMG_PATH,
-            directory_val_masks=VAL_MASK_PATH,
-            img_width=IMG_WIDTH,
-            img_height=IMG_HEIGHT,
-            batch_size=BATCH_SIZE,
-            channel_size=IMG_CHANNEL,
+
+        train_dataset, val_dataset = create_dataset_for_unet_tuning(
+            train_images,
+            train_masks,
+            val_images,
+            val_masks,
+            IMG_CHANNEL,
+            BATCH_SIZE
         )
+
+        print("Created the datasets..")
 
         model = unet(
             IMG_WIDTH,
@@ -157,7 +157,18 @@ def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
 
 
 if __name__ == "__main__":
+    
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
+    print("Going to load the data...")
+    train_images, train_masks, val_images, val_masks = load_images_for_unet_tuning(
+        directory_train_images=TRAIN_IMG_PATH,
+        directory_train_masks=TRAIN_MASK_PATH,
+        directory_val_images=VAL_IMG_PATH,
+        directory_val_masks=VAL_MASK_PATH,
+        img_width=IMG_WIDTH,
+        img_height=IMG_HEIGHT,
+    )
+    print("Loaded Images, now starting with the study")
 
     study = optuna.create_study(
         direction="minimize",
@@ -165,7 +176,8 @@ if __name__ == "__main__":
         study_name="unet_tuning",
         load_if_exists=True,
     )
-    study.optimize(objective, n_trials=200)
+
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
 
     # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
 

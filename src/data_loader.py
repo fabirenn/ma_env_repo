@@ -333,6 +333,90 @@ def create_datasets_for_unet_training(
     return train_dataset, val_dataset
 
 
+def load_images_for_unet_tuning(
+    directory_train_images,
+    directory_train_masks,
+    directory_val_images,
+    directory_val_masks,
+    img_width,
+    img_height,
+):
+    global train_class_frequencies
+    global val_class_frequencies
+    # loading img and masks from corresponding paths into to separate lists
+    train_images = load_images_from_directory(directory_train_images)
+    train_masks = load_masks_from_directory(directory_train_masks, cls2bgr)
+    print("Train-Images successfully loaded..")
+
+    val_images = load_images_from_directory(directory_val_images)
+    val_masks = load_masks_from_directory(directory_val_masks, cls2bgr)
+    print("Validation-Images successfully loaded..")
+
+    # resizing the images to dest size for training
+    train_images = resize_images(train_images, img_width, img_height)
+    train_masks = resize_images(train_masks, img_width, img_height)
+    val_images = resize_images(val_images, img_width, img_height)
+    val_masks = resize_images(val_masks, img_width, img_height)
+    print("All images resized..")
+
+    train_class_frequencies = count_class_pixels(train_masks, 5)
+    val_class_frequencies = count_class_pixels(val_masks, 5)
+
+    print("Train class pixel counts: ", train_class_frequencies)
+    print("Validation class pixel counts: ", val_class_frequencies)
+
+    # applying augmentation to each image / mask pair
+    train_images, train_masks = augment_image_mask(train_images, train_masks)
+    val_images, val_masks = augment_image_mask(val_images, val_masks)
+
+    return train_images, train_masks, val_images, val_masks
+
+def create_dataset_for_unet_tuning(train_images, train_masks, val_images, val_masks, channel_size, batch_size):
+    # normalizing the values of the images and binarizing the image masks
+    train_images = normalize_image_data(train_images)
+    print("Train-Images normalized..")
+    if channel_size > 3:
+        train_images = preprocess_images(train_images)
+        print("Added more channels for U-Net..")
+
+    val_images = normalize_image_data(val_images)
+    print("Val-Images normalized..")
+    if channel_size > 3:
+        val_images = preprocess_images(val_images)
+        print("Added more channels for U-Net..")
+
+    # converting the images/masks to tensors + expanding the masks tensor slide
+    # to 1 dimension
+    tensor_train_images = convert_to_tensor(train_images)
+    tensor_train_masks = convert_to_tensor(train_masks)
+    # tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+
+    tensor_val_images = convert_to_tensor(val_images)
+    tensor_val_masks = convert_to_tensor(val_masks)
+    # tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+
+    print("Images converted to tensors..")
+
+    # create dataset for training purposes
+    train_dataset = create_dataset(
+        tensor_train_images,
+        tensor_train_masks,
+        batch_size=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    val_dataset = create_dataset(
+        tensor_val_images,
+        tensor_val_masks,
+        batch_size=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    print("Train and Validation Dataset created..")
+
+    return train_dataset, val_dataset
+
+
 def create_datasets_for_segnet_training(
     directory_train_images,
     directory_train_masks,
