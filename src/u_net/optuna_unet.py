@@ -85,6 +85,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             BATCH_SIZE
         )
 
+        print("Created the datasets..")
+
         model = unet(
             IMG_WIDTH,
             IMG_HEIGHT,
@@ -155,8 +157,9 @@ def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
 
 
 if __name__ == "__main__":
-    tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
     
+    tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
+    print("Going to load the data...")
     train_images, train_masks, val_images, val_masks = load_images_for_unet_tuning(
         directory_train_images=TRAIN_IMG_PATH,
         directory_train_masks=TRAIN_MASK_PATH,
@@ -165,6 +168,7 @@ if __name__ == "__main__":
         img_width=IMG_WIDTH,
         img_height=IMG_HEIGHT,
     )
+    print("Loaded Images, now starting with the study")
 
     study = optuna.create_study(
         direction="minimize",
@@ -172,6 +176,7 @@ if __name__ == "__main__":
         study_name="unet_tuning",
         load_if_exists=True,
     )
+
     study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
 
     # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
