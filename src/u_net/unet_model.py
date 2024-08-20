@@ -2,9 +2,6 @@ import keras
 import tensorflow as tf
 from keras.layers import BatchNormalization
 
-INITIALIZER = ""
-
-
 def unet(
     img_width,
     img_height,
@@ -18,7 +15,6 @@ def unet(
     pretrained_weights=None,
     training=True,
 ):
-    INITIALIZER = initializer_function
     # build the model
     inputs = keras.layers.Input(shape=(img_height, img_width, img_channels))
 
@@ -36,6 +32,7 @@ def unet(
             kernel_size=kernel_size,
             activation=activation,
             use_batchnorm=use_batchnorm,
+            initializer_function=initializer_function
         )
         c.append(c_layer)
         p.append(p_layer)
@@ -51,6 +48,7 @@ def unet(
             kernel_size=kernel_size,
             activation=activation,
             use_batchnorm=use_batchnorm,
+            initializer_function=initializer_function
         )
 
     outputs = keras.layers.Conv2D(5, kernel_size=(1, 1), activation="softmax")(
@@ -62,17 +60,7 @@ def unet(
     model.summary()
     return model
 
-
-def get_initializer():
-    if INITIALIZER == "he_normal":
-        return keras.initializers.HeNormal()
-    elif INITIALIZER == "he_uniform":
-        return keras.initializers.HeUniform()
-    else:
-        return ""
-    
-
-def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm):
+def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function):
     """
     Creates a convolutional block for U-Net architecture.
 
@@ -86,11 +74,18 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
     - conv (tf.Tensor): Output tensor from the last convolutional layer.
     - pool (tf.Tensor): Output tensor from the max pooling layer.
     """
+    if initializer_function == "he_normal":
+        initializer1 = keras.initializers.HeNormal()
+        initializer2 = keras.initializers.HeNormal()
+    elif initializer_function == "he_uniform":
+        initializer1 = keras.initializers.HeUniform()
+        initializer2 = keras.initializers.HeUniform()
+
     # First convolutional layer
     conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=get_initializer(),
+        kernel_initializer=initializer1,
         padding="same",
     )(input_tensor)
     if use_batchnorm:
@@ -101,7 +96,7 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
     conv = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=get_initializer(),
+        kernel_initializer=initializer2,
         padding="same",
     )(conv)
 
@@ -121,7 +116,7 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
 
 
 def conv_block_up(
-    input_tensor, skip_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm
+    input_tensor, skip_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function
 ):
     """
     Creates a upsampling convolutional block for U-Net architecture.
@@ -137,6 +132,14 @@ def conv_block_up(
     Returns:
     - c (tf.Tensor): Output tensor from the last convolutional layer.
     """
+    if initializer_function == "he_normal":
+        initializer1 = keras.initializers.HeNormal()
+        initializer2 = keras.initializers.HeNormal()
+    elif initializer_function == "he_uniform":
+        initializer1 = keras.initializers.HeUniform()
+        initializer2 = keras.initializers.HeUniform()
+
+
     # First upconvolution
     u = keras.layers.Conv2DTranspose(
         filters=num_filters,
@@ -153,7 +156,7 @@ def conv_block_up(
     c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=get_initializer(),
+        kernel_initializer=initializer1,
         padding="same",
     )(u)
     if use_batchnorm:
@@ -164,7 +167,7 @@ def conv_block_up(
     c = keras.layers.Conv2D(
         num_filters,
         kernel_size,
-        kernel_initializer=get_initializer(),
+        kernel_initializer=initializer2,
         padding="same",
     )(c)
 

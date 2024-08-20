@@ -73,6 +73,9 @@ def objective(trial):
     filters_list = filter_options[:NUM_BLOCKS]
 
     try:
+        current_epoch = 0
+        val_loss = 1000
+        
         train_dataset, val_dataset = create_datasets_for_unet_training(
             directory_train_images=TRAIN_IMG_PATH,
             directory_train_masks=TRAIN_MASK_PATH,
@@ -109,7 +112,6 @@ def objective(trial):
                 recall,
             ],
         )
-        current_epoch = 0
 
         history = model.fit(
             train_dataset,
