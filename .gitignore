@@ -168,4 +168,5 @@ data/*
 # Ignore WandB directory in the project folder
 wandb/
 
+# Ignore the following file
 optuna_study.db
