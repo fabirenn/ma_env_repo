@@ -8,8 +8,7 @@ import tensorflow as tf
 from deeplab_model import DeepLab
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import ValidationCallback
-from data_loader import create_datasets_for_segnet_training
+from data_loader import load_images_for_tuning, create_dataset_for_tuning
 from loss_functions import dice_loss
 from metrics_calculation import (
     dice_coefficient,
@@ -26,18 +25,16 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
-CHECKPOINT_PATH = "artifacts/models/deeplab/deeplab_checkpoint.keras"
-LOG_VAL_PRED = "data/predictions/deeplab"
-
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
+
 EPOCHS = 100
 PATIENCE = 30
 
 
 
-def objective(trial):
+def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_categorical(
         "batch_size", [8, 12, 16, 20, 24, 28, 32]
@@ -75,11 +72,6 @@ def objective(trial):
         ],
     )
 
-    if INITIALIZER == "he_normal":
-        initializer_function = keras.initializers.HeNormal()
-    elif INITIALIZER == "he_uniform":
-        initializer_function = keras.initializers.HeUniform()
-
     if OPTIMIZER == "sgd":
         optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
     elif OPTIMIZER == "adagrad":
@@ -90,15 +82,18 @@ def objective(trial):
         optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
     try:
-        train_dataset, val_dataset = create_datasets_for_segnet_training(
-            directory_train_images=TRAIN_IMG_PATH,
-            directory_train_masks=TRAIN_MASK_PATH,
-            directory_val_images=VAL_IMG_PATH,
-            directory_val_masks=VAL_MASK_PATH,
-            img_width=IMG_WIDTH,
-            img_height=IMG_HEIGHT,
-            batch_size=BATCH_SIZE,
+        current_epoch = 0
+        val_loss = 1000
+
+        train_dataset, val_dataset = create_dataset_for_tuning(
+            train_images,
+            train_masks,
+            val_images,
+            val_masks,
+            BATCH_SIZE,
         )
+
+        print("Created the datasets..")
 
         dilation_rates = ast.literal_eval(DILATION_RATES)
 
@@ -109,7 +104,7 @@ def objective(trial):
             dilation_rates=dilation_rates,
             use_batchnorm=USE_BATCHNORM,
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
-            initializer_function=initializer_function,
+            initializer_function=INITIALIZER,
             activation=ACTIVATION
         )
 
@@ -125,7 +120,6 @@ def objective(trial):
                 recall,
             ],
         )
-        current_epoch = 0
 
         history = model.fit(
             train_dataset,
@@ -133,25 +127,10 @@ def objective(trial):
             epochs=EPOCHS,
             validation_data=val_dataset,
             callbacks=[
-                keras.callbacks.ModelCheckpoint(
-                    filepath=CHECKPOINT_PATH,
-                    save_best_only=True,
-                    save_weights_only=False,
-                    monitor="val_loss",
-                    verbose=1,
-                ),
-                ValidationCallback(
-                    model=model,
-                    validation_data=val_dataset,
-                    log_dir=LOG_VAL_PRED,
-                    apply_crf=False,
-                    log_wandb=False
-                ),
                 keras.callbacks.EarlyStopping(
                     monitor="val_loss",
                     mode="min",
                     patience=PATIENCE,
-                    restore_best_weights=True,
                 ),
             ],
         )
@@ -174,6 +153,17 @@ def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
 
+    print("Going to load the data...")
+    train_images, train_masks, val_images, val_masks = load_images_for_tuning(
+        directory_train_images=TRAIN_IMG_PATH,
+        directory_train_masks=TRAIN_MASK_PATH,
+        directory_val_images=VAL_IMG_PATH,
+        directory_val_masks=VAL_MASK_PATH,
+        img_width=IMG_WIDTH,
+        img_height=IMG_HEIGHT,
+    )
+    print("Loaded Images, now starting with the study")
+
     study = optuna.create_study(
         direction="minimize",
         storage="sqlite:///optuna_study.db",  # Save the study in a SQLite database file
@@ -181,7 +171,7 @@ if __name__ == "__main__":
         load_if_exists=True,
     )
     
-    study.optimize(objective, n_trials=200)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
 
     print("Best trial:")
     trial = study.best_trial

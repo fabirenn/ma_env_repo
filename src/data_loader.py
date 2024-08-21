@@ -333,7 +333,7 @@ def create_datasets_for_unet_training(
     return train_dataset, val_dataset
 
 
-def load_images_for_unet_tuning(
+def load_images_for_tuning(
     directory_train_images,
     directory_train_masks,
     directory_val_images,
@@ -371,6 +371,7 @@ def load_images_for_unet_tuning(
 
     return train_images, train_masks, val_images, val_masks
 
+
 def create_dataset_for_unet_tuning(train_images, train_masks, val_images, val_masks, channel_size, batch_size):
     # normalizing the values of the images and binarizing the image masks
     train_images = normalize_image_data(train_images)
@@ -384,6 +385,46 @@ def create_dataset_for_unet_tuning(train_images, train_masks, val_images, val_ma
     if channel_size > 3:
         val_images = preprocess_images(val_images)
         print("Added more channels for U-Net..")
+
+    # converting the images/masks to tensors + expanding the masks tensor slide
+    # to 1 dimension
+    tensor_train_images = convert_to_tensor(train_images)
+    tensor_train_masks = convert_to_tensor(train_masks)
+    # tensor_train_masks = tf.expand_dims(tensor_train_masks, axis=-1)
+
+    tensor_val_images = convert_to_tensor(val_images)
+    tensor_val_masks = convert_to_tensor(val_masks)
+    # tensor_val_masks = tf.expand_dims(tensor_val_masks, axis=-1)
+
+    print("Images converted to tensors..")
+
+    # create dataset for training purposes
+    train_dataset = create_dataset(
+        tensor_train_images,
+        tensor_train_masks,
+        batch_size=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    val_dataset = create_dataset(
+        tensor_val_images,
+        tensor_val_masks,
+        batch_size=batch_size,
+        buffersize=tf.data.AUTOTUNE,
+    )
+
+    print("Train and Validation Dataset created..")
+
+    return train_dataset, val_dataset
+
+
+def create_dataset_for_tuning(train_images, train_masks, val_images, val_masks, batch_size):
+    # normalizing the values of the images and binarizing the image masks
+    train_images = normalize_image_data(train_images)
+    print("Train-Images normalized..")
+
+    val_images = normalize_image_data(val_images)
+    print("Val-Images normalized..")
 
     # converting the images/masks to tensors + expanding the masks tensor slide
     # to 1 dimension
