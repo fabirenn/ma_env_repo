@@ -76,33 +76,33 @@ def semantic_feature_extractor(input_shape, dropout_rate, name_prefix=""):
     return input_tensor, output
 
 
-def detail_feature_extractor(input_shape, dropout_rate):
+def detail_feature_extractor(input_shape, dropout_rate, activation):
     input_tensor = layers.Input(shape=input_shape)
-    c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c1")(input_tensor)
-    c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c2")(c1)
-    c3 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c3")(c2)
-    c4 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c4")(c3)
-    c5 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c5")(c4)
-    c6 = Conv2D(16, (3, 3), activation="relu", padding="same", name="c6")(c5)
+    c1 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c1")(input_tensor)
+    c2 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c2")(c1)
+    c3 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c3")(c2)
+    c4 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c4")(c3)
+    c5 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c5")(c4)
+    c6 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c6")(c5)
     do1 = Dropout(dropout_rate)(c6)
-    c7 = Conv2D(32, (5, 5), activation="relu", padding="same", name="c7")(do1)
-    c8 = Conv2D(32, (5, 5), activation="relu", padding="same", name="c8")(c7)
-    c9 = Conv2D(32, (5, 5), activation="relu", padding="same", name="c9")(c8)
+    c7 = Conv2D(32, (5, 5), activation=activation, padding="same", name="c7")(do1)
+    c8 = Conv2D(32, (5, 5), activation=activation, padding="same", name="c8")(c7)
+    c9 = Conv2D(32, (5, 5), activation=activation, padding="same", name="c9")(c8)
     do2 = Dropout(dropout_rate)(c9)
-    c10 = Conv2D(64, (5, 5), activation="relu", padding="same", name="c10")(do2)
-    c11 = Conv2D(64, (5, 5), activation="relu", padding="same", name="c11")(c10)
-    c12 = Conv2D(64, (5, 5), activation="relu", padding="same", name="c12")(c11)
+    c10 = Conv2D(64, (5, 5), activation=activation, padding="same", name="c10")(do2)
+    c11 = Conv2D(64, (5, 5), activation=activation, padding="same", name="c11")(c10)
+    c12 = Conv2D(64, (5, 5), activation=activation, padding="same", name="c12")(c11)
     output = Conv2D(5, (1, 1), activation="softmax", name="c13")(c12)
 
     return input_tensor, output
 
 
-def fusion_module(y1_output, y2_output):
+def fusion_module(y1_output, y2_output, activation):
     f1 = Concatenate(name="concatenate")([y1_output, y2_output])
-    c1 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f1")(f1)
-    c2 = Conv2D(16, (3, 3), activation="relu", padding="same", name="f2")(c1)
-    c3 = Conv2D(32, (3, 3), activation="relu", padding="same", name="f3")(c2)
-    c4 = Conv2D(32, (3, 3), activation="relu", padding="same", name="f4")(c3)
+    c1 = Conv2D(16, (3, 3), activation=activation, padding="same", name="f1")(f1)
+    c2 = Conv2D(16, (3, 3), activation=activation, padding="same", name="f2")(c1)
+    c3 = Conv2D(32, (3, 3), activation=activation, padding="same", name="f3")(c2)
+    c4 = Conv2D(32, (3, 3), activation=activation, padding="same", name="f4")(c3)
     outputs = Conv2D(5, (1, 1), activation="softmax", name="output")(c4)
     return outputs
 

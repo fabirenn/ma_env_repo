@@ -136,8 +136,10 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         return val_loss
     except tf.errors.ResourceExhaustedError as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
+        return float("inf")
     except Exception as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
+        return float("inf")
 
 
 def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
@@ -162,11 +164,11 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_study.db",  # Save the study in a SQLite database file
+        storage="sqlite:///optuna_segnet.db",  # Save the study in a SQLite database file
         study_name="segnet_tuning",
         load_if_exists=True,
     )
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200, n_jobs=1)
 
     print("Best trial:")
     trial = study.best_trial
