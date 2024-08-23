@@ -8,7 +8,7 @@ import tensorflow as tf
 from deeplab_model import DeepLab
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from data_loader import load_images_for_tuning, create_dataset_for_tuning
+from data_loader import load_images_for_tuning, create_dataset_for_unet_tuning
 from loss_functions import dice_loss
 from metrics_calculation import (
     dice_coefficient,
@@ -84,11 +84,12 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         current_epoch = 0
         val_loss = 1000
 
-        train_dataset, val_dataset = create_dataset_for_tuning(
+        train_dataset, val_dataset = create_dataset_for_unet_tuning(
             train_images,
             train_masks,
             val_images,
             val_masks,
+            IMG_CHANNEL,
             BATCH_SIZE,
         )
 
@@ -153,7 +154,6 @@ def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
-
     print("Going to load the data...")
     train_images, train_masks, val_images, val_masks = load_images_for_tuning(
         directory_train_images=TRAIN_IMG_PATH,

@@ -140,7 +140,6 @@ def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
-    
     print("Going to load the data...")
     train_images, train_masks, val_images, val_masks = load_images_for_tuning(
         directory_train_images=TRAIN_IMG_PATH,
