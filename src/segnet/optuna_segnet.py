@@ -1,6 +1,8 @@
 import os
 import sys
 import ast
+import gc
+from numba import cuda
 
 import keras.metrics
 import optuna
@@ -122,6 +124,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             train_dataset,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
+            verbose=1,
             validation_data=val_dataset,
             callbacks=[
                 keras.callbacks.EarlyStopping(
@@ -141,6 +144,12 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     except Exception as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
         return float("inf")
+    finally:
+        # Clear GPU memory
+        keras.backend.clear_session()
+        #gc.collect()
+        #cuda.close()  # This clears GPU memory for Numba, if you're using it
+        print("Cleared GPU memory after trial.")
 
 
 def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
