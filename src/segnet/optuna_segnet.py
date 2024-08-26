@@ -147,11 +147,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             raise optuna.TrialPruned()
 
         return val_loss
-    
     except tf.errors.ResourceExhaustedError as e:
-        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
-        return float("inf")
-    except Exception as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
         return float("inf")
     finally:
