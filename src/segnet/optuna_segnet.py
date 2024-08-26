@@ -147,8 +147,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     finally:
         # Clear GPU memory
         keras.backend.clear_session()
-        #gc.collect()
-        #cuda.close()  # This clears GPU memory for Numba, if you're using it
+        gc.collect()
+        cuda.close()  # This clears GPU memory for Numba, if you're using it
         print("Cleared GPU memory after trial.")
 
 
