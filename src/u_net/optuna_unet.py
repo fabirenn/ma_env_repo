@@ -39,7 +39,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
     NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(

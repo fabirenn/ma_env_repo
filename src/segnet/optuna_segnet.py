@@ -43,7 +43,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     )
     print(f"BATCH_SIZE: {BATCH_SIZE}")
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
     NUM_FILTERS = trial.suggest_categorical(
         "num_filters_index",
         [   
