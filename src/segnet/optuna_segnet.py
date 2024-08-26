@@ -43,10 +43,12 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     )
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    NUM_FILTERS_INDEX = trial.suggest_categorical(
+        "num_filters_index",
+        list(range(12))  # corresponding to the number of filter options
+    )
     # Number of filters and model depth tuning
-    NUM_FILTERS = trial.suggest_categorical(
-        "num_filters",
-        [
+    NUM_FILTERS = [
             [16, 32, 64],
             [32, 64, 128],
             [64, 128, 256],
@@ -59,8 +61,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             [16, 32, 64, 128, 256],
             [32, 64, 128, 256, 512],
             [64, 128, 256, 512, 1024],
-        ]
-    )
+        ][NUM_FILTERS_INDEX]
+    
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
