@@ -31,7 +31,7 @@ class MaxUnpooling2D(Layer):
         batch_range = tf.reshape(tf.range(batch_size, dtype=tf.int32), shape=[-1, 1, 1, 1])
         b = tf.ones_like(mask) * batch_range
         b = tf.reshape(b, [-1])
-        flat_mask += b * flat_input_size
+        flat_mask += tf.cast(b * flat_input_size, dtype=tf.int32)
 
         # Flatten the updates
         flat_updates = tf.reshape(updates, [-1])
