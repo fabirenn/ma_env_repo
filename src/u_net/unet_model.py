@@ -90,7 +90,10 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
     )(input_tensor)
     if use_batchnorm:
         conv = keras.layers.BatchNormalization()(conv)
-    conv = keras.layers.Activation(activation)(conv)
+    if activation == "prelu":
+        conv = keras.layers.PReLU()(conv)
+    else:
+        conv = keras.layers.Activation(activation)(conv)
 
     # Second convolutional layer
     conv = keras.layers.Conv2D(
@@ -102,7 +105,10 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
 
     if use_batchnorm:
         conv = keras.layers.BatchNormalization()(conv)
-    conv = keras.layers.Activation(activation)(conv)
+    if activation == "prelu":
+        conv = keras.layers.PReLU()(conv)
+    else:
+        conv = keras.layers.Activation(activation)(conv)
 
     # Dropout layer
     conv = keras.layers.Dropout(dropout_rate)(conv)
@@ -146,8 +152,12 @@ def conv_block_up(
         kernel_size=(2, 2),
         strides=(2, 2),
         padding="same",
-        activation=activation,
     )(input_tensor)
+
+    if activation == "prelu":
+        u = keras.layers.PReLU()(u)
+    else:
+        u = keras.layers.Activation(activation)(u)
 
     # Concatenating Upconvolution with Contraction tensor
     u = keras.layers.concatenate([u, skip_tensor])
@@ -161,7 +171,10 @@ def conv_block_up(
     )(u)
     if use_batchnorm:
         c = keras.layers.BatchNormalization()(c)
-    c = keras.layers.Activation(activation)(c)
+    if activation == "prelu":
+        c = keras.layers.PReLU()(c)
+    else:
+        c = keras.layers.Activation(activation)(c)
 
     # Second convolutional layer
     c = keras.layers.Conv2D(
@@ -173,7 +186,10 @@ def conv_block_up(
 
     if use_batchnorm:
         c = keras.layers.BatchNormalization()(c)
-    c = keras.layers.Activation(activation)(c)
+    if activation == "prelu":
+        c = keras.layers.PReLU()(c)
+    else:
+        c = keras.layers.Activation(activation)(c)
 
     # Dropout-Layer
     c = keras.layers.Dropout(dropout_rate)(c)
