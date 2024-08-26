@@ -44,26 +44,23 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     print(f"BATCH_SIZE: {BATCH_SIZE}")
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
-    NUM_FILTERS_INDEX = trial.suggest_categorical(
+    NUM_FILTERS = trial.suggest_categorical(
         "num_filters_index",
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] # corresponding to the number of filter options
+        [   
+            "[16, 32, 64]",
+            "[32, 64, 128]",
+            "[64, 128, 256]",
+            "[128, 256, 512]",
+            "[256, 512, 1024]",
+            "[16, 32, 64, 128]",
+            "[32, 64, 128, 256]",
+            "[64, 128, 256, 512]",
+            "[128, 256, 512, 1024]",
+            "[16, 32, 64, 128, 256]",
+            "[32, 64, 128, 256, 512]",
+            "[64, 128, 256, 512, 1024]",
+        ]
     )
-    # Number of filters and model depth tuning
-    NUM_FILTERS = [
-            [16, 32, 64],
-            [32, 64, 128],
-            [64, 128, 256],
-            [128, 256, 512],
-            [256, 512, 1024],
-            [16, 32, 64, 128],
-            [32, 64, 128, 256],
-            [64, 128, 256, 512],
-            [128, 256, 512, 1024],
-            [16, 32, 64, 128, 256],
-            [32, 64, 128, 256, 512],
-            [64, 128, 256, 512, 1024],
-        ][NUM_FILTERS_INDEX]
-    print(f"NUM_FILTERS_INDEX: {NUM_FILTERS_INDEX}, NUM_FILTERS: {NUM_FILTERS}")
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
@@ -74,7 +71,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             "weight_initializer", ["he_normal", "he_uniform"]
         )
     
-    #num_filters = ast.literal_eval(NUM_FILTERS)
+    num_filters = ast.literal_eval(NUM_FILTERS)
     
     if OPTIMIZER == "sgd":
         optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
@@ -103,7 +100,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         model = segnet(
             input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
-            num_filters=NUM_FILTERS,
+            num_filters=num_filters,
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
             use_batchnorm=USE_BATCHNORM,
