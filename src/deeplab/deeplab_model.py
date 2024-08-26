@@ -80,19 +80,28 @@ def DeepLab(input_shape, dropout_rate, filters, dilation_rates, use_batchnorm, k
     x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer1)(x)
     if use_batchnorm:
         x = BatchNormalization()(x)
-    x = Activation(activation)(x)
+    if activation == "prelu":
+        x = keras.layers.PReLU()(x)
+    else:
+        x = Activation(activation)(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((4, 4), interpolation="bilinear")(x)
     x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer2)(x)
     if use_batchnorm:
         x = BatchNormalization()(x)
-    x = Activation(activation)(x)
+    if activation == "prelu":
+        x = keras.layers.PReLU()(x)
+    else:
+        x = Activation(activation)(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
     x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer3)(x)
     if use_batchnorm:
         x = BatchNormalization()(x)
-    x = Activation(activation)(x)
+    if activation == "prelu":
+        x = keras.layers.PReLU()(x)
+    else:
+        x = Activation(activation)(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
     output = Conv2D(5, (1, 1), padding="same", activation="softmax")(x)

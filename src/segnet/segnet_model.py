@@ -18,7 +18,10 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
         if use_batchnorm:
             x = BatchNormalization()(x)
-        x = Activation(activation)(x)
+        if activation == "prelu":
+            x = keras.layers.PReLU()(x)
+        else:
+            x = Activation(activation)(x)
         x = Dropout(dropout_rate)(x)
         if initializer_function == "he_normal":
             initializer = keras.initializers.HeNormal()
@@ -27,7 +30,10 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
         if use_batchnorm:
             x = BatchNormalization()(x)
-        x = Activation(activation)(x)
+        if activation == "prelu":
+            x = keras.layers.PReLU()(x)
+        else:
+            x = Activation(activation)(x)
         p, ind = MaxPoolingWithIndices2D((2, 2))(x)
         pool_indices.append(ind)
         x = p
@@ -42,7 +48,10 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
         if use_batchnorm:
             x = BatchNormalization()(x)
-        x = Activation(activation)(x)
+        if activation == "prelu":
+            x = keras.layers.PReLU()(x)
+        else:
+            x = Activation(activation)(x)
         x = Dropout(dropout_rate)(x)
         if initializer_function == "he_normal":
             initializer = keras.initializers.HeNormal()
@@ -51,7 +60,10 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
         if use_batchnorm:
             x = BatchNormalization()(x)
-        x = Activation(activation)(x)
+        if activation == "prelu":
+            x = keras.layers.PReLU()(x)
+        else: 
+            x = Activation(activation)(x)
 
     outputs = Conv2D(
         5, kernel_size=(1, 1), padding="same", activation="softmax"
