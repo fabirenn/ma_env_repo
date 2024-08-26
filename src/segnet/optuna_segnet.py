@@ -38,8 +38,8 @@ PATIENCE = 30
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_categorical(
-        "batch_size", [4, 8, 12, 16, 20]
+    BATCH_SIZE = trial.suggest_int(
+        "batch_size", 4, 20, step=4
     )
     print(f"BATCH_SIZE: {BATCH_SIZE}")
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
