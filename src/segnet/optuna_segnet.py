@@ -39,7 +39,7 @@ PATIENCE = 30
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 20, step=4
+        "batch_size", 4, 24, step=4
     )
     print(f"BATCH_SIZE: {BATCH_SIZE}")
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         direction="minimize",
         storage="sqlite:///optuna_segnet.db",  # Save the study in a SQLite database file
         study_name="segnet_tuning",
-        load_if_exists=True,
+        load_if_exists=False,
     )
     study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200, n_jobs=1)
 
