@@ -144,9 +144,11 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         for image_batch, mask_batch in dataset:
             predictions = generator(image_batch, training=False)
 
-            # Assuming your generator_loss function works with individual batches
-            batch_loss = generator_loss(mask_batch, predictions)
-            val_loss += batch_loss.numpy()
+            # Segmentation loss
+            cce = keras.losses.CategoricalCrossentropy(from_logits=False)
+            segmentation_loss = cce(mask_batch, predictions)
+
+            val_loss += segmentation_loss.numpy()
             
             metrics["dice"].update_state(
                 dice_coefficient(mask_batch, predictions)

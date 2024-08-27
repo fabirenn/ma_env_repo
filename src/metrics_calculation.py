@@ -79,3 +79,36 @@ def recall(y_true, y_pred, num_classes=5):
             true_positives / (actual_positives + keras.backend.epsilon())
         )
     return tf.reduce_mean(recalls)
+
+
+def calculate_class_iou(y_true, y_pred, class_index):
+    y_pred = tf.argmax(y_pred, axis=-1)
+    y_true = tf.argmax(y_true, axis=-1)
+    
+    y_true_class = tf.cast(y_true == class_index, tf.float32)
+    y_pred_class = tf.cast(y_pred == class_index, tf.float32)
+    
+    intersection = tf.reduce_sum(y_true_class * y_pred_class)
+    union = tf.reduce_sum(y_true_class + y_pred_class) - intersection
+    
+    return intersection / (union + keras.backend.epsilon())
+
+
+def calculate_class_precision(y_true, y_pred, class_index):
+    y_pred = tf.argmax(y_pred, axis=-1)
+    y_true = tf.argmax(y_true, axis=-1)
+
+    true_positives = tf.reduce_sum(tf.cast((y_pred == class_index) & (y_true == class_index), tf.float32))
+    predicted_positives = tf.reduce_sum(tf.cast(y_pred == class_index, tf.float32))
+    
+    return true_positives / (predicted_positives + keras.backend.epsilon())
+
+
+def calculate_class_recall(y_true, y_pred, class_index):
+    y_pred = tf.argmax(y_pred, axis=-1)
+    y_true = tf.argmax(y_true, axis=-1)
+    
+    true_positives = tf.reduce_sum(tf.cast((y_pred == class_index) & (y_true == class_index), tf.float32))
+    actual_positives = tf.reduce_sum(tf.cast(y_true == class_index, tf.float32))
+    
+    return true_positives / (actual_positives + keras.backend.epsilon())

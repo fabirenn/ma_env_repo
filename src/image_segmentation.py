@@ -6,6 +6,7 @@ from keras.models import load_model
 
 import wandb
 from custom_callbacks import dice_score, specificity_score
+from metrics_calculation import dice_coefficient, calculate_class_iou, calculate_class_precision, calculate_class_recall, pixel_accuracy
 from data_loader import create_dataset_for_image_segmentation
 from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally, apply_crf_to_pred
@@ -158,11 +159,24 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
 
     model.compile(
         optimizer="adam",
-        loss=combined_loss,
+        loss=dice_loss,
         metrics=[
             "accuracy",
         ],
     )
+
+    metrics_log = {
+        "model": model_name,
+        "dice": [],
+        "pixel_accuracy": [],
+        "iou_class_1": [],
+        "iou_class_2": [],
+        "precision_class_1": [],
+        "precision_class_2": [],
+        "recall_class_1": [],
+        "recall_class_2": [],
+        
+    }
 
     for original_image, preprocessed_image, original_mask, i in zip(
         original_images, preprocessed_images, original_masks, range(20)
@@ -181,14 +195,24 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
                 preprocessed_image, model, patch_size=512, overlap=50, apply_crf=False
             )
         
-        #missing part where to calculate the metrics: 
-        #iou for class 1,2, 
-        #dice
-        #precision for class 1, 2
-        #recall for class 1, 2
-        #pixel accuracy
+        # Calculate metrics
+        iou_class_1 = calculate_class_iou(original_mask, segmented_image, class_index=1).numpy()
+        iou_class_2 = calculate_class_iou(original_mask, segmented_image, class_index=2).numpy()
+        dice = dice_coefficient(original_mask, segmented_image).numpy()
+        precision_class_1 = calculate_class_precision(original_mask, segmented_image, class_index=1).numpy()
+        precision_class_2 = calculate_class_precision(original_mask, segmented_image, class_index=2).numpy()
+        recall_class_1 = calculate_class_recall(original_mask, segmented_image, class_index=1).numpy()
+        recall_class_2 = calculate_class_recall(original_mask, segmented_image, class_index=2).numpy()
+        pixel_acc = pixel_accuracy(original_mask, segmented_image).numpy()
 
-        #safe segmented image as whole
+        metrics_log["iou_class_1"].append(iou_class_1)
+        metrics_log["iou_class_2"].append(iou_class_2)
+        metrics_log["dice"].append(dice)
+        metrics_log["precision_class_1"].append(precision_class_1)
+        metrics_log["precision_class_2"].append(precision_class_2)
+        metrics_log["recall_class_1"].append(recall_class_1)
+        metrics_log["recall_class_2"].append(recall_class_2)
+        metrics_log["pixel_accuracy"].append(pixel_acc)
 
         safe_predictions_locally(
             range=None,
@@ -201,6 +225,9 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         )
 
     # log the calculated to wandb to the corresponding wandb
+    # Calculate average metrics for the model
+    average_metrics = {key: np.mean(value) for key, value in metrics_log.items()}
+    wandb.log(average_metrics)
 
     print("Saved predictions in data/predictions/originals/" + model_name)
 
