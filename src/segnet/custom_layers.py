@@ -11,35 +11,30 @@ class MaxUnpooling2D(Layer):
     def call(self, inputs):
         updates, mask = inputs
         input_shape = K.shape(updates)
+        output_shape = [
+            input_shape[0],
+            input_shape[1] * self.pool_size[0],
+            input_shape[2] * self.pool_size[1],
+            input_shape[3],
+        ]
+
+        flat_input_size = tf.reduce_prod(input_shape[1:])
+        flat_output_size = tf.reduce_prod(output_shape[1:])
+
+        mask = tf.reshape(mask, [-1])
+        flat_mask = mask
+
         batch_size = input_shape[0]
-        height = input_shape[1] * self.pool_size[0]
-        width = input_shape[2] * self.pool_size[1]
-        channels = input_shape[3]
+        batch_offsets = tf.range(batch_size) * flat_output_size
+        batch_offsets = tf.reshape(batch_offsets, [-1, 1])
+        flat_mask = flat_mask + batch_offsets
 
-        # Calculate output shape
-        output_shape = [batch_size, height, width, channels]
-        flat_output_size = tf.reduce_prod(output_shape)
-
-        # Flatten the mask and updates
-        mask = tf.cast(mask, dtype=tf.int32)
-        flat_mask = tf.reshape(mask, [-1])
         flat_updates = tf.reshape(updates, [-1])
+        flat_output = tf.zeros([batch_size * flat_output_size], dtype=updates.dtype)
 
-        # Calculate batch offsets
-        batch_range = tf.reshape(tf.range(batch_size, dtype=tf.int32), shape=[-1, 1, 1, 1])
-        b = tf.ones_like(mask) * batch_range
-        b = tf.reshape(b, [-1])
-        flat_mask += b * tf.reduce_prod(input_shape[1:])
-
-        # Initialize the flat output tensor
-        flat_output = tf.zeros([flat_output_size], dtype=updates.dtype)
-
-        # Scatter the updates into the flat output tensor
         flat_output = tf.tensor_scatter_nd_add(flat_output, tf.expand_dims(flat_mask, 1), flat_updates)
 
-        # Reshape the flat output back to the original output shape
-        ret = tf.reshape(flat_output, output_shape)
-        return ret
+        return tf.reshape(flat_output, output_shape)
 
     def compute_output_shape(self, input_shape):
         shape = [
@@ -72,7 +67,7 @@ class MaxPoolingWithIndices2D(Layer):
             strides=[1, self.strides[0], self.strides[1], 1],
             padding=self.padding
         )
-        indices = tf.cast(indices, dtype=tf.int32)  # Ensure indices are int32 for compatibility
+        indices = tf.stop_gradient(indices)  # Ensure indices are not backpropagated
         return pool, indices
 
     def compute_output_shape(self, input_shape):
