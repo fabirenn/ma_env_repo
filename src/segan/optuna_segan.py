@@ -15,7 +15,7 @@ from unet_model import unet
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from custom_callbacks import ValidationCallback
-from data_loader import create_datasets_for_unet_training
+from data_loader import create_dataset_for_unet_tuning, load_images_for_tuning
 from loss_functions import (
     combined_discriminator_loss,
     combined_generator_loss,
@@ -46,35 +46,35 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 
 EPOCHS = 100
-PATIENCE = 20
+PATIENCE = 30
 BEST_IOU = 0
 WAIT = 0
 
 
-def objective(trial):
-    BATCH_SIZE = trial.suggest_categorical(
-        "batch_size", [8, 12, 16, 20, 24, 28, 32]
+def objective(trial, train_images, train_masks, val_images, val_masks):
+    BATCH_SIZE = trial.suggest_int(
+        "batch_size", 4, 24, step=4
     )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 3, 10)
     FILTERS_DEPTH = trial.suggest_int("filters_depth", 3, 6)
 
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
     discriminator_filters = filters_list[:FILTERS_DEPTH]
 
-    try:
-        
-    train_dataset, val_dataset = create_datasets_for_unet_training(
-        directory_train_images=TRAIN_IMG_PATH,
-        directory_train_masks=TRAIN_MASK_PATH,
-        directory_val_images=VAL_IMG_PATH,
-        directory_val_masks=VAL_MASK_PATH,
-        img_width=IMG_WIDTH,
-        img_height=IMG_HEIGHT,
-        batch_size=BATCH_SIZE,
-        channel_size=IMG_CHANNEL,
+    current_epoch = 0
+    val_loss = 1000
+
+    train_dataset, val_dataset = create_dataset_for_unet_tuning(
+        train_images,
+        train_masks,
+        val_images,
+        val_masks,
+        IMG_CHANNEL,
+        BATCH_SIZE
     )
+    print("Created the datasets..")
 
     generator_model = unet(
         IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, discriminator_filters
@@ -93,12 +93,6 @@ def objective(trial):
 
     gen_optimizer = keras.optimizers.Adam(1e-4)
     disc_optimizer = keras.optimizers.Adam(1e-4)
-    checkpoint = tf.train.Checkpoint(
-        generator_optimizer=gen_optimizer,
-        discriminator_optimizer=disc_optimizer,
-        generator=generator_model,
-        discriminator=discriminator_model,
-    )
 
     #generator_model.summary()
     #discriminator_model.summary()
@@ -113,18 +107,23 @@ def objective(trial):
 
     def evaluate_generator(generator, dataset):
         metrics = {
-            "accuracy": keras.metrics.Mean(name="accuracy"),
             "dice": keras.metrics.Mean(name="dice"),
             "mean_iou": keras.metrics.Mean(name="mean_iou"),
             "pixel_accuracy": keras.metrics.Mean(name="pixel_accuracy"),
             "precision": keras.metrics.Mean(name="precision"),
             "recall": keras.metrics.Mean(name="recall"),
         }
+        val_loss = 0
+        total_batches = 0
 
         # Calculate metrics over the validation dataset
         for image_batch, mask_batch in dataset:
             predictions = generator(image_batch, training=False)
-            metrics["accuracy"].update_state(accuracy(mask_batch, predictions))
+
+            # Assuming your generator_loss function works with individual batches
+            batch_loss = generator_loss(mask_batch, predictions)
+            val_loss += batch_loss.numpy()
+            
             metrics["dice"].update_state(
                 dice_coefficient(mask_batch, predictions)
             )
@@ -136,9 +135,16 @@ def objective(trial):
                 precision(mask_batch, predictions)
             )
             metrics["recall"].update_state(recall(mask_batch, predictions))
-
+            total_batches += 1
+        
+        val_loss /= total_batches
         results = {
-            name: metric.result().numpy() for name, metric in metrics.items()
+            "val_loss": val_loss,
+            "dice": metrics["dice"].result().numpy(),
+            "mean_iou": metrics["mean_iou"].result().numpy(),
+            "pixel_accuracy": metrics["pixel_accuracy"].result().numpy(),
+            "precision": metrics["precision"].result().numpy(),
+            "recall": metrics["recall"].result().numpy(),
         }
         return results
 
@@ -173,7 +179,7 @@ def objective(trial):
 
     def train(train_dataset, val_dataset, epochs, trainingsteps):
         global WAIT
-        best_gen_loss = float("inf")
+        best_val_loss = float("inf")
         try:
             for epoch in range(epochs):
                 print(f"Epoch {epoch+1}/{EPOCHS}")
@@ -181,38 +187,41 @@ def objective(trial):
                     for _ in range(trainingsteps):
                         gen_loss = train_step_generator(image_batch, mask_batch)
                     disc_loss = train_step_discriminator(image_batch, mask_batch)
-                train_metrics = evaluate_generator(generator_model, train_dataset)
                 val_metrics = evaluate_generator(generator_model, val_dataset)
+                val_loss = val_metrics["val_loss"]
                 print(
-                    f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f}"
-                )
-                print(
-                    f"Train Metrics - Accuracy: {train_metrics['accuracy']:.4f}, PA: {train_metrics['pixel_accuracy']:.4f}, Precision: {train_metrics['precision']:.4f}, Recall: {train_metrics['recall']:.4f}, IOU: {train_metrics['mean_iou']:.4f}, Dice: {train_metrics['dice']:.4f}"
+                    f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f} - Validation Loss: {val_loss:.4f}"
                 )
                 print(
                     f"Validation Metrics - Accuracy: {val_metrics['accuracy']:.4f}, PA: {val_metrics['pixel_accuracy']:.4f}, Precision: {val_metrics['precision']:.4f}, Recall: {val_metrics['recall']:.4f}, IOU: {val_metrics['mean_iou']:.4f}, Dice: {val_metrics['dice']:.4f}"
                 )
-                if gen_loss < best_gen_loss:
-                    best_gen_loss = gen_loss
-                    checkpoint.save(file_prefix=CHECKPOINT_PATH)
-                    generator_model.save(CHECKPOINT_PATH)
-                    print("Improved & Saved model\n")
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
                     WAIT = 0
                 else:
                     WAIT += 1
                     if WAIT >= PATIENCE:
                         print("Early stopping triggered\n")
-                        return best_gen_loss
-        except tf.errors.ResourceExhaustedError:
-            handle_errors_during_tuning(trial=trial, best_loss=best_gen_loss, e=e, current_epoch=epoch)
-        except Exception as e:
-            handle_errors_during_tuning(trial=trial, best_loss=best_gen_loss, e=e, current_epoch=epoch)
-                
-        # Ensure we return the best loss found
-        if best_gen_loss == float("inf"):
-            return None
+                        return best_val_loss
+            
+            print(f"Training completed. Final Validation Loss: {val_loss}")
 
-        return best_gen_loss
+            trial.report(val_loss, step=current_epoch)
+            print("Reported to Optuna.")
+
+            if trial.should_prune():
+                print("Trial is pruned.")
+                raise optuna.TrialPruned()
+            
+            return best_val_loss
+            
+        except tf.errors.ResourceExhaustedError as e:
+            handle_errors_during_tuning(trial=trial, best_loss=best_val_loss, e=e, current_epoch=epoch)
+            return float("inf")
+        finally:
+            # Clear GPU memory
+            keras.backend.clear_session()
+            print("Cleared GPU memory after trial.")
 
     best_gen_loss = train(
         train_dataset=train_dataset,
@@ -232,16 +241,26 @@ def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
+    
+    print("Going to load the data...")
+    train_images, train_masks, val_images, val_masks = load_images_for_tuning(
+        directory_train_images=TRAIN_IMG_PATH,
+        directory_train_masks=TRAIN_MASK_PATH,
+        directory_val_images=VAL_IMG_PATH,
+        directory_val_masks=VAL_MASK_PATH,
+        img_width=IMG_WIDTH,
+        img_height=IMG_HEIGHT,
+    )
+    print("Loaded Images, now starting with the study")
+
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_study.db",  # Save the study in a SQLite database file
+        storage="sqlite:///optuna_segan.db",  # Save the study in a SQLite database file
         study_name="segan_tuning",
-        load_if_exists=True,
+        load_if_exists=False,
     )
 
-    study.optimize(objective, n_trials=200)
-
-    # clear_directory("/work/fi263pnye-ma_data/tmp/artifacts")
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
 
     print("Best trial:")
     trial = study.best_trial

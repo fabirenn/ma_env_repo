@@ -185,7 +185,7 @@ if __name__ == "__main__":
         load_if_exists=True,
     )
     
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200, n_jobs=1)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
 
     print("Best trial:")
     trial = study.best_trial
