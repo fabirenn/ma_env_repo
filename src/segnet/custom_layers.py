@@ -18,26 +18,21 @@ class MaxUnpooling2D(Layer):
 
         # Calculate output shape
         output_shape = [batch_size, height, width, channels]
-        output_shape = tf.stack(output_shape)
+        flat_output_size = tf.reduce_prod(output_shape)
 
         # Flatten the mask and updates
-        flat_input_size = input_shape[1] * input_shape[2] * channels
-        flat_output_size = height * width * channels
-
         mask = tf.cast(mask, dtype=tf.int32)
         flat_mask = tf.reshape(mask, [-1])
+        flat_updates = tf.reshape(updates, [-1])
 
-        # Compute the batch offsets
+        # Calculate batch offsets
         batch_range = tf.reshape(tf.range(batch_size, dtype=tf.int32), shape=[-1, 1, 1, 1])
         b = tf.ones_like(mask) * batch_range
         b = tf.reshape(b, [-1])
-        flat_mask += tf.cast(b * flat_input_size, dtype=tf.int32)
-
-        # Flatten the updates
-        flat_updates = tf.reshape(updates, [-1])
+        flat_mask += b * tf.reduce_prod(input_shape[1:])
 
         # Initialize the flat output tensor
-        flat_output = tf.zeros([batch_size * flat_output_size], dtype=updates.dtype)
+        flat_output = tf.zeros([flat_output_size], dtype=updates.dtype)
 
         # Scatter the updates into the flat output tensor
         flat_output = tf.tensor_scatter_nd_add(flat_output, tf.expand_dims(flat_mask, 1), flat_updates)
@@ -55,11 +50,16 @@ class MaxUnpooling2D(Layer):
         ]
         return tf.TensorShape(shape)
 
+    def get_config(self):
+        config = super(MaxUnpooling2D, self).get_config()
+        config.update({
+            "pool_size": self.pool_size,
+        })
+        return config
+
 
 class MaxPoolingWithIndices2D(Layer):
-    def __init__(
-        self, pool_size=(2, 2), strides=(2, 2), padding="SAME", **kwargs
-    ):
+    def __init__(self, pool_size=(2, 2), strides=(2, 2), padding="SAME", **kwargs):
         super(MaxPoolingWithIndices2D, self).__init__(**kwargs)
         self.pool_size = pool_size
         self.strides = strides
@@ -72,26 +72,15 @@ class MaxPoolingWithIndices2D(Layer):
             strides=[1, self.strides[0], self.strides[1], 1],
             padding=self.padding
         )
-        
-        # Flatten the indices for compatibility with the unpooling operation
         indices = tf.cast(indices, dtype=tf.int32)  # Ensure indices are int32 for compatibility
         return pool, indices
-
-    def get_config(self):
-        config = super(MaxPoolingWithIndices2D, self).get_config()
-        config.update({
-            "pool_size": self.pool_size,
-            "strides": self.strides,
-            "padding": self.padding,
-        })
-        return config
 
     def compute_output_shape(self, input_shape):
         if self.padding == "SAME":
             shape = [
                 input_shape[0],
-                input_shape[1] // self.strides[0],
-                input_shape[2] // self.strides[1],
+                tf.math.ceil(input_shape[1] / self.strides[0]),
+                tf.math.ceil(input_shape[2] / self.strides[1]),
                 input_shape[3],
             ]
         elif self.padding == "VALID":
@@ -102,6 +91,15 @@ class MaxPoolingWithIndices2D(Layer):
                 input_shape[3],
             ]
         return tf.TensorShape(shape)
+
+    def get_config(self):
+        config = super(MaxPoolingWithIndices2D, self).get_config()
+        config.update({
+            "pool_size": self.pool_size,
+            "strides": self.strides,
+            "padding": self.padding,
+        })
+        return config
 
 
 custom_objects = {
