@@ -1,7 +1,7 @@
 import os
 import sys
 
-import keras.backend
+import keras
 import numpy as np
 import optuna
 import segmentation_models as sm
@@ -39,9 +39,6 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
-LOG_VAL_PRED = "data/predictions/segan"
-CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
-
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 
@@ -58,13 +55,31 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 3, 10)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
     FILTERS_DEPTH = trial.suggest_int("filters_depth", 3, 6)
+    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
+    OPTIMIZER = trial.suggest_categorical(
+        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
+    )
+    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
+    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
+    INITIALIZER = trial.suggest_categorical(
+            "weight_initializer", ["he_normal", "he_uniform"]
+        )
+    
+    if OPTIMIZER == "sgd":
+        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adagrad":
+        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "rmsprop":
+        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == "adam":
+        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
     discriminator_filters = filters_list[:FILTERS_DEPTH]
 
     current_epoch = 0
-    val_loss = 1000
 
     train_dataset, val_dataset = create_dataset_for_unet_tuning(
         train_images,
@@ -77,7 +92,16 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     print("Created the datasets..")
 
     generator_model = unet(
-        IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, discriminator_filters
+        IMG_WIDTH,
+        IMG_HEIGHT,
+        IMG_CHANNEL,
+        DROPOUT_RATE,
+        discriminator_filters,
+        kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
+        activation=ACTIVATION,
+        use_batchnorm=USE_BATCHNORM,
+        initializer_function=INITIALIZER,
+        training=True,
     )
 
     discriminator_model = discriminator(
@@ -91,8 +115,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         outputs=[layer.output for layer in discriminator_model.layers if 'conv' in layer.name or 'bn' in layer.name]
     )
 
-    gen_optimizer = keras.optimizers.Adam(1e-4)
-    disc_optimizer = keras.optimizers.Adam(1e-4)
+    gen_optimizer = optimizer
+    disc_optimizer = optimizer
 
     #generator_model.summary()
     #discriminator_model.summary()

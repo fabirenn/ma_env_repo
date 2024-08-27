@@ -51,7 +51,6 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             "weight_initializer", ["he_normal", "he_uniform"]
         )
     
-
     if OPTIMIZER == "sgd":
         optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
     elif OPTIMIZER == "adagrad":
