@@ -52,9 +52,11 @@ class MaxPoolingWithIndices2D(Layer):
         pooled, indices = tf.nn.max_pool_with_argmax(
             inputs, ksize=[1, *self.pool_size, 1], strides=[1, *self.strides, 1], padding=self.padding
         )
-        # Store the indices as an attribute
-        self.indices = indices
-        self.input_shape = tf.shape(inputs)
+        # Store the indices and input shape in a dictionary
+        self.pooling_info = {
+            "indices": indices,
+            "input_shape": tf.shape(inputs)
+        }
         return pooled
 
     def compute_output_shape(self, input_shape):
