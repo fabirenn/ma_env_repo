@@ -9,6 +9,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
     
     # Encoder
     pool_indices = []
+    input_shapes = []
     x = inputs
     for filters in num_filters:
         if initializer_function == "he_normal":
@@ -22,22 +23,20 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
         x = Dropout(dropout_rate)(x)
 
-        if initializer_function == "he_normal":
-            initializer = keras.initializers.HeNormal()
-        elif initializer_function == "he_uniform":
-            initializer = keras.initializers.HeUniform()
         x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
         if use_batchnorm:
             x = BatchNormalization()(x)
         x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
 
-        p, ind = MaxPoolingWithIndices2D((2, 2))(x)
-        pool_indices.append(ind)
+        p = MaxPoolingWithIndices2D(pool_size=(2, 2), strides=(2, 2))(x)
+        pool_indices.append(p.indices)
+        input_shapes.append(p.input_shape)
         x = p
 
     # Decoder
-    for filters, ind in zip(reversed(num_filters), reversed(pool_indices)):
-        x = MaxUnpooling2D((2, 2))([x, ind])
+    for filters, indices, input_shape in zip(reversed(num_filters), reversed(pool_indices), reversed(input_shapes)):
+        # Unpooling
+        x = MaxUnpooling2D(pool_size=(2, 2))(x, indices, output_shape=input_shape)
 
         if initializer_function == "he_normal":
             initializer = keras.initializers.HeNormal()
@@ -50,10 +49,6 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
         x = Dropout(dropout_rate)(x)
 
-        if initializer_function == "he_normal":
-            initializer = keras.initializers.HeNormal()
-        elif initializer_function == "he_uniform":
-            initializer = keras.initializers.HeUniform()
         x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
         if use_batchnorm:
             x = BatchNormalization()(x)

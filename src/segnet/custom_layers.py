@@ -8,101 +8,78 @@ class MaxUnpooling2D(Layer):
         super(MaxUnpooling2D, self).__init__(**kwargs)
         self.pool_size = pool_size
 
-    def call(self, inputs):
-        updates, mask = inputs
-        input_shape = K.shape(updates)
-        batch_size = input_shape[0]
-        height = input_shape[1] * self.pool_size[0]
-        width = input_shape[2] * self.pool_size[1]
-        channels = input_shape[3]
+    def call(self, inputs, indices, output_shape):
+        # Flatten indices and inputs
+        input_shape = tf.shape(inputs)
+        flat_input_size = input_shape[0] * input_shape[1] * input_shape[2] * input_shape[3]
+        flat_output_shape = tf.stack([output_shape[0], output_shape[1] * output_shape[2] * output_shape[3]])
 
-        # Calculate output shape
-        output_shape = [batch_size, height, width, channels]
-        output_shape = tf.stack(output_shape)
+        # Create a flat version of indices
+        flat_indices = K.flatten(indices)
 
-        # Flatten the mask and updates
-        flat_input_size = tf.reduce_prod(input_shape[1:])
-        flat_output_size = tf.reduce_prod(output_shape[1:])
+        # Flattened input and indices to create sparse tensor
+        flat_inputs = K.flatten(inputs)
+        batch_range = tf.reshape(tf.range(output_shape[0], dtype=flat_indices.dtype), shape=[-1, 1, 1, 1])
+        batch_indices = batch_range * flat_output_shape[1]
 
-        mask = tf.cast(mask, dtype=tf.int32)  # Ensure mask is int32
-        flat_mask = tf.reshape(mask, [-1])
-
-        # Compute the batch offsets
-        batch_range = tf.reshape(tf.range(batch_size, dtype=tf.int32), shape=[-1, 1, 1, 1])
-        b = tf.ones_like(mask, dtype=tf.int32) * batch_range
-        b = tf.reshape(b, [-1])
-        flat_mask += b * tf.cast(flat_input_size, dtype=tf.int32)  # Ensure types match
-
-        # Flatten the updates
-        flat_updates = tf.reshape(updates, [-1])
-
-        # Initialize the flat output tensor
-        flat_output = tf.zeros([batch_size * flat_output_size], dtype=updates.dtype)
-
-        # Scatter the updates into the flat output tensor
-        flat_output = tf.tensor_scatter_nd_add(flat_output, tf.expand_dims(flat_mask, 1), flat_updates)
-
-        # Reshape the flat output back to the original output shape
-        ret = tf.reshape(flat_output, output_shape)
+        flat_indices = flat_indices + batch_indices
+        ret = tf.scatter_nd(tf.expand_dims(flat_indices, axis=-1), flat_inputs, flat_output_shape)
+        
+        # Reshape back to original output shape
+        ret = tf.reshape(ret, output_shape)
         return ret
 
     def compute_output_shape(self, input_shape):
-        shape = [
-            input_shape[0],
-            input_shape[1] * self.pool_size[0],
-            input_shape[2] * self.pool_size[1],
-            input_shape[3],
-        ]
-        return tf.TensorShape(shape)
+        return (input_shape[0], input_shape[1] * self.pool_size[0], input_shape[2] * self.pool_size[1], input_shape[3])
 
     def get_config(self):
         config = super(MaxUnpooling2D, self).get_config()
         config.update({
-            "pool_size": self.pool_size,
+            'pool_size': self.pool_size,
         })
         return config
 
 
 class MaxPoolingWithIndices2D(Layer):
-    def __init__(self, pool_size=(2, 2), strides=(2, 2), padding="SAME", **kwargs):
+    def __init__(self, pool_size=(2, 2), strides=(2, 2), padding='VALID', **kwargs):
         super(MaxPoolingWithIndices2D, self).__init__(**kwargs)
         self.pool_size = pool_size
         self.strides = strides
         self.padding = padding
 
     def call(self, inputs):
-        pool, indices = tf.nn.max_pool_with_argmax(
-            inputs,
-            ksize=[1, self.pool_size[0], self.pool_size[1], 1],
-            strides=[1, self.strides[0], self.strides[1], 1],
-            padding=self.padding
+        # Use max pooling with indices
+        pooled, indices = tf.nn.max_pool_with_argmax(
+            inputs, ksize=[1, *self.pool_size, 1], strides=[1, *self.strides, 1], padding=self.padding
         )
-        indices = tf.stop_gradient(indices)  # Ensure indices are not backpropagated
-        return pool, indices
+        # Store the indices as an attribute
+        self.indices = indices
+        self.input_shape = tf.shape(inputs)
+        return pooled
 
     def compute_output_shape(self, input_shape):
-        if self.padding == "SAME":
-            shape = [
+        if self.padding == 'SAME':
+            output_shape = [
                 input_shape[0],
-                tf.math.ceil(input_shape[1] / self.strides[0]),
-                tf.math.ceil(input_shape[2] / self.strides[1]),
+                input_shape[1] // self.strides[0],
+                input_shape[2] // self.strides[1],
                 input_shape[3],
             ]
-        elif self.padding == "VALID":
-            shape = [
+        else:
+            output_shape = [
                 input_shape[0],
                 (input_shape[1] - self.pool_size[0]) // self.strides[0] + 1,
                 (input_shape[2] - self.pool_size[1]) // self.strides[1] + 1,
                 input_shape[3],
             ]
-        return tf.TensorShape(shape)
+        return tuple(output_shape)
 
     def get_config(self):
         config = super(MaxPoolingWithIndices2D, self).get_config()
         config.update({
-            "pool_size": self.pool_size,
-            "strides": self.strides,
-            "padding": self.padding,
+            'pool_size': self.pool_size,
+            'strides': self.strides,
+            'padding': self.padding
         })
         return config
 
