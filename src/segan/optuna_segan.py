@@ -219,7 +219,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
                     f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f} - Validation Loss: {val_loss:.4f}"
                 )
                 print(
-                    f"Validation Metrics - Accuracy: {val_metrics['accuracy']:.4f}, PA: {val_metrics['pixel_accuracy']:.4f}, Precision: {val_metrics['precision']:.4f}, Recall: {val_metrics['recall']:.4f}, IOU: {val_metrics['mean_iou']:.4f}, Dice: {val_metrics['dice']:.4f}"
+                    f"Validation Metrics - PA: {val_metrics['pixel_accuracy']:.4f}, Precision: {val_metrics['precision']:.4f}, Recall: {val_metrics['recall']:.4f}, IOU: {val_metrics['mean_iou']:.4f}, Dice: {val_metrics['dice']:.4f}"
                 )
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
