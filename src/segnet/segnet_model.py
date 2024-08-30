@@ -2,6 +2,7 @@ from custom_layers import MaxPoolingWithIndices2D, MaxUnpooling2D
 from keras.layers import Activation, BatchNormalization, Conv2D, Dropout, Input
 from keras.models import Model
 import keras
+import tensorflow as tf
 
 
 def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_batchnorm, initializer_function):
@@ -32,10 +33,9 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
             x = BatchNormalization()(x)
         x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
 
-        p = MaxPoolingWithIndices2D(pool_size=(2, 2), strides=(2, 2))(x)
-        pool_indices.append(p.indices)
-        input_shapes.append(p.input_shape)
-        x = p
+        x, indices = MaxPoolingWithIndices2D(pool_size=(2, 2), strides=(2, 2))(x)
+        pool_indices.append(indices)
+        input_shapes.append(tf.shape(x))
 
     # Decoder
     for filters, indices, input_shape in zip(reversed(num_filters), reversed(pool_indices), reversed(input_shapes)):

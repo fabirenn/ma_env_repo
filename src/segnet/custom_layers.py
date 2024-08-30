@@ -57,7 +57,7 @@ class MaxPoolingWithIndices2D(Layer):
             "indices": indices,
             "input_shape": tf.shape(inputs)
         }
-        return pooled
+        return pooled, indices
 
     def compute_output_shape(self, input_shape):
         if self.padding == 'SAME':
