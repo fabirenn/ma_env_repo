@@ -9,16 +9,20 @@ class MaxUnpooling2D(Layer):
         self.pool_size = pool_size
 
     def call(self, inputs, indices, output_shape):
+
+        indices = tf.cast(indices, dtype=tf.int32)
+        output_shape = tf.cast(output_shape, dtype=tf.int32)
+
         # Flatten indices and inputs
         input_shape = tf.shape(inputs)
         flat_input_size = input_shape[0] * input_shape[1] * input_shape[2] * input_shape[3]
         flat_output_shape = tf.stack([output_shape[0], output_shape[1] * output_shape[2] * output_shape[3]])
 
         # Create a flat version of indices
-        flat_indices = K.flatten(indices)
+        flat_indices = tf.reshape(indices, [-1])
 
         # Flattened input and indices to create sparse tensor
-        flat_inputs = K.flatten(inputs)
+        flat_inputs = tf.reshape(inputs, [-1])
         batch_range = tf.reshape(tf.range(output_shape[0], dtype=flat_indices.dtype), shape=[-1, 1, 1, 1])
         batch_indices = batch_range * flat_output_shape[1]
 
@@ -53,6 +57,7 @@ class MaxPoolingWithIndices2D(Layer):
             inputs, ksize=[1, *self.pool_size, 1], strides=[1, *self.strides, 1], padding=self.padding
         )
         # Store the indices and input shape in a dictionary
+        indices = tf.cast(indices, dtype=tf.int32)
         self.pooling_info = {
             "indices": indices,
             "input_shape": tf.shape(inputs)
