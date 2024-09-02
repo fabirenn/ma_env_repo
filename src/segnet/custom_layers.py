@@ -9,34 +9,39 @@ class MaxUnpooling2D(Layer):
         self.pool_size = pool_size
 
     def call(self, inputs, indices, output_shape):
-
-        # Ensure that indices and output_shape are the correct dtype
+        # Ensure indices and output_shape are the correct dtype
         indices = tf.cast(indices, dtype=tf.int32)
         output_shape = tf.cast(output_shape, dtype=tf.int32)
 
-        # Flatten the input and indices
-        input_shape = tf.shape(inputs)
-
-        # Calculate the batch size and dimension sizes
-        batch_size = input_shape[0]
+        # Calculate the batch size, height, width, and number of channels
+        batch_size = output_shape[0]
         height = output_shape[1]
         width = output_shape[2]
         channels = output_shape[3]
 
-        # Create the base indices for each batch
+        # Calculate the total number of elements
+        total_elements = batch_size * height * width * channels
+
+        # Flatten the inputs and indices
+        flat_inputs = tf.reshape(inputs, [-1])
+        flat_indices = tf.reshape(indices, [-1])
+
+        # Get the range for batch indices
         batch_range = tf.range(batch_size, dtype=indices.dtype)
         batch_range = tf.reshape(batch_range, [batch_size, 1, 1, 1])
-        b = tf.ones_like(indices) * batch_range
-        b = tf.reshape(b, [-1])
 
-        flat_indices = tf.reshape(indices, [-1])
-        flat_indices = flat_indices + (b * height * width * channels)
+        # Offset the indices by the batch index
+        batch_offset = batch_range * height * width * channels
+        batch_offset = tf.reshape(batch_offset, [-1])
+        flat_indices = flat_indices + batch_offset
 
-        flat_inputs = tf.reshape(inputs, [-1])
-        ret = tf.scatter_nd(tf.expand_dims(flat_indices, axis=-1), flat_inputs, [batch_size * height * width * channels])
-        ret = tf.reshape(ret, [batch_size, height, width, channels])
-        
-        return ret
+        # Scatter the flattened inputs back to the original unpooled size
+        output = tf.scatter_nd(tf.expand_dims(flat_indices, axis=-1), flat_inputs, [total_elements])
+
+        # Reshape the output to the desired output shape
+        output = tf.reshape(output, output_shape)
+
+        return output
 
     def compute_output_shape(self, input_shape):
         return (
