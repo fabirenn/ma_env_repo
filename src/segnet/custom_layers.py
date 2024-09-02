@@ -26,13 +26,11 @@ class MaxUnpooling2D(Layer):
         flat_inputs = tf.reshape(inputs, [-1])
         flat_indices = tf.reshape(indices, [-1])
 
-        # Get the range for batch indices
-        batch_range = tf.range(batch_size, dtype=indices.dtype)
-        batch_range = tf.reshape(batch_range, [batch_size, 1, 1, 1])
+        # Adjust flat_indices to account for the batch offset
+        batch_offset = tf.range(batch_size) * height * width * channels
+        batch_offset = tf.reshape(batch_offset, (-1, 1))
+        batch_offset = tf.reshape(tf.tile(batch_offset, [1, height * width * channels]), [-1])
 
-        # Offset the indices by the batch index
-        batch_offset = batch_range * height * width * channels
-        batch_offset = tf.reshape(batch_offset, [-1])
         flat_indices = flat_indices + batch_offset
 
         # Scatter the flattened inputs back to the original unpooled size
