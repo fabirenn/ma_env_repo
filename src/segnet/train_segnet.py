@@ -35,8 +35,8 @@ IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.1
 BATCH_SIZE = 4
-EPOCHS = 200
-PATIENCE = 70
+EPOCHS = 50
+PATIENCE = 30
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -67,7 +67,13 @@ config = wandb.config
 
 # create model & start training it
 model = segnet(
-    input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL), dropout_rate=DROPOUT_RATE
+    input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
+    dropout_rate=DROPOUT_RATE,
+    num_filters=[32, 64, 128, 256],
+    kernel_size=(3, 3),
+    activation="relu",
+    use_batchnorm=True,
+    initializer_function="he_normal"
 )
 
 model.compile(
