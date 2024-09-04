@@ -7,60 +7,66 @@ import tensorflow as tf
 
 def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_batchnorm, initializer_function):
     inputs = Input(input_size)
-    
-    # Encoder
     pool_indices = []
     input_shapes = []
     x = inputs
-    for filters in num_filters:
-        if initializer_function == "he_normal":
-            initializer = keras.initializers.HeNormal()
-        elif initializer_function == "he_uniform":
-            initializer = keras.initializers.HeUniform()
+
+    for i, filters in enumerate(num_filters):
+        # Determine the number of convolutions for this block
+        if i < 2:
+            num_convs = 2  # First two blocks have two convolutions each
+        elif i < len(num_filters) - 1:
+            num_convs = 3  # The next blocks have three convolutions
+        else:
+            num_convs = 4  # The final block has four convolutions
         
-        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
-        if use_batchnorm:
-            x = BatchNormalization()(x)
-        x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
-        x = Dropout(dropout_rate)(x)
+        # Apply convolutional layers
+        for conv_idx in range(num_convs):
+            if initializer_function == "he_normal":
+                initializer = keras.initializers.HeNormal()
+            elif initializer_function == "he_uniform":
+                initializer = keras.initializers.HeUniform()
+            x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
+            if use_batchnorm:
+                x = BatchNormalization()(x)
+            x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
 
-        if initializer_function == "he_normal":
-            initializer = keras.initializers.HeNormal()
-        elif initializer_function == "he_uniform":
-            initializer = keras.initializers.HeUniform()
-        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
-        if use_batchnorm:
-            x = BatchNormalization()(x)
-        x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
+            # Apply Dropout only between conv layers (not after the last conv in the block)
+            if conv_idx < num_convs - 1:
+                x = Dropout(dropout_rate)(x)
 
+        # MaxPooling with Indices
         x, indices = MaxPoolingWithIndices(pool_size=(2, 2), strides=(2, 2))(x)
         pool_indices.append(indices)
         input_shapes.append(tf.shape(x))
 
     # Decoder
-    for filters, indices, input_shape in zip(reversed(num_filters), reversed(pool_indices), reversed(input_shapes)):
-        # Unpooling
-        x = MaxUnpooling2D(pool_size=(2, 2))(x, indices, output_shape=input_shape)
+    for i, filters in reversed(list(enumerate(num_filters))):
+        # MaxUnpooling2D with indices to double the resolution
+        x = MaxUnpooling2D(pool_size=(2, 2))(x, pool_indices[i], output_shape=input_shapes[i])
 
-        if initializer_function == "he_normal":
-            initializer = keras.initializers.HeNormal()
-        elif initializer_function == "he_uniform":
-            initializer = keras.initializers.HeUniform()
+        # Apply the same number of convolutions as in the encoder block
+        if i < 2:
+            num_convs = 2  # First two blocks had two convolutions
+        elif i < len(num_filters) - 1:
+            num_convs = 3  # The next blocks had three convolutions
+        else:
+            num_convs = 4  # The last block had four convolutions
+        
+        # Apply convolutional layers in the decoder block
+        for conv_idx in range(num_convs):
+            if initializer_function == "he_normal":
+                initializer = keras.initializers.HeNormal()
+            elif initializer_function == "he_uniform":
+                initializer = keras.initializers.HeUniform()
+            x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
+            if use_batchnorm:
+                x = BatchNormalization()(x)
+            x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
 
-        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
-        if use_batchnorm:
-            x = BatchNormalization()(x)
-        x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
-        x = Dropout(dropout_rate)(x)
-
-        if initializer_function == "he_normal":
-            initializer = keras.initializers.HeNormal()
-        elif initializer_function == "he_uniform":
-            initializer = keras.initializers.HeUniform()
-        x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
-        if use_batchnorm:
-            x = BatchNormalization()(x)
-        x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
+            # Apply Dropout only between conv layers (not after the last conv in the block)
+            if conv_idx < num_convs - 1:
+                x = Dropout(dropout_rate)(x)
 
     outputs = Conv2D(
         5, kernel_size=(1, 1), padding="same", activation="softmax"
