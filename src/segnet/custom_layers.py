@@ -9,17 +9,30 @@ class MaxUnpooling2D(Layer):
         self.pool_size = pool_size
 
     def call(self, inputs, indices, output_shape):
+        # Cast indices and output_shape to int32 for compatibility
         indices = tf.cast(indices, dtype=tf.int32)
         output_shape = tf.cast(output_shape, dtype=tf.int32)
+        
+        # Flatten the inputs and indices
         flat_inputs = tf.reshape(inputs, [-1])
         flat_indices = tf.reshape(indices, [-1])
-        total_elements = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3]
-        batch_offset = tf.range(output_shape[0]) * output_shape[1] * output_shape[2] * output_shape[3]
+        
+        # Extract output shape components
+        batch_size, height, width, channels = output_shape[0], output_shape[1], output_shape[2], output_shape[3]
+        
+        # Compute batch offsets
+        batch_offset = tf.range(batch_size) * (height * width * channels)
         batch_offset = tf.reshape(batch_offset, (-1, 1))
-        batch_offset = tf.reshape(tf.tile(batch_offset, [1, output_shape[1] * output_shape[2] * output_shape[3]]), [-1])
+        batch_offset = tf.reshape(tf.tile(batch_offset, [1, tf.shape(flat_indices)[0] // batch_size]), [-1])
+        
+        # Add the batch offset to the indices
         flat_indices = flat_indices + batch_offset
-        output = tf.scatter_nd(tf.expand_dims(flat_indices, axis=-1), flat_inputs, [total_elements])
-        output = tf.reshape(output, output_shape)
+        
+        # Scatter the flattened inputs into the output shape
+        output = tf.scatter_nd(tf.expand_dims(flat_indices, axis=-1), flat_inputs, [batch_size * height * width * channels])
+        
+        # Reshape the flat output to the desired output shape
+        output = tf.reshape(output, (batch_size, height, width, channels))
         return output
 
 
