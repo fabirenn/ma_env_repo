@@ -47,10 +47,6 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     momentum = trial.suggest_float("momentum", 0.7, 0.99)
     weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-3, log=True)
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
-    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
-    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
-    
-    
     optimizer = keras.optimizers.SGD(
         learning_rate=learning_rate,
         momentum=momentum,
@@ -73,12 +69,17 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         print("Created the datasets..")
 
         # create model & start training it
-        semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
-        semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
+        semantic_extractor_model = build_feature_extractor_for_pretraining(
+            IMG_WIDTH,
+            IMG_HEIGHT,
+            IMG_CHANNEL,
+            DROPOUT_RATE,
+        )
+        #semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
-        model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
+        #model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
-        model.compile(
+        semantic_extractor_model.compile(
             optimizer=optimizer,
             loss=dice_loss,
             metrics=[
@@ -91,10 +92,11 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             ],
         )
 
-        history = model.fit(
+        history = semantic_extractor_model.fit(
             train_dataset,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
+            verbose=1,
             validation_data=val_dataset,
             callbacks=[
                 keras.callbacks.EarlyStopping(
@@ -107,12 +109,23 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
         val_loss = min(history.history["val_loss"])
         current_epoch = len(history.history["loss"])
+        print(f"Training completed. Final Validation Loss: {val_loss}")
+
+        trial.report(val_loss, step=current_epoch)
+        print("Reported to Optuna.")
+
+        if trial.should_prune():
+            print("Trial is pruned.")
+            raise optuna.TrialPruned()
+
         return val_loss
     except tf.errors.ResourceExhaustedError as e:
         handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
-    except Exception as e:
-        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
-
+        return float("inf")
+    finally:
+        # Clear GPU memory
+        keras.backend.clear_session()
+        print("Cleared GPU memory after trial.")
 
 def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
     print(f"The following error occured: {e}")
@@ -136,9 +149,9 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_study.db",  # Save the study in a SQLite database file
-        study_name="ynet_tuning",
-        load_if_exists=True,
+        storage="sqlite:///optuna_ynet.db",  # Save the study in a SQLite database file
+        study_name="ynet_pretraining",
+        load_if_exists=False,
     )
     study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
     
