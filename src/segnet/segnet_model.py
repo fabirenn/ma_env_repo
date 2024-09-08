@@ -36,14 +36,14 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
                 x = Dropout(dropout_rate)(x)
 
         # MaxPooling with Indices
-        x, indices = MaxPoolingWithIndices(pool_size=(2, 2), strides=(2, 2))(x)
+        x, indices = MaxPoolingWithIndices(pool_size=(2, 2))(x)
         pool_indices.append(indices)
         input_shapes.append(tf.shape(x))
 
     # Decoder
     for i, filters in reversed(list(enumerate(num_filters))):
         # MaxUnpooling2D with indices to double the resolution
-        x = MaxUnpooling2D(pool_size=(2, 2))(x, pool_indices[i], output_shape=input_shapes[i])
+        x = MaxUnpooling2D()([x, pool_indices.pop()])
 
         # Apply the same number of convolutions as in the encoder block
         if i < 2:
