@@ -10,8 +10,12 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
     pool_indices = []
     input_shapes = []
     x = inputs
+    print(f"Input shape: {x.shape}") 
+    print(enumerate(num_filters))
+    print(reversed(list(enumerate(num_filters))))
 
     for i, filters in enumerate(num_filters):
+        print(f"\nEncoder Block {i+1}:")
         # Determine the number of convolutions for this block
         if i < 2:
             num_convs = 2  # First two blocks have two convolutions each
@@ -35,16 +39,22 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
             if conv_idx < num_convs - 1:
                 x = Dropout(dropout_rate)(x)
 
+            print(f"  After Conv {conv_idx+1}, shape: {x.shape}")
+
         # MaxPooling with Indices
         x, indices = MaxPoolingWithIndices(pool_size=(2, 2))(x)
         pool_indices.append(indices)
         input_shapes.append(tf.shape(x))
+        print(f"  After Pooling, feature map shape: {x.shape}")  # Print the feature map shape after pooling
+        print(f"  Pooling indices shape: {indices.shape}")
 
     # Decoder
     for i, filters in reversed(list(enumerate(num_filters))):
+        print(f"\nDecoder Block {i+1}:")
         # MaxUnpooling2D with indices to double the resolution
         x = MaxUnpooling2D()([x, pool_indices.pop()])
 
+        print(f"  After Unpooling, shape: {x.shape}") 
         # Apply the same number of convolutions as in the encoder block
         if i < 2:
             num_convs = 2  # First two blocks had two convolutions
@@ -67,6 +77,8 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
             # Apply Dropout only between conv layers (not after the last conv in the block)
             if conv_idx < num_convs - 1:
                 x = Dropout(dropout_rate)(x)
+            
+            print(f"  After Conv {conv_idx+1}, shape: {x.shape}") 
 
     outputs = Conv2D(
         5, kernel_size=(1, 1), padding="same", activation="softmax"
