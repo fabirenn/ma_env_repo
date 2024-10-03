@@ -41,8 +41,8 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
-DROPOUT_RATE = 0.0
-BATCH_SIZE = 24
+DROPOUT_RATE = 0.1
+BATCH_SIZE = 16
 EPOCHS = 100
 PATIENCE = 30
 
@@ -81,9 +81,9 @@ model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANN
 #model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
 # Set the optimizer parameters
-momentum = 0.9
-weight_decay = 0.0001
-learning_rate = 0.001
+momentum = 0.99
+weight_decay = 0.00001
+learning_rate = 0.007
 
 # Create the SGD optimizer
 optimizer = keras.optimizers.SGD(
