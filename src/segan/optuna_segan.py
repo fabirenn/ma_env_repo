@@ -53,10 +53,10 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         "batch_size", 4, 24, step=4
     )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
-    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 3, 10)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
-    FILTERS_DEPTH = trial.suggest_int("filters_depth", 3, 6)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
+    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 5, 10)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
+    FILTERS_DEPTH = trial.suggest_int("filters_depth", 4, 6)
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
