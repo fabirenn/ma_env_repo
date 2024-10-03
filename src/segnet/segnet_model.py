@@ -17,12 +17,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
     for i, filters in enumerate(num_filters):
         print(f"\nEncoder Block {i+1}:")
         # Determine the number of convolutions for this block
-        if i < 2:
-            num_convs = 2  # First two blocks have two convolutions each
-        elif i < len(num_filters) - 1:
-            num_convs = 3  # The next blocks have three convolutions
-        else:
-            num_convs = 4  # The final block has four convolutions
+        num_convs = 2 if i < 2 else (3 if i < len(num_filters) - 1 else 4)
         
         # Apply convolutional layers
         for conv_idx in range(num_convs):
@@ -43,7 +38,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
 
         # MaxPooling with Indices
         x, indices = MaxPoolingWithIndices(pool_size=(2, 2))(x)
-        pool_indices.append(indices)
+        pool_indices.append((indices, filters))
         input_shapes.append(tf.shape(x))
         print(f"  After Pooling, feature map shape: {x.shape}")  # Print the feature map shape after pooling
         print(f"  Pooling indices shape: {indices.shape}")
@@ -51,17 +46,13 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
     # Decoder
     for i, filters in reversed(list(enumerate(num_filters))):
         print(f"\nDecoder Block {i+1}:")
+        indices, pool_filters = pool_indices.pop()
         # MaxUnpooling2D with indices to double the resolution
-        x = MaxUnpooling2D()([x, pool_indices.pop()])
+        x = MaxUnpooling2D()([x, indices])
 
         print(f"  After Unpooling, shape: {x.shape}") 
         # Apply the same number of convolutions as in the encoder block
-        if i < 2:
-            num_convs = 2  # First two blocks had two convolutions
-        elif i < len(num_filters) - 1:
-            num_convs = 3  # The next blocks had three convolutions
-        else:
-            num_convs = 4  # The last block had four convolutions
+        num_convs = 2 if i < 2 else (3 if i < len(num_filters) - 1 else 4)
         
         # Apply convolutional layers in the decoder block
         for conv_idx in range(num_convs):
