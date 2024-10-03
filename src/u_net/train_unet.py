@@ -38,11 +38,12 @@ VAL_MASK_PATH = "data/local/val/labels"'''
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-IMG_CHANNEL = 8
+IMG_CHANNEL = 3
 
-DROPOUT_RATE = 0.1
+DROPOUT_RATE = 0.0
+LEARNING_RATE = 0.003
 
-BATCH_SIZE = 8
+BATCH_SIZE = 24
 EPOCHS = 200
 PATIENCE = 70
 
@@ -74,7 +75,7 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
-filters_list = [16, 32, 64, 128, 256]
+filters_list = [16, 32, 64, 128, 256, 512, 1024]
 
 # create model & start training it
 model = unet(
@@ -83,11 +84,17 @@ model = unet(
     IMG_CHANNEL,
     DROPOUT_RATE,
     filters_list,
+    kernel_size=(5, 5),
+    activation="elu",
+    use_batchnorm=True,
+    initializer_function="he_normal",
     training=True,
 )
 
+optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+
 model.compile(
-    optimizer="adam",
+    optimizer=optimizer,
     loss=dice_loss,
     metrics=[
         "accuracy",
