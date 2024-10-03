@@ -45,11 +45,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
     # Set the optimizer parameters
     momentum = trial.suggest_float("momentum", 0.7, 0.99)
-    weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-3, log=True)
-    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
-    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
-    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
-    
+    weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-4, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
     
     optimizer = keras.optimizers.SGD(
         learning_rate=learning_rate,
