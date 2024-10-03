@@ -122,6 +122,7 @@ model.fit(
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=APPLY_CRF,
+            log_wandb=True
         ),
         keras.callbacks.EarlyStopping(
             monitor="val_loss",
