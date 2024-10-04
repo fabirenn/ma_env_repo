@@ -9,9 +9,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
     inputs = Input(input_size)
     pool_indices = []
     x = inputs
-    print(f"Input shape: {x.shape}") 
-    print(enumerate(num_filters))
-    print(reversed(list(enumerate(num_filters))))
+    print(f"Input shape: {x.shape}")
 
     for i, filters in enumerate(num_filters):
         print(f"\nEncoder Block {i+1}:")
@@ -42,7 +40,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         print(f"  Pooling indices shape: {indices.shape}")
 
     # Decoder
-    for i, filters in reversed(list(enumerate(num_filters))):
+    for i, filters in enumerate(reversed(num_filters)):
         print(f"\nDecoder Block {i+1}:")
         indices, encoder_filters = pool_indices.pop()
         # MaxUnpooling2D with indices to double the resolution
