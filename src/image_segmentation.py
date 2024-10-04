@@ -186,6 +186,9 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             segmented_image = segment_image(
                 original_image, model, patch_size=512, overlap=50, apply_crf=False
             )
+
+        if segmented_image.shape != original_mask.shape:
+            raise ValueError(f"Shape mismatch: Original mask has shape {original_mask.shape} but segmented mask has shape {segmented_image.shape}")
         
         # Calculate metrics
         iou_per_class = []
