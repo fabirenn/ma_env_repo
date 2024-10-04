@@ -3,7 +3,7 @@ import os
 import keras
 import numpy as np
 from keras.models import load_model
-
+import tensorflow as tf
 import wandb
 from metrics_calculation import dice_coefficient, calculate_class_iou, pixel_accuracy
 from data_loader import create_dataset_for_image_segmentation
@@ -206,8 +206,13 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
 
         for class_index in range(5):
             iou = calculate_class_iou(original_mask_labels, segmented_image, class_index).numpy()
-            iou_per_class.append(iou)       
-        dice = dice_coefficient(original_mask_labels, segmented_image).numpy()
+            iou_per_class.append(iou)
+
+        # Ensure both the original mask and the segmented image are in the same type before passing to the dice_coefficient
+        original_mask_labels_float = tf.cast(original_mask_labels, tf.float32)
+        segmented_image_float = tf.cast(segmented_image, tf.float32)
+         
+        dice = dice_coefficient(original_mask_labels_float, segmented_image_float).numpy()
         pixel_acc = pixel_accuracy(original_mask_labels, segmented_image).numpy()
 
         metrics_log[f"iou_class_{class_index}"] = iou_per_class
