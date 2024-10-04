@@ -37,18 +37,29 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
 
         # MaxPooling with Indices
         x, indices = MaxPoolingWithIndices(pool_size=(2, 2))(x)
-        pool_indices.append((indices, filters))  # Store the pooling indices
+        pool_indices.append((x, indices, filters))  # Store the pooling indices
         print(f"  After Pooling, feature map shape: {x.shape}")  # Print the feature map shape after pooling
         print(f"  Pooling indices shape: {indices.shape}")
 
     # Decoder
     for i, filters in reversed(list(enumerate(num_filters))):
         print(f"\nDecoder Block {i+1}:")
-        indices, encoder_filters = pool_indices.pop()
+        pooled_x, indices, encoder_filters = pool_indices.pop()
         # MaxUnpooling2D with indices to double the resolution
         x = MaxUnpooling2D()([x, indices])
 
         print(f"  After Unpooling, shape: {x.shape}") 
+
+        # **Immediately reduce the number of filters to match the encoder filters**
+        if initializer_function == "he_normal":
+            initializer = keras.initializers.HeNormal()
+        elif initializer_function == "he_uniform":
+            initializer = keras.initializers.HeUniform()
+        x = Conv2D(encoder_filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
+        if use_batchnorm:
+            x = BatchNormalization()(x)
+        x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
+        print(f"  After reducing filters to match encoder block, shape: {x.shape}")
         # Apply the same number of convolutions as in the encoder block
         num_convs = 2 if i < 2 else (3 if i < len(num_filters) - 1 else 4)
         

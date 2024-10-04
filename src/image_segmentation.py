@@ -192,7 +192,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         dice_per_class = []
 
         for class_index in range(5):
-            iou = calculate_class_iou(original_mask, segmented_image, class_index=class_index).numpy()
+            iou = calculate_class_iou(original_mask, segmented_image, class_index).numpy()
             iou_per_class.append(iou)       
         dice = dice_coefficient(original_mask, segmented_image).numpy()
         pixel_acc = pixel_accuracy(original_mask, segmented_image).numpy()
