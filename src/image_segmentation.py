@@ -5,7 +5,6 @@ import numpy as np
 from keras.models import load_model
 
 import wandb
-from custom_callbacks import dice_score, specificity_score
 from metrics_calculation import dice_coefficient, calculate_class_iou, pixel_accuracy
 from data_loader import create_dataset_for_image_segmentation
 from loss_functions import combined_loss, dice_loss, iou_loss
