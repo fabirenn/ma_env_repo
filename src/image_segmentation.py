@@ -184,7 +184,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             )
         else:
             segmented_image = segment_image(
-                preprocessed_image, model, patch_size=512, overlap=50, apply_crf=False
+                original_image, model, patch_size=512, overlap=50, apply_crf=False
             )
         
         # Calculate metrics
