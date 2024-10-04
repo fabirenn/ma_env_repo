@@ -55,16 +55,23 @@ def reconstruct_image(patches, img_height, img_width, patch_size):
     Returns:
     reconstructed_image: The reconstructed image
     """
-    reconstructed_image = np.zeros((img_height, img_width), dtype=np.int32)
-    patch_count = np.zeros((img_height, img_width), dtype=np.float32)
+    # Initialize arrays to store class probabilities
+    num_classes = patches[0][2].shape[-1]  # Assuming the number of classes from the first patch
+    reconstructed_image = np.zeros((img_height, img_width, num_classes), dtype=np.float32)
+    patch_count = np.zeros((img_height, img_width, num_classes), dtype=np.float32)
 
     for x, y, patch in patches:
         y_end = min(y + patch_size, img_height)
         x_end = min(x + patch_size, img_width)
-        reconstructed_image[y:y_end, x:x_end] += patch[: y_end - y, : x_end - x]
-        patch_count[y:y_end, x:x_end] += 1
+        
+        # Sum the class probabilities for overlapping patches
+        reconstructed_image[y:y_end, x:x_end, :] += patch[: y_end - y, : x_end - x, :]
+        patch_count[y:y_end, x:x_end, :] += 1
+    
+    # Avoid division by zero and normalize the patches
+    reconstructed_image /= np.maximum(patch_count, 1)
 
-    return np.round(reconstructed_image / patch_count).astype(np.int32)
+    return np.argmax(reconstructed_image, axis=-1).astype(np.int32)
 
 
 def segment_image(image, model, patch_size, overlap, apply_crf):
@@ -93,8 +100,8 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
         )  # Predict segmentation for the patch
         if apply_crf:
             prediction = apply_crf_to_pred(patch, prediction)
-        segmented_patch = np.argmax(prediction[0], axis=-1)
-        segmented_patches.append((x, y, segmented_patch))
+        
+        segmented_patches.append((x, y, prediction[0]))
 
     # Reconstruct the full image from the segmented patches
     segmented_image = reconstruct_image(
