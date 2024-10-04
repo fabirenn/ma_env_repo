@@ -37,14 +37,14 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
 
         # MaxPooling with Indices
         x, indices = MaxPoolingWithIndices(pool_size=(2, 2))(x)
-        pool_indices.append((indices, x.shape))
+        pool_indices.append((indices, filters))  # Store the pooling indices
         print(f"  After Pooling, feature map shape: {x.shape}")  # Print the feature map shape after pooling
         print(f"  Pooling indices shape: {indices.shape}")
 
     # Decoder
     for i, filters in reversed(list(enumerate(num_filters))):
         print(f"\nDecoder Block {i+1}:")
-        indices, pooled_shape = pool_indices.pop()
+        indices, encoder_filters = pool_indices.pop()
         # MaxUnpooling2D with indices to double the resolution
         x = MaxUnpooling2D()([x, indices])
 
@@ -58,7 +58,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
                 initializer = keras.initializers.HeNormal()
             elif initializer_function == "he_uniform":
                 initializer = keras.initializers.HeUniform()
-            x = Conv2D(pooled_shape[-1], kernel_size, padding="same", kernel_initializer=initializer)(x)
+            x = Conv2D(encoder_filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
             if use_batchnorm:
                 x = BatchNormalization()(x)
             x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
