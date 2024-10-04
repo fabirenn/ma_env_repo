@@ -193,19 +193,22 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             segmented_image = segment_image(
                 original_image, model, patch_size=512, overlap=50, apply_crf=False
             )
+        
+        # Convert original_mask from one-hot encoding to class labels
+        original_mask_labels = np.argmax(original_mask, axis=-1)                    
 
-        if segmented_image.shape != original_mask.shape:
-            raise ValueError(f"Shape mismatch: Original mask has shape {original_mask.shape} but segmented mask has shape {segmented_image.shape}")
+        if segmented_image.shape != original_mask_labels.shape:
+            raise ValueError(f"Shape mismatch: Original mask has shape {original_mask_labels.shape} but segmented mask has shape {segmented_image.shape}")
         
         # Calculate metrics
         iou_per_class = []
         dice_per_class = []
 
         for class_index in range(5):
-            iou = calculate_class_iou(original_mask, segmented_image, class_index).numpy()
+            iou = calculate_class_iou(original_mask_labels, segmented_image, class_index).numpy()
             iou_per_class.append(iou)       
-        dice = dice_coefficient(original_mask, segmented_image).numpy()
-        pixel_acc = pixel_accuracy(original_mask, segmented_image).numpy()
+        dice = dice_coefficient(original_mask_labels, segmented_image).numpy()
+        pixel_acc = pixel_accuracy(original_mask_labels, segmented_image).numpy()
 
         metrics_log[f"iou_class_{class_index}"] = iou_per_class
         metrics_log["dice"].append(dice)
