@@ -37,11 +37,11 @@ def safe_predictions_locally(
         if test_images.ndim == 3 and test_images.shape[2] > 3:
             test_images = test_images[:, :, 3]
 
-        if predictions.shape[2] > 3:
+        if predictions.ndim == 3 and predictions.shape[2] > 3:
             predictions = np.argmax(predictions, axis=-1)
             predictions = map_class_to_color(predictions)
 
-        if test_masks.shape[2] > 3:
+        if test_masks.ndim == 3 and test_masks.shape[2] > 3:
             test_masks = np.argmax(test_masks, axis=-1)
             test_masks = map_class_to_color(test_masks)
 
@@ -70,11 +70,11 @@ def safe_predictions_locally(
             if testimage.ndim == 3 and testimage.shape[2] > 3:
                 testimage = testimage[:, :, 3]
 
-            if prediction.shape[2] > 3:
+            if prediction.ndim == 3 and prediction.shape[2] > 3:
                 prediction = np.argmax(prediction, axis=-1)
                 prediction = map_class_to_color(prediction)
 
-            if testmask.shape[2] > 3:
+            if testmask.ndim == 3 and testmask.shape[2] > 3:
                 testmask = np.argmax(testmask, axis=-1)
                 testmask = map_class_to_color(testmask)
 
