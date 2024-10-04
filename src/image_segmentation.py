@@ -55,7 +55,7 @@ def reconstruct_image(patches, img_height, img_width, patch_size):
     Returns:
     reconstructed_image: The reconstructed image
     """
-    reconstructed_image = np.zeros((img_height, img_width), dtype=np.float32)
+    reconstructed_image = np.zeros((img_height, img_width), dtype=np.int32)
     patch_count = np.zeros((img_height, img_width), dtype=np.float32)
 
     for x, y, patch in patches:
@@ -64,7 +64,7 @@ def reconstruct_image(patches, img_height, img_width, patch_size):
         reconstructed_image[y:y_end, x:x_end] += patch[: y_end - y, : x_end - x]
         patch_count[y:y_end, x:x_end] += 1
 
-    return reconstructed_image / patch_count
+    return np.round(reconstructed_image / patch_count).astype(np.int32)
 
 
 def segment_image(image, model, patch_size, overlap, apply_crf):
@@ -93,11 +93,8 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
         )  # Predict segmentation for the patch
         if apply_crf:
             prediction = apply_crf_to_pred(patch, prediction)
-        segmented_patch = prediction[
-            0, :, :, 0
-        ]  # Remove batch dimension and channel dimension
-        binary_patch = (segmented_patch > 0.5).astype(np.float32)
-        segmented_patches.append((x, y, binary_patch))
+        segmented_patch = np.argmax(prediction[0], axis=-1)
+        segmented_patches.append((x, y, segmented_patch))
 
     # Reconstruct the full image from the segmented patches
     segmented_image = reconstruct_image(
@@ -191,15 +188,16 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             )
         
         # Calculate metrics
-        iou_class_1 = calculate_class_iou(original_mask, segmented_image, class_index=1).numpy()
-        iou_class_2 = calculate_class_iou(original_mask, segmented_image, class_index=2).numpy()
-        iou_class_3 = calculate_class_iou(original_mask, segmented_image, class_index=3).numpy()
+        iou_per_class = []
+        dice_per_class = []
+
+        for class_index in range(5):
+            iou = calculate_class_iou(original_mask, segmented_image, class_index=class_index).numpy()
+            iou_per_class.append(iou)       
         dice = dice_coefficient(original_mask, segmented_image).numpy()
         pixel_acc = pixel_accuracy(original_mask, segmented_image).numpy()
 
-        metrics_log["iou_class_1"].append(iou_class_1)
-        metrics_log["iou_class_2"].append(iou_class_2)
-        metrics_log["iou_class_3"].append(iou_class_3)
+        metrics_log[f"iou_class_{class_index}"] = iou_per_class
         metrics_log["dice"].append(dice)
         metrics_log["pixel_accuracy"].append(pixel_acc)
 
@@ -215,8 +213,15 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
 
     # log the calculated to wandb to the corresponding wandb
     # Calculate average metrics for the model
-    average_metrics = {key: np.mean(value) for key, value in metrics_log.items()}
-    wandb.log(average_metrics)
+    # Log alle IoU-Werte dynamisch für die Anzahl der Klassen
+    for class_index in range(5):
+        wandb.log({f"iou_class_{class_index}": np.mean(metrics_log[f"iou_class_{class_index}"])})
+
+    # Logge auch die durchschnittlichen Dice- und Genauigkeitswerte
+    wandb.log({
+        "average_dice": np.mean(metrics_log["dice"]),
+        "average_pixel_accuracy": np.mean(metrics_log["pixel_accuracy"])
+    })
 
     print("Saved predictions in data/predictions/originals/" + model_name)
 
