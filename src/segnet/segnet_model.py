@@ -60,7 +60,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
                 initializer = keras.initializers.HeNormal()
             elif initializer_function == "he_uniform":
                 initializer = keras.initializers.HeUniform()
-            x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
+            x = Conv2D(pool_filters, kernel_size, padding="same", kernel_initializer=initializer)(x)
             if use_batchnorm:
                 x = BatchNormalization()(x)
             x = Activation(activation)(x) if activation != "prelu" else keras.layers.PReLU()(x)
