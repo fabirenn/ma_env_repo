@@ -70,6 +70,6 @@ class MaxPoolingWithIndices(Layer):
 
 
 custom_objects = {
-    "MaxPoolingWithIndices2D": MaxPoolingWithIndices,
+    "MaxPoolingWithIndices": MaxPoolingWithIndices,
     "MaxUnpooling2D": MaxUnpooling2D,
 }
