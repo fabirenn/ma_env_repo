@@ -171,9 +171,11 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         "model": model_name,
         "dice": [],
         "pixel_accuracy": [],
+        "iou_class_0": [],
         "iou_class_1": [],
         "iou_class_2": [],
         "iou_class_3": [],
+        "iou_class_4": [],
         
     }
 

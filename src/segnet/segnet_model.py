@@ -67,7 +67,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
             if conv_idx < num_convs - 1:
                 x = Dropout(dropout_rate)(x)
             
-            print(f"  After Conv {conv_idx+1}, shape: {x.shape}") 
+            print(f"  After Conv {conv_idx+1}, shape: {x.shape}")
 
     outputs = Conv2D(
         5, kernel_size=(1, 1), padding="same", activation="softmax"
