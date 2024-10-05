@@ -39,11 +39,11 @@ def safe_predictions_locally(
 
         if predictions.ndim == 3 and predictions.shape[2] > 3:
             predictions = np.argmax(predictions, axis=-1)
-            predictions = map_class_to_color(predictions)
+        predictions_colored = map_class_to_color(predictions)
 
         if test_masks.ndim == 3 and test_masks.shape[2] > 3:
             test_masks = np.argmax(test_masks, axis=-1)
-            test_masks = map_class_to_color(test_masks)
+        test_masks_colored = map_class_to_color(test_masks)
 
         plt.figure(figsize=(45, 15))
 
@@ -53,11 +53,11 @@ def safe_predictions_locally(
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
-        plt.imshow(test_masks)
+        plt.imshow(test_masks_colored)
 
         plt.subplot(1, 3, 3)
         plt.title("Pred Mask")
-        plt.imshow(predictions)
+        plt.imshow(predictions_colored)
 
         file_name = f"val_pred_epoch{iterator+1}.png"
         plt.savefig(os.path.join(pred_img_path, file_name))
@@ -72,11 +72,11 @@ def safe_predictions_locally(
 
             if prediction.ndim == 3 and prediction.shape[2] > 3:
                 prediction = np.argmax(prediction, axis=-1)
-                prediction = map_class_to_color(prediction)
+            predictions_colored = map_class_to_color(predictions)
 
             if testmask.ndim == 3 and testmask.shape[2] > 3:
                 testmask = np.argmax(testmask, axis=-1)
-                testmask = map_class_to_color(testmask)
+            test_masks_colored = map_class_to_color(test_masks)
 
             plt.figure(figsize=(45, 15))
 
@@ -86,11 +86,11 @@ def safe_predictions_locally(
 
             plt.subplot(1, 3, 2)
             plt.title("True Mask")
-            plt.imshow(testmask)
+            plt.imshow(test_masks_colored)
 
             plt.subplot(1, 3, 3)
             plt.title("Pred Mask")
-            plt.imshow(prediction)
+            plt.imshow(predictions_colored)
 
             file_name = f"test_pred_{i+1}.png"
             plt.savefig(os.path.join(pred_img_path, file_name))

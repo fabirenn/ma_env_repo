@@ -208,7 +208,8 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
 
         for class_index in range(5):
             iou = calculate_class_iou(original_mask_labels, segmented_image, class_index).numpy()
-            iou_per_class.append(iou)
+            if not np.isnan(iou):  # Avoid NaN values in the log
+                metrics_log[f"iou_class_{class_index}"].append(iou)
 
         # Ensure both the original mask and the segmented image are in the same type before passing to the dice_coefficient
         original_mask_labels_float = tf.cast(original_mask_labels, tf.float32)
@@ -217,7 +218,6 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         dice = dice_coefficient(original_mask_labels_float, segmented_image_float).numpy()
         pixel_acc = pixel_accuracy(original_mask_labels, segmented_image).numpy()
 
-        metrics_log[f"iou_class_{class_index}"] = iou_per_class
         metrics_log["dice"].append(dice)
         metrics_log["pixel_accuracy"].append(pixel_acc)
 
@@ -235,10 +235,12 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     # Calculate average metrics for the model
     # Log alle IoU-Werte dynamisch für die Anzahl der Klassen
     for class_index in range(5):
-        wandb.log({f"iou_class_{class_index}": np.mean(metrics_log[f"iou_class_{class_index}"])})
+        if metrics_log[f"iou_class_{class_index}"]:  # Ensure the list is not empty
+            wandb.log({f"iou_class_{class_index}": np.mean(metrics_log[f"iou_class_{class_index}"])})
 
     # Logge auch die durchschnittlichen Dice- und Genauigkeitswerte
     wandb.log({
+        "model_name": metrics_log["model"],
         "average_dice": np.mean(metrics_log["dice"]),
         "average_pixel_accuracy": np.mean(metrics_log["pixel_accuracy"])
     })

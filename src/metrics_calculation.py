@@ -91,7 +91,7 @@ def calculate_class_iou(y_true, y_pred, class_index):
     intersection = tf.reduce_sum(y_true_class * y_pred_class)
     union = tf.reduce_sum(y_true_class + y_pred_class) - intersection
     
-    return intersection / (union + keras.backend.epsilon())
+    return tf.cond(union > 0, lambda: intersection / union, lambda: tf.constant(0.0))
 
 
 def calculate_class_precision(y_true, y_pred, class_index):
