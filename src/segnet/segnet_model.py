@@ -50,7 +50,7 @@ def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_b
         # **Access the next filter size to reduce the number of filters after unpooling**
         next_filters = num_filters[::-1][i + 1] if i + 1 < len(num_filters) else num_filters[::-1][-1]
 
-        num_convs = 2 if i < 2 else (3 if i < len(num_filters) - 1 else 4)
+        num_convs = 4 if i == 0 else (3 if i == 1 else (2 if i == 2 else 2))
         
         # Apply convolutional layers in the decoder block
         for conv_idx in range(num_convs):
