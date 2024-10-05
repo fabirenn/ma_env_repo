@@ -55,7 +55,6 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             "[32, 64, 128, 256, 512, 1024]",
             "[64, 128, 256, 512, 1024, 2048]",
             "[128, 256, 512, 1024, 2048, 4096]",
-
         ]
     )
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
@@ -177,7 +176,7 @@ if __name__ == "__main__":
         direction="minimize",
         storage="sqlite:///optuna_segnet.db",  # Save the study in a SQLite database file
         study_name="segnet_tuning",
-        load_if_exists=False,
+        load_if_exists=True,
     )
     study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
 
