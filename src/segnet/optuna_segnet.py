@@ -39,7 +39,7 @@ PATIENCE = 30
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 24, step=4
+        "batch_size", 4, 16, step=4
     )
     print(f"BATCH_SIZE: {BATCH_SIZE}")
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
@@ -47,14 +47,15 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     NUM_FILTERS = trial.suggest_categorical(
         "num_filters_index",
         [   
+            "[16, 32, 64, 128]",
             "[32, 64, 128, 256]",
             "[64, 128, 256, 512]",
-            "[128, 256, 512, 1024]",
+            "[16, 32, 64, 128, 256]",
             "[32, 64, 128, 256, 512]",
             "[64, 128, 256, 512, 1024]",
+            "[16, 32, 64, 128, 256, 512]"
             "[32, 64, 128, 256, 512, 1024]",
             "[64, 128, 256, 512, 1024, 2048]",
-            "[128, 256, 512, 1024, 2048, 4096]",
         ]
     )
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
