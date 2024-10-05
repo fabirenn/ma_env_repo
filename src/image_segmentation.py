@@ -152,7 +152,7 @@ print("Loaded the images")
 for i, model_path, model_name in zip(range(6), model_paths, model_names):
     print("Testing Model: " + model_name)
 
-    log_data = []
+    log_data = {}
 
     if model_name == "segnet":
         print("segnet=true")
@@ -237,8 +237,11 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     # Calculate average metrics for the model
     # Log alle IoU-Werte dynamisch für die Anzahl der Klassen
     for class_index in range(5):
-        if metrics_log[f"iou_class_{class_index}"]:  # Ensure the list is not empty
-            log_data[f"{model_name}_iou_class_{class_index}"] = np.mean(metrics_log[f"iou_class_{class_index}"])
+        iou_list = metrics_log[f"iou_class_{class_index}"]  # Get the list for each IoU class
+        if iou_list:  # Check if the list is not empty before calculating the mean
+            log_data[f"{model_name}_iou_class_{class_index}"] = np.mean(iou_list)
+        else:
+            log_data[f"{model_name}_iou_class_{class_index}"] = 0
 
     # Logge auch die durchschnittlichen Dice- und Genauigkeitswerte
     log_data = {
