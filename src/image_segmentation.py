@@ -152,6 +152,8 @@ print("Loaded the images")
 for i, model_path, model_name in zip(range(6), model_paths, model_names):
     print("Testing Model: " + model_name)
 
+    log_data = []
+
     if model_name == "segnet":
         print("segnet=true")
         model = load_model(
@@ -236,14 +238,14 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     # Log alle IoU-Werte dynamisch für die Anzahl der Klassen
     for class_index in range(5):
         if metrics_log[f"iou_class_{class_index}"]:  # Ensure the list is not empty
-            wandb.log({f"iou_class_{class_index}": np.mean(metrics_log[f"iou_class_{class_index}"])})
+            log_data[f"{model_name}_iou_class_{class_index}"] = np.mean(metrics_log[f"iou_class_{class_index}"])
 
     # Logge auch die durchschnittlichen Dice- und Genauigkeitswerte
-    wandb.log({
-        "model_name": metrics_log["model"],
-        "average_dice": np.mean(metrics_log["dice"]),
-        "average_pixel_accuracy": np.mean(metrics_log["pixel_accuracy"])
-    })
+    log_data = {
+            f"{model_name}_average_dice": np.mean(metrics_log["dice"]),
+            f"{model_name}_average_pixel_accuracy": np.mean(metrics_log["pixel_accuracy"]),
+        }
+    wandb.log(log_data)
 
     print("Saved predictions in data/predictions/originals/" + model_name)
 
