@@ -84,7 +84,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
     try:
         current_epoch = 0
-        val_loss = 1000
+        val_loss = 1
 
         train_dataset, val_dataset = create_dataset_for_unet_tuning(
             train_images,
