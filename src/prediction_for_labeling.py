@@ -6,6 +6,7 @@ from PIL import Image
 from keras.models import load_model
 from data_loader import create_dataset_for_mask_prediction
 from loss_functions import dice_loss
+from tensorflow.image import resize
 from processing import safe_predictions_locally
 from metrics_calculation import dice_coefficient, pixel_accuracy
 
@@ -107,16 +108,23 @@ def create_patches(image, patch_size, overlap):
 
 
 # Function to segment the image using the U-Net model
-def segment_image(image, model, patch_size=512, overlap=50):
+def segment_image(image, model, patch_size=256, target_size=512, overlap=50):
     # Create patches from the image
     img_height, img_width, _ = image.shape
     patches = create_patches(image, patch_size, overlap)
     segmented_patches = []
 
     for x, y, patch in patches:
-        patch = np.expand_dims(patch, axis=0)  # Add batch dimension
-        prediction = model.predict(patch, batch_size=1)
-        segmented_patches.append((x, y, prediction[0]))
+        # Resize each patch to the target size (512x512)
+        resized_patch = resize(patch, (target_size, target_size))
+        resized_patch = np.expand_dims(resized_patch, axis=0)  # Add batch dimension
+        
+        # Predict segmentation for the resized patch
+        prediction = model.predict(resized_patch, batch_size=1)
+        
+        # Resize the prediction back to original patch size
+        prediction_resized_back = resize(prediction[0], (patch_size, patch_size))
+        segmented_patches.append((x, y, prediction_resized_back))
 
     # Reconstruct the full segmented image from patches
     segmented_image = reconstruct_image(segmented_patches, img_height, img_width, patch_size)
