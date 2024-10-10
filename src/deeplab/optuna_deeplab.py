@@ -140,7 +140,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     except tf.errors.ResourceExhaustedError as e:
         handle_errors_during_tuning(e)
     except Exception as e:
-        handle_errors_during_tuning(trial, e)
+        handle_errors_during_tuning(e)
     finally:
         # Clear GPU memory
         keras.backend.clear_session()

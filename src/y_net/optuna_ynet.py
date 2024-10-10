@@ -104,9 +104,9 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         val_loss = min(history.history["val_loss"])
         return val_loss
     except tf.errors.ResourceExhaustedError as e:
-        handle_errors_during_tuning(e=e)
+        handle_errors_during_tuning(e)
     except Exception as e:
-        handle_errors_during_tuning(e=e)
+        handle_errors_during_tuning(e)
 
 
 def handle_errors_during_tuning(e):
