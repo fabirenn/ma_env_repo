@@ -157,7 +157,7 @@ for i, original_image in enumerate(original_images):
     print(f"Processing image {i+1}")
     
     # Segment the image using the U-Net model
-    segmented_image = segment_image(original_image, unet_model, patch_size=256, overlap=10)
+    segmented_image = segment_image(original_image, unet_model, patch_size=128, overlap=10)
 
     # Convert segmented image (with class labels) to RGB
     segmented_image_rgb = convert_mask_to_rgb(segmented_image, class_colors)
