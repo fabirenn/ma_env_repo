@@ -144,7 +144,7 @@ def convert_mask_to_rgb(mask, class_colors):
 
 
 # Iterate over the images and predict segmentation masks
-for i, original_image in original_images:
+for i, original_image in enumerate(original_images):
     
     print(f"Processing image {i+1}")
     
