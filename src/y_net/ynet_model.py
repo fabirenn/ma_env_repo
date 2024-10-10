@@ -76,7 +76,7 @@ def semantic_feature_extractor(input_shape, dropout_rate, name_prefix=""):
     return input_tensor, output
 
 
-def detail_feature_extractor(input_shape, dropout_rate, activation):
+def detail_feature_extractor(input_shape, dropout_rate, activation="relu"):
     input_tensor = layers.Input(shape=input_shape)
     c1 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c1")(input_tensor)
     c2 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c2")(c1)
