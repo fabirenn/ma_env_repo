@@ -97,7 +97,7 @@ def detail_feature_extractor(input_shape, dropout_rate, activation="relu"):
     return input_tensor, output
 
 
-def fusion_module(y1_output, y2_output, activation):
+def fusion_module(y1_output, y2_output, activation="relu"):
     f1 = Concatenate(name="concatenate")([y1_output, y2_output])
     c1 = Conv2D(16, (3, 3), activation=activation, padding="same", name="f1")(f1)
     c2 = Conv2D(16, (3, 3), activation=activation, padding="same", name="f2")(c1)
