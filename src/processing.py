@@ -35,7 +35,7 @@ def safe_predictions_locally(
     if val is True:
 
         if test_images.ndim == 3 and test_images.shape[2] > 3:
-            test_images = test_images[:, :, 3]
+            test_images = test_images[..., ::-1]
 
         if predictions.ndim == 3 and predictions.shape[2] > 3:
             predictions = np.argmax(predictions, axis=-1)
@@ -68,7 +68,7 @@ def safe_predictions_locally(
             range, test_images, predictions, test_masks
         ):
             if testimage.ndim == 3 and testimage.shape[2] > 3:
-                testimage = testimage[:, :, 3]
+                testimage = testimage[..., ::-1]
 
             if prediction.ndim == 3 and prediction.shape[2] > 3:
                 prediction = np.argmax(prediction, axis=-1)
