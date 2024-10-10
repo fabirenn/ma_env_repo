@@ -81,7 +81,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
     try:
         current_epoch = 0
-        val_loss = 1000
+        val_loss = None
 
         train_dataset, val_dataset = create_dataset_for_unet_tuning(
             train_images,
@@ -145,7 +145,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
         return val_loss
     except tf.errors.ResourceExhaustedError as e:
-        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
+        handle_errors_during_tuning(trial=trial, best_loss=None, e=e, current_epoch=current_epoch)
         return float("inf")
     finally:
         # Clear GPU memory
