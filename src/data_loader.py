@@ -643,3 +643,10 @@ def create_dataset_for_image_segmentation(img_dir, mask_dir):
     #masks = make_binary_masks(masks, threshold=30)
 
     return images, preprocessed_images, masks
+
+
+def create_dataset_for_mask_prediction(img_dir):
+    images = []
+    images = load_images_from_directory(img_dir)
+    images = normalize_image_data(images)
+    return images
