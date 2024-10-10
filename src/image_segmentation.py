@@ -151,16 +151,17 @@ print("Loaded the images")
 
 for i, model_path, model_name in zip(range(6), model_paths, model_names):
     print("Testing Model: " + model_name)
+    model_path_abs = os.path.abspath(model_path)
 
     log_data = {}
 
     if model_name == "segnet":
         print("segnet=true")
         model = load_model(
-            model_path, custom_objects=custom_objects, compile=False
+            model_path_abs, custom_objects=custom_objects, compile=False
         )
     else:
-        model = load_model(model_path, compile=False)
+        model = load_model(model_path_abs, compile=False)
 
     model.compile(
         loss=dice_loss,
