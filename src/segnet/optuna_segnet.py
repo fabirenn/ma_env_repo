@@ -53,8 +53,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             "[16, 32, 64, 128, 256]",
             "[32, 64, 128, 256, 512]",
             "[64, 128, 256, 512, 1024]",
-            "[16, 32, 64, 128, 256, 512]"
-            "[32, 64, 128, 256, 512, 1024]",
+            "[16, 32, 64, 128, 256, 512]",  # Fix: Added comma at the end of the previous line
+            "[32, 64, 128, 256, 512, 1024]",  # Fix: Added comma at the end of the previous line
             "[64, 128, 256, 512, 1024, 2048]",
         ]
     )
