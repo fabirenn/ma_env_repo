@@ -35,6 +35,10 @@ def safe_predictions_locally(
 ):
     if val is True:
 
+        if test_images.dtype != np.uint8:
+            test_images = (test_images * 255).astype(np.uint8)
+
+        # Convert BGR to RGB
         test_images_rgb = cv2.cvtColor(test_images, cv2.COLOR_BGR2RGB)
 
         if predictions.ndim == 3 and predictions.shape[2] > 3:
@@ -67,6 +71,10 @@ def safe_predictions_locally(
         for i, testimage, prediction, testmask in zip(
             range, test_images, predictions, test_masks
         ):
+            if testimage.dtype != np.uint8:
+                testimage = (testimage * 255).astype(np.uint8)
+
+            # Convert BGR to RGB
             test_image_rgb = cv2.cvtColor(testimage, cv2.COLOR_BGR2RGB)
 
             if prediction.ndim == 3 and prediction.shape[2] > 3:
