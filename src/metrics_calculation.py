@@ -13,8 +13,8 @@ def calculate_class_weights(class_counts, num_classes):
 
 
 def pixel_accuracy(y_true, y_pred):
-    y_pred = tf.argmax(y_pred, axis=-1)
-    y_true = tf.argmax(y_true, axis=-1)
+    #y_pred = tf.argmax(y_pred, axis=-1)
+    #y_true = tf.argmax(y_true, axis=-1)
     correct_pixels = tf.reduce_sum(
         tf.cast(tf.equal(y_true, y_pred), tf.float32)
     )
@@ -82,8 +82,8 @@ def recall(y_true, y_pred, num_classes=5):
 
 
 def calculate_class_iou(y_true, y_pred, class_index):
-    y_pred = tf.argmax(y_pred, axis=-1)
-    y_true = tf.argmax(y_true, axis=-1)
+    #y_pred = tf.argmax(y_pred, axis=-1)
+    #y_true = tf.argmax(y_true, axis=-1)
     
     y_true_class = tf.cast(y_true == class_index, tf.float32)
     y_pred_class = tf.cast(y_pred == class_index, tf.float32)

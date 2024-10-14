@@ -187,7 +187,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         original_images, preprocessed_images, original_masks, range(11)
     ):
         original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
-        
+
         if model_name not in ("unet", "segan", "ynet"):
             # print("no preprocessed images")
             segmented_image = segment_image(
@@ -245,13 +245,13 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         if iou_list:  # Check if the list is not empty before calculating the mean
             log_data[f"{model_name}_iou_class_{class_index}"] = np.mean(iou_list)
         else:
-            log_data[f"{model_name}_iou_class_{class_index}"] = 0
+            log_data[f"{model_name}_iou_class_{class_index}"] = None
 
     # Logge auch die durchschnittlichen Dice- und Genauigkeitswerte
-    log_data = {
+    log_data.update({
             f"{model_name}_average_dice": np.mean(metrics_log["dice"]),
             f"{model_name}_average_pixel_accuracy": np.mean(metrics_log["pixel_accuracy"]),
-        }
+        })
     wandb.log(log_data)
 
     print("Saved predictions in data/predictions/originals/" + model_name)
