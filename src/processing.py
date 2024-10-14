@@ -36,7 +36,7 @@ def safe_predictions_locally(
     if val is True:
 
         if test_images.ndim == 3 and test_images.shape[2] > 3:
-            test_images = cv2.cvtColor(test_images, cv2.COLOR_BGR2RGB)
+            test_images_rgb = cv2.cvtColor(test_images, cv2.COLOR_BGR2RGB)
 
         if predictions.ndim == 3 and predictions.shape[2] > 3:
             predictions = np.argmax(predictions, axis=-1)
@@ -50,7 +50,7 @@ def safe_predictions_locally(
 
         plt.subplot(1, 3, 1)
         plt.title("GT")
-        plt.imshow(test_images)
+        plt.imshow(test_images_rgb)
 
         plt.subplot(1, 3, 2)
         plt.title("True Mask")
@@ -69,7 +69,7 @@ def safe_predictions_locally(
             range, test_images, predictions, test_masks
         ):
             if testimage.ndim == 3 and testimage.shape[2] > 3:
-                testimage = cv2.cvtColor(testimage, cv2.COLOR_BGR2RGB)
+                test_image_rgb = cv2.cvtColor(testimage, cv2.COLOR_BGR2RGB)
 
             if prediction.ndim == 3 and prediction.shape[2] > 3:
                 prediction = np.argmax(prediction, axis=-1)
@@ -83,7 +83,7 @@ def safe_predictions_locally(
 
             plt.subplot(1, 3, 1)
             plt.title("GT")
-            plt.imshow(testimage)
+            plt.imshow(test_image_rgb)
 
             plt.subplot(1, 3, 2)
             plt.title("True Mask")
