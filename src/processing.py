@@ -2,6 +2,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import cv2
 import pydensecrf.densecrf as dcrf
 import tensorflow as tf
 from keras.utils import array_to_img
@@ -35,7 +36,7 @@ def safe_predictions_locally(
     if val is True:
 
         if test_images.ndim == 3 and test_images.shape[2] > 3:
-            test_images = test_images[..., ::-1]
+            test_images = cv2.cvtColor(test_images, cv2.COLOR_BGR2RGB)
 
         if predictions.ndim == 3 and predictions.shape[2] > 3:
             predictions = np.argmax(predictions, axis=-1)
@@ -68,7 +69,7 @@ def safe_predictions_locally(
             range, test_images, predictions, test_masks
         ):
             if testimage.ndim == 3 and testimage.shape[2] > 3:
-                testimage = testimage[..., ::-1]
+                testimage = cv2.cvtColor(testimage, cv2.COLOR_BGR2RGB)
 
             if prediction.ndim == 3 and prediction.shape[2] > 3:
                 prediction = np.argmax(prediction, axis=-1)
