@@ -186,7 +186,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     for original_image, preprocessed_image, original_mask, i in zip(
         original_images, preprocessed_images, original_masks, range(11)
     ):
-        original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+        #original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
 
         if model_name not in ("unet", "segan", "ynet"):
             # print("no preprocessed images")
