@@ -68,7 +68,6 @@ def load_images_from_directory(directory):
             image_path = os.path.join(directory, filename)
 
             img = cv2.imread(image_path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             if img is not None:
                 images_list.append(img)
             else:

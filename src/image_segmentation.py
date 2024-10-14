@@ -4,6 +4,7 @@ import keras
 import numpy as np
 from keras.models import load_model
 import tensorflow as tf
+import cv2
 import wandb
 from metrics_calculation import dice_coefficient, calculate_class_iou, pixel_accuracy
 from data_loader import create_dataset_for_image_segmentation
@@ -185,6 +186,8 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     for original_image, preprocessed_image, original_mask, i in zip(
         original_images, preprocessed_images, original_masks, range(11)
     ):
+        original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+        
         if model_name not in ("unet", "segan", "ynet"):
             # print("no preprocessed images")
             segmented_image = segment_image(
