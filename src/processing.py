@@ -49,6 +49,10 @@ def safe_predictions_locally(
             test_masks = np.argmax(test_masks, axis=-1)
         test_masks_colored = map_class_to_color(test_masks)
 
+        # Save the colored predicted mask as a separate image file
+        pred_mask_path = os.path.join(pred_img_path, f"predicted_mask_epoch{iterator+1}.png")
+        cv2.imwrite(pred_mask_path, cv2.cvtColor(predictions_colored, cv2.COLOR_RGB2BGR))
+
         plt.figure(figsize=(45, 15))
 
         plt.subplot(1, 3, 1)
@@ -84,6 +88,10 @@ def safe_predictions_locally(
             if testmask.ndim == 3 and testmask.shape[2] > 3:
                 testmask = np.argmax(testmask, axis=-1)
             test_masks_colored = map_class_to_color(test_masks)
+
+            # Save the colored predicted mask as a separate image file
+            pred_mask_path = os.path.join(pred_img_path, f"predicted_mask_{i+1}.png")
+            cv2.imwrite(pred_mask_path, cv2.cvtColor(predictions_colored, cv2.COLOR_RGB2BGR))
 
             plt.figure(figsize=(45, 15))
 
