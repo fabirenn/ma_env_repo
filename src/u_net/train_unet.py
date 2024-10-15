@@ -41,11 +41,11 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.0
-LEARNING_RATE = 0.003
+LEARNING_RATE = 0.0032
 
 BATCH_SIZE = 24
 EPOCHS = 200
-PATIENCE = 70
+PATIENCE = 50
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
