@@ -52,21 +52,12 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     BATCH_SIZE = trial.suggest_int(
         "batch_size", 4, 24, step=4
     )
-    IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 5, 10)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
-    FILTERS_DEPTH = trial.suggest_int("filters_depth", 4, 6)
-    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
     )
-    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
-    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
-    INITIALIZER = trial.suggest_categorical(
-            "weight_initializer", ["he_normal", "he_uniform"]
-        )
-    
+
     if OPTIMIZER == "sgd":
         optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
     elif OPTIMIZER == "adagrad":
@@ -75,9 +66,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
     elif OPTIMIZER == "adam":
         optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-
+    
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-    discriminator_filters = filters_list[:FILTERS_DEPTH]
 
     #current_epoch = 0
 
@@ -86,28 +76,28 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         train_masks,
         val_images,
         val_masks,
-        IMG_CHANNEL,
+        3,
         BATCH_SIZE
     )
     print("Created the datasets..")
 
     generator_model = unet(
-        IMG_WIDTH,
-        IMG_HEIGHT,
-        IMG_CHANNEL,
-        DROPOUT_RATE,
-        discriminator_filters,
-        kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
-        activation=ACTIVATION,
-        use_batchnorm=USE_BATCHNORM,
-        initializer_function=INITIALIZER,
+        512,
+        512,
+        3,
+        0.0,
+        [16, 32, 64, 128, 256, 512],
+        kernel_size=(5, 5),
+        activation="elu",
+        use_batchnorm=True,
+        initializer_function="he_normal",
         training=True,
     )
 
     discriminator_model = discriminator(
-        (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
+        (IMG_WIDTH, IMG_HEIGHT, 3),
         (IMG_WIDTH, IMG_HEIGHT, 5),
-        discriminator_filters,
+        [16, 32, 64, 128, 256, 512],
     )
     # Create the intermediate model
     intermediate_layer_model = keras.Model(
