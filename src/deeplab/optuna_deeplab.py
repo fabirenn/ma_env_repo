@@ -50,7 +50,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             "weight_initializer", ["he_normal", "he_uniform"]
         )
     OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
+        "optimizer", ["sgd", "adagrad", "rmsprop", "adam", "momentum"]
     )
     DILATION_RATES = trial.suggest_categorical(
         "dilation_rates",

@@ -264,7 +264,7 @@ if __name__ == "__main__":
     study = optuna.create_study(
         direction="minimize",
         storage="sqlite:///optuna_segan.db",  # Save the study in a SQLite database file
-        study_name="segan_tuning",
+        study_name="segan_unet_tuning",
         load_if_exists=False,
     )
 
