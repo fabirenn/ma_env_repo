@@ -1,6 +1,6 @@
 import os
 import sys
-
+import ast
 import keras.metrics
 import optuna
 import tensorflow as tf
@@ -40,7 +40,24 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
-    NUM_BLOCKS = trial.suggest_int("num_blocks", 3, 6)
+    NUM_FILTERS = trial.suggest_categorical(
+        "num_filters_index",
+        [   
+            "[32, 64, 128]",
+            "[64, 128, 256]",
+            "[128, 256, 512]",
+            "[256, 512, 1024]",
+            "[32, 64, 128, 256]",
+            "[64, 128, 256, 512]",
+            "[128, 256, 512, 1024]",
+            "[256, 512, 1024, 2048]",
+            "[32, 64, 128, 256, 512]",
+            "[64, 128, 256, 512, 1024]",
+            "[128, 256, 512, 1024, 2048]",
+            "[32, 64, 128, 256, 512, 1024]",
+            "[64, 128, 256, 512, 1024, 2048]",
+        ]
+    )
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
@@ -60,12 +77,6 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     elif OPTIMIZER == "adam":
         optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
-    # Define the possible values for the number of filters
-    filter_options = [16, 32, 64, 128, 256, 512, 1024]
-
-    # Select the appropriate number of filters from the filter_options based on num_blocks
-    filters_list = filter_options[:NUM_BLOCKS]
-
     try:
         current_epoch = 0
         val_loss = 1
@@ -80,13 +91,14 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         )
 
         print("Created the datasets..")
+        num_filters = ast.literal_eval(NUM_FILTERS)
 
         model = unet(
             IMG_WIDTH,
             IMG_HEIGHT,
             IMG_CHANNEL,
             DROPOUT_RATE,
-            filters_list,
+            num_filters,
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
             use_batchnorm=USE_BATCHNORM,
