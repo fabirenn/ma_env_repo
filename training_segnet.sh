@@ -4,9 +4,9 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:v100:2
 #SBATCH --mem=256GB
-#SBATCH --time=10:00:00
+#SBATCH --time=10-00:00:00
 #SBATCH --job-name="segnet_tune"
-#SBATCH --partition=clara
+#SBATCH --partition=clara-long
 #SBATCH --output=../log/%x.out-%j
 #SBATCH --error=../log/%x.error-%j
 #SBATCH --mail-type=END

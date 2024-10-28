@@ -3,8 +3,10 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:v100:2
-#SBATCH --time=04:00:00
-#SBATCH --partition=clara
+#SBATCH --mem=256GB
+#SBATCH --job-name="segan-tune"
+#SBATCH --time=10-00:00:00
+#SBATCH --partition=clara-long
 #SBATCH --output=../log/%x.out-%j
 #SBATCH --error=../log/%x.error-%j
 #SBATCH --mail-type=END
