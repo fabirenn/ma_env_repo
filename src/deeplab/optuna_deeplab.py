@@ -38,19 +38,18 @@ PATIENCE = 30
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 24, step=4
+        "batch_size", 4, 20, step=4
     )
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
-    FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512, 1024])
-    KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
+    FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512])
     USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
     ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
     INITIALIZER = trial.suggest_categorical(
             "weight_initializer", ["he_normal", "he_uniform"]
         )
     OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad", "rmsprop", "adam", "momentum"]
+        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
     )
     DILATION_RATES = trial.suggest_categorical(
         "dilation_rates",
@@ -102,7 +101,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             filters=FILTERS,
             dilation_rates=dilation_rates,
             use_batchnorm=USE_BATCHNORM,
-            kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
+            kernel_size=(3, 3),
             initializer_function=INITIALIZER,
             activation=ACTIVATION
         )
