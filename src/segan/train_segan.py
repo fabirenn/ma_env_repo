@@ -53,15 +53,15 @@ CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-IMG_CHANNEL = 8
+IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.1
-BATCH_SIZE = 8
-EPOCHS = 100
+BATCH_SIZE = 16
+EPOCHS = 500
 
-GENERATOR_TRAINING_STEPS = 7
+GENERATOR_TRAINING_STEPS = 8
 
-PATIENCE = 70
+PATIENCE = 50
 BEST_IOU = 0
 WAIT = 0
 
@@ -86,10 +86,20 @@ config = wandb.config
 keras.backend.set_image_data_format("channels_last")
 
 filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-discriminator_filters = filters_list[:4]
+discriminator_filters = filters_list[:6]
 
 generator_model = unet(
-    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, discriminator_filters
+    IMG_WIDTH,
+    IMG_HEIGHT,
+    IMG_CHANNEL,
+    DROPOUT_RATE,
+    discriminator_filters,
+    kernel_size=(5, 5),
+    activation="elu",
+    use_batchnorm=True,
+    initializer_function="he_uniform",
+    training=True,
+
 )
 
 
@@ -107,8 +117,8 @@ intermediate_layer_model = keras.Model(
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # loss_fn = combined_loss
-gen_optimizer = keras.optimizers.Adam(1e-4)
-disc_optimizer = keras.optimizers.Adam(1e-4)
+gen_optimizer = keras.optimizers.SGD(learning_rate=0.075)
+disc_optimizer = keras.optimizers.SGD(learning_rate=0.075)
 checkpoint = tf.train.Checkpoint(
     generator_optimizer=gen_optimizer,
     discriminator_optimizer=disc_optimizer,
