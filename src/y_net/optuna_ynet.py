@@ -44,9 +44,9 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
 
     # Set the optimizer parameters
-    momentum = trial.suggest_float("momentum", 0.7, 0.99)
-    weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-4, log=True)
-    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
+    momentum = trial.suggest_float("momentum", 0.8, 0.99)
+    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
     
     optimizer = keras.optimizers.SGD(
         learning_rate=learning_rate,
