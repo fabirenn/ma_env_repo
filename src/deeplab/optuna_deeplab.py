@@ -40,7 +40,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     BATCH_SIZE = trial.suggest_int(
         "batch_size", 4, 20, step=4
     )
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.4, step=0.1)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.1, 0.4, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
     FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512, 1024])
     USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
@@ -64,8 +64,6 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             "[5, 10, 15]",
             "[6, 12, 24]",
             "[6, 12, 18]",
-            "[1, 2, 4, 8]",
-            "[1, 2, 3, 4]",
             "[2, 4, 8, 16]",
             "[2, 4, 8, 12]",
             "[2, 4, 6, 8]",
