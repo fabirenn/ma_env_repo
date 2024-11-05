@@ -67,6 +67,7 @@ WAIT = 0
 
 
 os.environ["WANDB_DIR"] = "wandb/train_segan"
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Start a run, tracking hyperparameters
 wandb.init(
@@ -201,6 +202,8 @@ def generate_images(model, dataset, epoch):
     pred_batch = model.predict(image_batch)
     x = image_batch[0]
     x_rgb = x[..., :3][..., ::-1]
+
+    x_rgb = x_rgb.numpy() if isinstance(x_rgb, tf.Tensor) else x_rgb
 
     safe_predictions_locally(
         range=None,
