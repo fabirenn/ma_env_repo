@@ -115,12 +115,18 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 model_paths = [
     "artifacts/models/unet/unet_checkpoint.keras",
-    "artifacts/models/segnet/segnet_checkpoint.keras",
+    #"artifacts/models/segnet/segnet_checkpoint.keras",
     "artifacts/models/deeplab/deeplab_checkpoint.keras",
     "artifacts/models/segan/segan_checkpoint.keras",
-    "artifacts/models/ynet/ynet_checkpoint.keras",
+    #"artifacts/models/ynet/ynet_checkpoint.keras",
 ]
-model_names = ["unet", "segnet", "deeplab", "segan", "ynet"]
+model_names = [
+    "unet",
+   #"segnet",
+    "deeplab",
+    "segan",
+    #"ynet"
+    ]
 
 '''
 IMG_PATH = "data/generated"
