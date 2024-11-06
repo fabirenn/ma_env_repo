@@ -260,6 +260,6 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         })
     wandb.log(log_data)
 
-    print("Saved predictions in data/predictions/originals/" + model_name)
+    print("Saved predictions in data/predictions/" + model_name)
 
 wandb.finish()
