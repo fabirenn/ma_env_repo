@@ -239,7 +239,7 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
             test_images=original_image,
             predictions=segmented_image,
             test_masks=original_mask,
-            pred_img_path="data/predictions/originals/" + model_name,
+            pred_img_path="data/predictions/" + model_name,
             val=True,
         )
 
