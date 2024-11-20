@@ -7,7 +7,6 @@ from numba import cuda
 import keras.metrics
 import optuna
 import tensorflow as tf
-from keras.callbacks import EarlyStopping
 from segnet_model import segnet
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -51,14 +50,11 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             "[32, 64, 128, 256]",
             "[64, 128, 256, 512]",
             "[128, 256, 512, 1024]",
-            "[256, 512, 1024, 2048]",
             "[16, 32, 64, 128, 256]",
             "[32, 64, 128, 256, 512]",
             "[64, 128, 256, 512, 1024]",
-            "[128, 256, 512, 1024, 2048]",
             "[16, 32, 64, 128, 256, 512]",  # Fix: Added comma at the end of the previous line
-            "[32, 64, 128, 256, 512, 1024]",  # Fix: Added comma at the end of the previous line
-            "[64, 128, 256, 512, 1024, 2048]",
+            "[32, 64, 128, 256, 512, 1024]"
         ]
     )
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
@@ -74,13 +70,13 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     num_filters = ast.literal_eval(NUM_FILTERS)
     
     if OPTIMIZER == "sgd":
-        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
+        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE, clipnorm=1.0)
     elif OPTIMIZER == "adagrad":
-        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE, clipnorm=1.0)
     elif OPTIMIZER == "rmsprop":
-        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE, clipnorm=1.0)
     elif OPTIMIZER == "adam":
-        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
+        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE, clipnorm=1.0)
 
     try:
         train_dataset, val_dataset = create_dataset_for_unet_tuning(
