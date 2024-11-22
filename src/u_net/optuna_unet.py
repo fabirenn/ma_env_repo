@@ -35,7 +35,7 @@ PATIENCE = 30
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 24, step=4
+        "batch_size", 4, 20, step=4
     )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
