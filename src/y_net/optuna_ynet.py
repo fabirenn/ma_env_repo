@@ -26,7 +26,7 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
-CHECKPOINT_PATH_PRETRAINED = "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
+#CHECKPOINT_PATH_PRETRAINED = "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
@@ -70,7 +70,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
         # create model & start training it
         semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
-        semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
+        #semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
         model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
