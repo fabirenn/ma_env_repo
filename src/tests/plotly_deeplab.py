@@ -68,13 +68,14 @@ for _, row in df.iterrows():
     # Add the trial to the study
     study.add_trial(trial)
 
-manual_params = ["learning_rate", "optimizer", "activation", "batch_size"]  # Adjust as needed
+manual_params = ["learning_rate", "activation", "optimizer"]  # Adjust as needed
 
 # Plot
 fig = optuna.visualization.plot_rank(study, params=manual_params)
 fig.update_layout(
     font=dict(size=20),
-    margin=dict(l=100, r=20, t=60, b=20)  # Adjust the size value as needed
+    margin=dict(l=100, r=20, t=60, b=20),  # Adjust the size value as needed
+    title_text="Deeplab Rank (Objective Value)"
 )
 fig.update_traces(marker=dict(size=12))  # Adjust size for desired visibility
 

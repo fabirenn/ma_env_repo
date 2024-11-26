@@ -6,14 +6,14 @@ from optuna.trial import create_trial
 from optuna.visualization import plot_param_importances
 
 # Load CSV into a DataFrame
-file_path = 'src/tests/unet_tuning.csv'  # Replace with your actual file path
+file_path = 'src/tests/unet_tuning_first.csv'  # Replace with your actual file path
 df = pd.read_csv(file_path)
 
 # Create a study and manually add trials from CSV data
 study = optuna.create_study(direction="minimize")  # or "maximize" based on your objective
 
 distributions = {
-    "learning_rate": FloatDistribution(1e-5, 1e-1),           # Adjust the range if needed
+    "learning_rate": FloatDistribution(1e-4, 1e-1),           # Adjust the range if needed
     "batch_size": IntDistribution(4, 24),                # Example range
     "dropout_rate": FloatDistribution(0.0, 0.5),              # Example range for dropout rate
     "num_blocks": IntDistribution(3, 6),          # Example range for generator training steps
@@ -53,14 +53,14 @@ for _, row in df.iterrows():
     # Add the trial to the study
     study.add_trial(trial)
 
-importances = optuna.importance.get_param_importances(study)
-params_sorted = list(importances.keys())
+manual_params = ["learning_rate", "optimizer", "use_batchnorm", "kernel_size", "dropout_rate"]
 
 # Plot
-fig = optuna.visualization.plot_rank(study, params=params_sorted[:4])
+fig = optuna.visualization.plot_rank(study, params=manual_params[:5])
 fig.update_layout(
     font=dict(size=20),
-    margin=dict(l=100, r=20, t=60, b=20)  # Adjust the size value as needed
+    margin=dict(l=100, r=20, t=60, b=20),
+    title_text="U-Net Rank (Objective Value)"  # Adjust the size value as needed
 )
 fig.update_traces(marker=dict(size=12))  # Adjust size for desired visibility
 
@@ -69,7 +69,7 @@ fig.update_yaxes(
     automargin=True,  # Enable automatic margin handling for better label alignment
     ticklabelposition="outside",  # Position labels inside the plot area
     ticks="outside",  # Keep ticks outside for better alignment
-    title_standoff=10  # Increase space between axis title and labels if needed
+    title_standoff=10,  # Increase space between axis title and labels if needed
 )
 
 
