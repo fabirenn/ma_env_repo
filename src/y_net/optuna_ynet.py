@@ -7,7 +7,7 @@ import tensorflow as tf
 import keras
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from ynet_model import build_ynet, build_feature_extractor_for_pretraining, build_ynet_with_pretrained_semantic_extractor
+from ynet_model import build_ynet, build_feature_extractor_for_pretraining, build_ynet_with_pretrained_semantic_extractor, build_feature_extractor_without_pretraining
 
 from data_loader import create_dataset_for_tuning, load_images_for_tuning
 from loss_functions import dice_loss
@@ -69,10 +69,11 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         print("Created the datasets..")
 
         # create model & start training it
-        semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+        #semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+        #semantic_extractor_model = build_feature_extractor_without_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
         #semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
-        model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
+        model = build_ynet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
 
         model.compile(
             optimizer=optimizer,
@@ -134,7 +135,7 @@ if __name__ == "__main__":
         study_name="ynet_tuning",
         load_if_exists=True,
     )
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=100)
     
     print("Best trial:")
     trial = study.best_trial

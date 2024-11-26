@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-db_path = "optuna_unet.db"
+db_path = "optuna_deeplab_november.db"
 connection = sqlite3.connect(db_path)
 
 # Schritt 2: Daten aus 'trial_params' und 'trial_values' verknüpfen
@@ -60,7 +60,7 @@ for bar, value in zip(bars, f_test_df['F-Value']):
 ax1.set_xlabel('F-Value', color='blue', fontsize=14)  # Larger font for axis labels
 ax1.tick_params(axis='x', labelcolor='blue', labelsize=14)  # Larger font for tick labels
 ax1.set_ylabel('Hyperparameter', fontsize=14)
-ax1.set_title('F-Test Results: F-Value and P-Value', fontsize=16)  # Larger font for title
+ax1.set_title('Deeplab F-Test Results', fontsize=16)  # Larger font for title
 ax1.invert_yaxis()  # Largest F-Value at the top
 ax1.grid(True, linestyle='--', alpha=0.6)
 

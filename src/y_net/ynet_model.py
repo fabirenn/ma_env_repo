@@ -113,13 +113,13 @@ def build_ynet(img_width, img_height, channel_size, dropout_rate):
     
     # Semantic Feature Extractor
     semantic_inputs, y1_output = semantic_feature_extractor(input_shape, dropout_rate)
-    pretrained_semantic_model = Model(inputs=semantic_inputs, outputs=y1_output, name='Semantic-Feature-Extractor')
+    semantic_model = Model(inputs=semantic_inputs, outputs=y1_output, name='Semantic-Feature-Extractor')
     
     # Detail Feature Extractor
     detail_inputs, y2_output = detail_feature_extractor(input_shape, dropout_rate)
     detail_model = Model(inputs=detail_inputs, outputs=y2_output, name='Detail-Feature-Extractor')
 
-    outputs = fusion_module(pretrained_semantic_model.output, detail_model.output)
+    outputs = fusion_module(semantic_model.output, detail_model.output)
 
     model = Model(inputs, outputs, name="Y-Net")
 
@@ -136,6 +136,16 @@ def build_feature_extractor_for_pretraining(img_width, img_height, channel_size,
     model = Model(semantic_input, y1_output, name="Pretraining_Model")
     model.summary()
     return model
+
+
+def build_feature_extractor_without_pretraining(img_width, img_height, channel_size, dropout_rate):
+    input_shape = (img_width, img_height, channel_size)
+
+    semantic_input, y1_output = semantic_feature_extractor(input_shape, dropout_rate, name_prefix="")
+    model = Model(semantic_input, y1_output, name="Feature_Extractor_Model")
+    model.summary()
+    return model
+
 
 def build_ynet_with_pretrained_semantic_extractor(img_width, img_height, channel_size, dropout_rate, semantic_extractor_model):
     input_shape = (img_width, img_height, channel_size)
