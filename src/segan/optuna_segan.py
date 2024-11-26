@@ -55,26 +55,18 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 5, 10)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
-    FILTERS_DEPTH = trial.suggest_int("filters_depth", 4, 6)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-2, 1e-1, log=True)
+    FILTERS_DEPTH = trial.suggest_int("filters_depth", 5, 6)
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
+        "optimizer", ["sgd", "adagrad"]
     )
-    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
-    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
-    INITIALIZER = trial.suggest_categorical(
-            "weight_initializer", ["he_normal", "he_uniform"]
-        )
+    ACTIVATION = trial.suggest_categorical("activation", ["leaky_relu", "elu"])
     
     if OPTIMIZER == "sgd":
         optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
     elif OPTIMIZER == "adagrad":
         optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
-    elif OPTIMIZER == "rmsprop":
-        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
-    elif OPTIMIZER == "adam":
-        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
     discriminator_filters = filters_list[:FILTERS_DEPTH]
@@ -99,8 +91,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         discriminator_filters,
         kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
         activation=ACTIVATION,
-        use_batchnorm=USE_BATCHNORM,
-        initializer_function=INITIALIZER,
+        use_batchnorm=True,
+        initializer_function="he_uniform",
         training=True,
     )
 
@@ -273,12 +265,12 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_segan.db",  # Save the study in a SQLite database file
+        storage="sqlite:///optuna_segan_simple.db",  # Save the study in a SQLite database file
         study_name="segan_tuning",
         load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=50)
 
     print("Best trial:")
     trial = study.best_trial
