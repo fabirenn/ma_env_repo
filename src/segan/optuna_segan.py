@@ -3,6 +3,7 @@ import sys
 
 import keras
 import numpy as np
+import traceback
 import optuna
 import segmentation_models as sm
 import tensorflow as tf
@@ -49,6 +50,7 @@ WAIT = 0
 
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
+    print("Starting objective function...") 
     BATCH_SIZE = trial.suggest_int(
         "batch_size", 4, 24, step=4
     )
@@ -246,6 +248,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
 def handle_errors_during_tuning(e):
     print(f"The following error occured: {e}")
+    traceback.print_exc() 
     raise optuna.TrialPruned()
 
 
