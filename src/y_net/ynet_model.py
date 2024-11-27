@@ -109,20 +109,17 @@ def fusion_module(y1_output, y2_output, activation="relu"):
 
 def build_ynet(img_width, img_height, channel_size, dropout_rate):
     input_shape = (img_width, img_height, channel_size)
-    inputs = Input(shape=input_shape)
+    inputs = Input(shape=input_shape, name="ynet_input")
     
-    # Semantic Feature Extractor
-    semantic_inputs, y1_output = semantic_feature_extractor(input_shape, dropout_rate)
-    semantic_model = Model(inputs=semantic_inputs, outputs=y1_output, name='Semantic-Feature-Extractor')
-    
-    # Detail Feature Extractor
-    detail_inputs, y2_output = detail_feature_extractor(input_shape, dropout_rate)
-    detail_model = Model(inputs=detail_inputs, outputs=y2_output, name='Detail-Feature-Extractor')
+    # Pass the shared input tensor through the semantic and detail feature extractors
+    _, y1_output = semantic_feature_extractor(input_shape, dropout_rate, name_prefix="semantic_")
+    _, y2_output = detail_feature_extractor(input_shape, dropout_rate)
 
-    outputs = fusion_module(semantic_model.output, detail_model.output)
+    # Connect the outputs of the two feature extractors
+    fusion_output = fusion_module(y1_output, y2_output)
 
-    model = Model(inputs, outputs, name="Y-Net")
-
+    # Define the Y-Net model
+    model = Model(inputs=inputs, outputs=fusion_output, name="Y-Net")
     model.summary()
     return model
 
