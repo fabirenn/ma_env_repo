@@ -2,6 +2,7 @@ import os
 import sys
 
 import keras.metrics
+import traceback
 import optuna
 import tensorflow as tf
 import keras
@@ -9,7 +10,7 @@ import keras
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from ynet_model import build_ynet, build_feature_extractor_for_pretraining, build_ynet_with_pretrained_semantic_extractor, build_feature_extractor_without_pretraining
 
-from data_loader import create_dataset_for_tuning, load_images_for_tuning
+from data_loader import create_dataset_for_tuning, load_images_for_tuning, create_dataset_for_unet_tuning
 from loss_functions import dice_loss
 from metrics_calculation import (
     dice_coefficient,
@@ -37,6 +38,7 @@ PATIENCE = 30
 
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
+    print("Starting objective function...") 
     # Hyperparameter tuning
     BATCH_SIZE = trial.suggest_int(
         "batch_size", 4, 16, step=4
@@ -56,13 +58,13 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     )
 
     try:
-        val_loss = None
 
-        train_dataset, val_dataset = create_dataset_for_tuning(
+        train_dataset, val_dataset = create_dataset_for_unet_tuning(
             train_images,
             train_masks,
             val_images,
             val_masks,
+            IMG_CHANNEL,
             BATCH_SIZE
         )
 
@@ -108,10 +110,15 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         handle_errors_during_tuning(e)
     except Exception as e:
         handle_errors_during_tuning(e)
+    finally:
+        # Clear GPU memory
+        keras.backend.clear_session()
+        print("Cleared GPU memory after trial.")
 
 
 def handle_errors_during_tuning(e):
     print(f"The following error occured: {e}")
+    traceback.print_exc() 
     raise optuna.TrialPruned()
 
 
