@@ -10,9 +10,7 @@ sys.path.append(
 )
 
 
-def semantic_feature_extractor(input_shape, dropout_rate, name_prefix=""):
-    input_tensor = layers.Input(shape=input_shape, name=name_prefix + "input")
-    # Encoder Path
+def semantic_feature_extractor(input_tensor, dropout_rate, name_prefix=""):
     c1 = Conv2D(64, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_1")(input_tensor)
     b1 = BatchNormalization(name=name_prefix + "batch_normalization_1")(c1)
     c2 = Conv2D(64, (3, 3), padding='same', activation='relu', name=name_prefix + "conv2d_2")(b1)
@@ -71,13 +69,12 @@ def semantic_feature_extractor(input_shape, dropout_rate, name_prefix=""):
     r3 = Cropping2D(cropping=((0, 0), (0, 0)), name=name_prefix + "cropping2d_3")(d5)  # Adjust the cropping values based on dimensions
 
     # Output
-    output = Conv2D(5, (1, 1), padding='same', activation='softmax', name=name_prefix + "conv2d_21")(r3)
+    output = Conv2D(5, (1, 1), padding='same', activation='softmax', name=name_prefix + "output")(r3)
 
-    return input_tensor, output
+    return output
 
 
-def detail_feature_extractor(input_shape, dropout_rate, activation="relu"):
-    input_tensor = layers.Input(shape=input_shape)
+def detail_feature_extractor(input_tensor, dropout_rate, activation="relu"):
     c1 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c1")(input_tensor)
     c2 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c2")(c1)
     c3 = Conv2D(16, (3, 3), activation=activation, padding="same", name="c3")(c2)
@@ -94,7 +91,7 @@ def detail_feature_extractor(input_shape, dropout_rate, activation="relu"):
     c12 = Conv2D(64, (5, 5), activation=activation, padding="same", name="c12")(c11)
     output = Conv2D(5, (1, 1), activation="softmax", name="c13")(c12)
 
-    return input_tensor, output
+    return output
 
 
 def fusion_module(y1_output, y2_output, activation="relu"):
@@ -112,8 +109,8 @@ def build_ynet(img_width, img_height, channel_size, dropout_rate):
     inputs = Input(shape=input_shape, name="ynet_input")
     
     # Pass the shared input tensor through the semantic and detail feature extractors
-    _, y1_output = semantic_feature_extractor(input_shape, dropout_rate, name_prefix="semantic_")
-    _, y2_output = detail_feature_extractor(input_shape, dropout_rate)
+    y1_output = semantic_feature_extractor(inputs, dropout_rate, name_prefix="semantic_")
+    y2_output = detail_feature_extractor(inputs, dropout_rate)
 
     # Connect the outputs of the two feature extractors
     fusion_output = fusion_module(y1_output, y2_output)
