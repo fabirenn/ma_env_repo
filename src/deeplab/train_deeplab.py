@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from deeplab_model import DeepLab
 
 from custom_callbacks import ValidationCallback
-from data_loader import create_dataset_for_unet_tuning
+from data_loader import create_datasets_for_unet_training
 from loss_functions import dice_loss
 from metrics_calculation import (
     dice_coefficient,
@@ -49,13 +49,15 @@ PATIENCE = 70
 
 APPLY_CRF = False
 
-train_dataset, val_dataset = create_dataset_for_unet_tuning(
+train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
     directory_train_masks=TRAIN_MASK_PATH,
     directory_val_images=VAL_IMG_PATH,
     directory_val_masks=VAL_MASK_PATH,
-    channel_size=IMG_CHANNEL,
+    img_width=IMG_WIDTH,
+    img_height=IMG_HEIGHT,
     batch_size=BATCH_SIZE,
+    channel_size=IMG_CHANNEL,
 )
 
 os.environ["WANDB_DIR"] = "wandb/train_deeplab"
