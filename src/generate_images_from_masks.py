@@ -10,33 +10,69 @@ from data_loader import (
     resize_images,
 )
 
-ORIGINAL_IMAGES_PATH = "data/backgrounds/"
-FENCE_IMAGES_PATH = "data/new/greenscreen/"
-FENCE_IMAGES_PATH_SEGMENTED = "data/new/segmented/"
-FENCE_MASKS_PATH = "data/new/masks/"
+ORIGINAL_IMAGES_PATH = "data/backgrounds/background/"
+FENCE_IMAGES_PATH = "data/greenscreen/greenscreen"
+#FENCE_IMAGES_PATH_SEGMENTED = "data/new/segmented/"
+FENCE_MASKS_PATH = "data/labels_new/"
 DESTINATION_PATH = "data/new/generated/"
+
+# RGB values for the relevant classes
+CLASS_COLORS = {
+    "wire": (51, 221, 255),
+    "post": (241, 177, 195),
+    "tensioner": (245, 147, 49),
+}
 
 background_images = []
 fence_images = []
 fence_masks = []
 
+def extract_relevant_mask(mask, relevant_classes):
+    """
+    Extract a binary mask for the relevant classes from the multi-class mask.
+    """
+    binary_mask = np.zeros(mask.shape[:2], dtype=np.uint8)
+
+    for class_name, rgb_value in relevant_classes.items():
+        # Determine the channel index for this class
+        channel_index = list(relevant_classes.keys()).index(class_name)
+
+        # Debug: Verify if the channel contains non-zero values
+        print(f"Channel {channel_index} unique values: {np.unique(mask[:, :, channel_index])}")
+
+        # Create a binary mask for this class
+        class_mask = mask[:, :, channel_index] > 0  # Non-zero values indicate class presence
+        binary_mask[class_mask] = 1
+
+    return binary_mask
 
 def apply_mask(image, mask, class_value):
     class_mask = mask == class_value
     return np.where(class_mask[:, :, np.newaxis], image, 0)
 
 
-def replace_fence_pixels(original_image, replacement_image, mask):
-    result_image = original_image.copy()
+def replace_fence_pixels_using_mask(background_image, fence_image, mask):
+    """
+    Replace black pixels in the mask with the background pixels,
+    and other pixels with the fence structure.
+    """
+    #result_image = np.zeros_like(fence_image) 
 
-    # Iterate over each class channel in the mask
-    for class_channel in range(
-        1, mask.shape[-1]
-    ):  # Skip the background channel (0)
-        class_mask = mask[:, :, class_channel] == 1
-        result_image[class_mask] = replacement_image[class_mask]
+    # Background pixels (where mask == 0)
+    background_pixels = mask[..., 0] == 0  # Only check the first channel of the mask
+    background_pixels = np.repeat(background_pixels[:, :, np.newaxis], 3, axis=2)
 
-    return result_image
+    # Fence pixels (where mask > 0)
+    fence_pixels = ~background_pixels
+
+    # Replace black pixels (background) with the background image
+    #
+    #background_image[background_pixels] = background_image[background_pixels]
+
+    # Replace non-black pixels (fence) with the fence image
+    fence_image[~background_pixels] = background_image[~background_pixels]
+
+    return fence_image
 
 
 def save_image(image, path):
@@ -129,9 +165,31 @@ background_images = load_images_from_directory(ORIGINAL_IMAGES_PATH)
 background_images = resize_images(background_images, 3000, 2000)
 fence_images = load_images_from_directory(FENCE_IMAGES_PATH)
 fence_images = resize_images(fence_images, 3000, 2000)
+fence_masks = load_masks_from_directory(FENCE_MASKS_PATH)
+fence_masks = resize_images(fence_masks, 3000, 2000)
 
-# for i in range(68):
-# img = cv2_greenscreenremover(fence_images[i], i)
+
+for i in range(len(background_images)):
+    print(f"Processing image {i + 1}")
+    print(f"Background image shape: {background_images[i].shape}")
+    print(f"Fence image shape: {fence_images[i].shape}")
+    print(f"Mask shape: {fence_masks[i].shape}")
+
+    background_images[i] = cv2.cvtColor(background_images[i], cv2.COLOR_BGR2RGB)
+    fence_images[i] = cv2.cvtColor(fence_images[i], cv2.COLOR_BGR2RGB)
+
+
+    # Replace pixels based on mask
+    result_image = replace_fence_pixels_using_mask(
+        background_images[i], fence_images[i], fence_masks[i]
+    )
+    
+    # Save the generated image
+    save_image(result_image, DESTINATION_PATH + f"image_{i + 1}.png")
+
+'''   
+for i in range(14):
+    img = cv2_greenscreenremover(fence_images[i], i)
 # make_binary_mask(img, i)
 
 
@@ -142,7 +200,7 @@ fence_masks = resize_images(fence_masks, 3000, 2000)
 # fence_masks = make_binary_masks(fence_masks, 30)
 
 
-for i in range(68):
+for i in range(14):
     print(f"Processing image {i + 100}")
     print(f"Background image shape: {background_images[i].shape}")
     print(f"Fence image shape: {fence_images_new[i].shape}")
@@ -155,4 +213,4 @@ for i in range(68):
     )
     # show_image(result_image)
     save_image()
-    save_image(result_image, DESTINATION_PATH + "image" + str(i + 100) + ".png")
+    save_image(result_image, DESTINATION_PATH + "image" + str(i + 100) + ".png")''' 
