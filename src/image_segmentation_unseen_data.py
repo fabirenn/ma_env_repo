@@ -91,25 +91,24 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
     segmented_image: The segmented full image
     """
     img_height, img_width, _ = image.shape
-    patches = create_patches(
-        image, patch_size, overlap
-    )  # Split image into patches
+    patches = create_patches(image, patch_size, overlap)  # Split image into patches
     segmented_patches = []
 
     for x, y, patch in patches:
-        patch = np.expand_dims(patch, axis=0)  # Add batch dimension
-        prediction = model.predict(
-            patch, batch_size=1
-        )  # Predict segmentation for the patch
-        if apply_crf:
-            prediction = apply_crf_to_pred(patch, prediction)
+        # Resize patch to model's input size (512x512)
+        resized_patch = cv2.resize(patch, (512, 512))
+        resized_patch = np.expand_dims(resized_patch, axis=0)  # Add batch dimension
+        prediction = model.predict(resized_patch, batch_size=1)  # Predict segmentation
         
-        segmented_patches.append((x, y, prediction[0]))
+        if apply_crf:
+            prediction = apply_crf_to_pred(resized_patch, prediction)
+        
+        # Resize prediction back to original patch size
+        prediction_resized = cv2.resize(prediction[0], (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
+        segmented_patches.append((x, y, prediction_resized))
 
     # Reconstruct the full image from the segmented patches
-    segmented_image = reconstruct_image(
-        segmented_patches, img_height, img_width, patch_size
-    )
+    segmented_image = reconstruct_image(segmented_patches, img_height, img_width, patch_size)
     return segmented_image
 
 
