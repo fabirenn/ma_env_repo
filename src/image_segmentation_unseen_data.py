@@ -197,15 +197,15 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         if model_name not in ("unet", "segan", "ynet"):
             # print("no preprocessed images")
             segmented_image = segment_image(
-                original_image, model, patch_size=512, overlap=50, apply_crf=False
+                original_image, model, patch_size=256, overlap=50, apply_crf=False
             )
         elif model_name == "deeplab":
             segmented_image = segment_image(
-                original_image, model, patch_size=512, overlap=50, apply_crf=True
+                original_image, model, patch_size=256, overlap=50, apply_crf=True
             )
         else:
             segmented_image = segment_image(
-                original_image, model, patch_size=512, overlap=50, apply_crf=False
+                original_image, model, patch_size=256, overlap=50, apply_crf=False
             )
         
         # Convert original_mask from one-hot encoding to class labels
