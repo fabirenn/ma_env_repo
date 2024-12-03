@@ -12,6 +12,8 @@ from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally, apply_crf_to_pred
 from segnet.custom_layers import custom_objects
 
+PATCH_SIZE = 256
+
 
 def create_patches(image, patch_size, overlap):
     """
@@ -197,15 +199,15 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         if model_name not in ("unet", "segan", "ynet"):
             # print("no preprocessed images")
             segmented_image = segment_image(
-                original_image, model, patch_size=256, overlap=50, apply_crf=False
+                original_image, model, patch_size=PATCH_SIZE, overlap=50, apply_crf=False
             )
         elif model_name == "deeplab":
             segmented_image = segment_image(
-                original_image, model, patch_size=256, overlap=50, apply_crf=True
+                original_image, model, patch_size=PATCH_SIZE, overlap=50, apply_crf=True
             )
         else:
             segmented_image = segment_image(
-                original_image, model, patch_size=256, overlap=50, apply_crf=False
+                original_image, model, patch_size=PATCH_SIZE, overlap=50, apply_crf=False
             )
         
         # Convert original_mask from one-hot encoding to class labels
