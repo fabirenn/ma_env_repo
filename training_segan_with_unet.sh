@@ -3,9 +3,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:v100:2
-#SBATCH --mem=256GB
+#SBATCH --mem=64GB
 #SBATCH --job-name="segan-with-unet-tune"
-#SBATCH --time=10-00:00:00
+#SBATCH --time=5-00:00:00
 #SBATCH --partition=clara-long
 #SBATCH --output=../log/%x.out-%j
 #SBATCH --error=../log/%x.error-%j
