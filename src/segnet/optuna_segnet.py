@@ -41,8 +41,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         "batch_size", 4, 16, step=4
     )
     print(f"BATCH_SIZE: {BATCH_SIZE}")
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-3, log=True)
     NUM_FILTERS = trial.suggest_categorical(
         "num_filters_index",
         [   
@@ -58,25 +58,15 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         ]
     )
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
-    OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
-    )
-    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
-    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
+    ACTIVATION = trial.suggest_categorical("activation", ["elu", "prelu"])
     INITIALIZER = trial.suggest_categorical(
             "weight_initializer", ["he_normal", "he_uniform"]
         )
     
     num_filters = ast.literal_eval(NUM_FILTERS)
     
-    if OPTIMIZER == "sgd":
-        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE, clipnorm=1.0)
-    elif OPTIMIZER == "adagrad":
-        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE, clipnorm=1.0)
-    elif OPTIMIZER == "rmsprop":
-        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE, clipnorm=1.0)
-    elif OPTIMIZER == "adam":
-        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE, clipnorm=1.0)
+    optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE, clipnorm=1.0)
+    
 
     try:
         train_dataset, val_dataset = create_dataset_for_unet_tuning(
@@ -96,7 +86,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             num_filters=num_filters,
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
-            use_batchnorm=USE_BATCHNORM,
+            use_batchnorm=True,
             initializer_function=INITIALIZER
         )
 
@@ -166,7 +156,7 @@ if __name__ == "__main__":
         load_if_exists=True,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=100)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=50)
 
     print("Best trial:")
     trial = study.best_trial
