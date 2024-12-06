@@ -3,8 +3,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:v100:2
-#SBATCH --mem=64GB
-#SBATCH --time=5-00:00:00
+#SBATCH --mem=32GB
+#SBATCH --time=3-00:00:00
 #SBATCH --job-name="segnet_tune"
 #SBATCH --partition=clara-long
 #SBATCH --output=../log/%x.out-%j
