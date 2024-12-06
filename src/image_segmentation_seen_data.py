@@ -114,17 +114,17 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 model_paths = [
-    "artifacts/models/unet/unet_checkpoint.keras",
+    #"artifacts/models/unet/unet_checkpoint.keras",
     #"artifacts/models/segnet/segnet_checkpoint.keras",
     "artifacts/models/deeplab/deeplab_checkpoint.keras",
-    "artifacts/models/segan/segan_checkpoint.keras",
+    #"artifacts/models/segan/segan_checkpoint.keras",
     #"artifacts/models/ynet/ynet_checkpoint.keras",
 ]
 model_names = [
-    "unet",
+    #"unet",
    #"segnet",
    "deeplab",
-    "segan",
+    #"segan",
     #"ynet"
     ]
 
