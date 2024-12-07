@@ -48,18 +48,18 @@ VAL_IMG_PATH = "data/local/val/images"
 VAL_MASK_PATH = "data/local/val/labels"'''
 
 
-LOG_VAL_PRED = "data/predictions/segan"
-CHECKPOINT_PATH = "./artifacts/models/segan/segan_checkpoint.keras"
+LOG_VAL_PRED = "data/predictions/segan_unet"
+CHECKPOINT_PATH = "./artifacts/models/segan/segan__unet_checkpoint.keras"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
-DROPOUT_RATE = 0.1
+DROPOUT_RATE = 0.0
 BATCH_SIZE = 16
 EPOCHS = 300
 
-GENERATOR_TRAINING_STEPS = 8
+GENERATOR_TRAINING_STEPS = 5
 
 PATIENCE = 50
 BEST_IOU = 0
@@ -87,18 +87,18 @@ config = wandb.config
 keras.backend.set_image_data_format("channels_last")
 
 filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-discriminator_filters = filters_list[:6]
+discriminator_filters = filters_list[:5]
 
 generator_model = unet(
     IMG_WIDTH,
     IMG_HEIGHT,
     IMG_CHANNEL,
     DROPOUT_RATE,
-    discriminator_filters,
+    [16, 32, 64, 128, 256, 512],
     kernel_size=(5, 5),
     activation="elu",
     use_batchnorm=True,
-    initializer_function="he_uniform",
+    initializer_function="he_normal",
     training=True,
 
 )
@@ -107,7 +107,7 @@ generator_model = unet(
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
     (IMG_WIDTH, IMG_HEIGHT, 5),
-    discriminator_filters,
+    [16, 32, 64, 128, 256, 512],
 )
 
 # Create the intermediate model
@@ -118,8 +118,8 @@ intermediate_layer_model = keras.Model(
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # loss_fn = combined_loss
-gen_optimizer = keras.optimizers.SGD(learning_rate=0.0777)
-disc_optimizer = keras.optimizers.SGD(learning_rate=0.0777)
+gen_optimizer = keras.optimizers.Adagrad(learning_rate=0.05)
+disc_optimizer = keras.optimizers.Adagrad(learning_rate=0.05)
 checkpoint = tf.train.Checkpoint(
     generator_optimizer=gen_optimizer,
     discriminator_optimizer=disc_optimizer,
