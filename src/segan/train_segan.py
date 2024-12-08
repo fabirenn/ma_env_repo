@@ -145,10 +145,20 @@ def evaluate_generator(generator, dataset):
         "precision": keras.metrics.Mean(name="precision"),
         "recall": keras.metrics.Mean(name="recall"),
     }
+    
+    val_loss = 0
+    total_batches = 0
 
     # Calculate metrics over the validation dataset
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
+
+        # Segmentation loss
+        cce = keras.losses.CategoricalCrossentropy(from_logits=False)
+        segmentation_loss = cce(mask_batch, predictions)
+
+        val_loss += segmentation_loss.numpy()
+
         metrics["accuracy"].update_state(accuracy(mask_batch, predictions))
         metrics["dice"].update_state(dice_coefficient(mask_batch, predictions))
         metrics["mean_iou"].update_state(mean_iou(mask_batch, predictions))
@@ -157,9 +167,17 @@ def evaluate_generator(generator, dataset):
         )
         metrics["precision"].update_state(precision(mask_batch, predictions))
         metrics["recall"].update_state(recall(mask_batch, predictions))
+        total_batches += 1
 
+    val_loss /= total_batches
     results = {
-        name: metric.result().numpy() for name, metric in metrics.items()
+        "val_loss": val_loss,
+        "accuracy": metrics["accuracy"].result().numpy(),
+        "dice": metrics["dice"].result().numpy(),
+        "mean_iou": metrics["mean_iou"].result().numpy(),
+        "pixel_accuracy": metrics["pixel_accuracy"].result().numpy(),
+        "precision": metrics["precision"].result().numpy(),
+        "recall": metrics["recall"].result().numpy(),
     }
     return results
 
@@ -218,7 +236,7 @@ def generate_images(model, dataset, epoch):
 
 def train(train_dataset, val_dataset, epochs, trainingsteps):
     global WAIT
-    best_gen_loss = float("inf")
+    best_val_loss = float("inf")
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}/{EPOCHS}")
 
@@ -230,12 +248,13 @@ def train(train_dataset, val_dataset, epochs, trainingsteps):
 
         train_metrics = evaluate_generator(generator_model, train_dataset)
         val_metrics = evaluate_generator(generator_model, val_dataset)
-
+        val_loss = val_metrics["val_loss"]
         wandb.log(
             {
                 "epoch": epoch + 1,
                 "gen_loss": gen_loss,
                 "disc_loss": disc_loss,
+                "val_loss": val_loss,
                 "train_accuracy": train_metrics["accuracy"],
                 "train_pixel_accuracy": train_metrics["pixel_accuracy"],
                 "train_precision": train_metrics["precision"],
@@ -252,7 +271,7 @@ def train(train_dataset, val_dataset, epochs, trainingsteps):
         )
 
         print(
-            f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f}"
+            f"Generator Loss: {gen_loss:.4f} - Discriminator Loss: {disc_loss:.4f} - Validation Loss: {val_loss:.4f}"
         )
         print(
             f"Train Metrics - Accuracy: {train_metrics['accuracy']:.4f}, PA: {train_metrics['pixel_accuracy']:.4f}, Precision: {train_metrics['precision']:.4f}, Recall: {train_metrics['recall']:.4f}, IOU: {train_metrics['mean_iou']:.4f}, Dice: {train_metrics['dice']:.4f}"
@@ -263,8 +282,8 @@ def train(train_dataset, val_dataset, epochs, trainingsteps):
 
         generate_images(model=generator_model, dataset=val_dataset, epoch=epoch)
 
-        if gen_loss < best_gen_loss:
-            best_gen_loss = gen_loss
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
             checkpoint.save(file_prefix=CHECKPOINT_PATH)
             generator_model.save(CHECKPOINT_PATH)
             print("Improved & Saved model\n")
