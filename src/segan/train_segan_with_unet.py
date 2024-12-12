@@ -22,6 +22,7 @@ from loss_functions import (
     combined_generator_loss,
     discriminator_loss,
     generator_loss,
+    dice_loss
 )
 from metrics_calculation import (
     accuracy,
@@ -154,10 +155,11 @@ def evaluate_generator(generator, dataset):
         predictions = generator(image_batch, training=False)
 
         # Segmentation loss
-        cce = keras.losses.CategoricalCrossentropy(from_logits=False)
-        segmentation_loss = cce(mask_batch, predictions)
+        #cce = keras.losses.CategoricalCrossentropy(from_logits=False)
+        #segmentation_loss = cce(mask_batch, predictions)
+        dice_loss_value = dice_loss(mask_batch, predictions)
 
-        val_loss += segmentation_loss.numpy()
+        val_loss += dice_loss_value.numpy()
 
         metrics["accuracy"].update_state(accuracy(mask_batch, predictions))
         metrics["dice"].update_state(dice_coefficient(mask_batch, predictions))
