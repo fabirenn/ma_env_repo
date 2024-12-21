@@ -68,7 +68,7 @@ for _, row in df.iterrows():
     # Add the trial to the study
     study.add_trial(trial)
 
-manual_params = ["learning_rate", "activation", "optimizer"]  # Adjust as needed
+manual_params = ["weight_initializer", "dilation_rates", "learning_rate"]  # Adjust as needed
 
 # Plot
 fig = optuna.visualization.plot_rank(study, params=manual_params)

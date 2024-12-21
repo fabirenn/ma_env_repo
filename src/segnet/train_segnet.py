@@ -32,11 +32,12 @@ LOG_VAL_PRED = "data/predictions/segnet"
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
+LEARNING_RATE = 0.000257
 
 DROPOUT_RATE = 0.1
-BATCH_SIZE = 4
-EPOCHS = 50
-PATIENCE = 30
+BATCH_SIZE = 8
+EPOCHS = 200
+PATIENCE = 50
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -71,13 +72,15 @@ model = segnet(
     dropout_rate=DROPOUT_RATE,
     num_filters=[32, 64, 128, 256],
     kernel_size=(3, 3),
-    activation="relu",
+    activation="elu",
     use_batchnorm=True,
-    initializer_function="he_normal"
+    initializer_function="he_uniform"
 )
 
+optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+
 model.compile(
-    optimizer="adam",
+    optimizer=optimizer,
     loss=dice_loss,
     metrics=[
         "accuracy",

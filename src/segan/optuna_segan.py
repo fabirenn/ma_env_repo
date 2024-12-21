@@ -22,6 +22,7 @@ from loss_functions import (
     combined_generator_loss,
     discriminator_loss,
     generator_loss,
+    dice_loss
 )
 from metrics_calculation import (
     accuracy,
@@ -52,9 +53,9 @@ WAIT = 0
 def objective(trial, train_images, train_masks, val_images, val_masks):
     print("Starting objective function...") 
     BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 24, step=4
+        "batch_size", 12, 24, step=4
     )
-    IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
+    IMG_CHANNEL = trial.suggest_categorical("img_channel", [3])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 5, 10)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-2, 1e-1, log=True)
@@ -138,11 +139,9 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         for image_batch, mask_batch in dataset:
             predictions = generator(image_batch, training=False)
 
-            # Segmentation loss
-            cce = keras.losses.CategoricalCrossentropy(from_logits=False)
-            segmentation_loss = cce(mask_batch, predictions)
+            dice_loss_value = dice_loss(mask_batch, predictions)
 
-            val_loss += segmentation_loss.numpy()
+            val_loss += dice_loss_value.numpy()
             
             metrics["dice"].update_state(
                 dice_coefficient(mask_batch, predictions)

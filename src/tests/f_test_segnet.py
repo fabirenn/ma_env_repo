@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-db_path = "optuna_segnet_dec.db"
+db_path = "optuna_segnet_30.db"
 connection = sqlite3.connect(db_path)
 
 # Schritt 2: Daten aus 'trial_params' und 'trial_values' verknüpfen
