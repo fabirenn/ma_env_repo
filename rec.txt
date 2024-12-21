@@ -1,6 +1,0 @@
-albumentations
-scikit-learn
-numpy
-opencv-python
-tensorflow
-pillow
