@@ -22,7 +22,7 @@ from loss_functions import (
     combined_generator_loss,
     discriminator_loss,
     generator_loss,
-    dice_loss
+    dice_loss,
 )
 from metrics_calculation import (
     accuracy,
@@ -56,11 +56,12 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
-DROPOUT_RATE = 0.1
+DROPOUT_RATE = 0.0
+LEARNING_RATE = 0.02446071789
 BATCH_SIZE = 16
 EPOCHS = 300
 
-GENERATOR_TRAINING_STEPS = 8
+GENERATOR_TRAINING_STEPS = 9
 
 PATIENCE = 50
 BEST_IOU = 0
@@ -85,7 +86,7 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
-keras.backend.set_image_data_format("channels_last")
+#keras.backend.set_image_data_format("channels_last")
 
 filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
 discriminator_filters = filters_list[:6]
@@ -119,8 +120,8 @@ intermediate_layer_model = keras.Model(
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # loss_fn = combined_loss
-gen_optimizer = keras.optimizers.SGD(learning_rate=0.0777)
-disc_optimizer = keras.optimizers.SGD(learning_rate=0.0777)
+gen_optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+disc_optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
 checkpoint = tf.train.Checkpoint(
     generator_optimizer=gen_optimizer,
     discriminator_optimizer=disc_optimizer,
@@ -154,12 +155,16 @@ def evaluate_generator(generator, dataset):
     for image_batch, mask_batch in dataset:
         predictions = generator(image_batch, training=False)
 
+        # Segmentation loss
         #cce = keras.losses.CategoricalCrossentropy(from_logits=False)
+        #segmentation_loss = cce(mask_batch, predictions)
+
+        #val_loss += segmentation_loss.numpy()
+	#cce = keras.losses.CategoricalCrossentropy(from_logits=False)
         #segmentation_loss = cce(mask_batch, predictions)
         dice_loss_value = dice_loss(mask_batch, predictions)
 
         val_loss += dice_loss_value.numpy()
-
         metrics["accuracy"].update_state(accuracy(mask_batch, predictions))
         metrics["dice"].update_state(dice_coefficient(mask_batch, predictions))
         metrics["mean_iou"].update_state(mean_iou(mask_batch, predictions))
@@ -314,7 +319,7 @@ train(
     train_dataset=train_dataset,
     val_dataset=val_dataset,
     epochs=EPOCHS,
-    trainingsteps=5,
+    trainingsteps=GENERATOR_TRAINING_STEPS,
 )
 
 wandb.finish()

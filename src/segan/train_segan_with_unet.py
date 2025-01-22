@@ -50,17 +50,18 @@ VAL_MASK_PATH = "data/local/val/labels"'''
 
 
 LOG_VAL_PRED = "data/predictions/segan_unet"
-CHECKPOINT_PATH = "./artifacts/models/segan/segan__unet_checkpoint.keras"
+CHECKPOINT_PATH = "./artifacts/models/segan/segan_predefined_checkpoint.keras"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.1
-BATCH_SIZE = 16
+LEARNING_RATE = 0.009371
+BATCH_SIZE = 8
 EPOCHS = 300
 
-GENERATOR_TRAINING_STEPS = 10
+GENERATOR_TRAINING_STEPS = 9
 
 PATIENCE = 50
 BEST_IOU = 0
@@ -118,8 +119,8 @@ intermediate_layer_model = keras.Model(
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 # loss_fn = combined_loss
-gen_optimizer = keras.optimizers.Adagrad(learning_rate=0.02546695733)
-disc_optimizer = keras.optimizers.Adagrad(learning_rate=0.02546695733)
+gen_optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+disc_optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
 checkpoint = tf.train.Checkpoint(
     generator_optimizer=gen_optimizer,
     discriminator_optimizer=disc_optimizer,

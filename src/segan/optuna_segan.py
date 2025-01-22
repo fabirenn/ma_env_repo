@@ -55,21 +55,15 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     BATCH_SIZE = trial.suggest_int(
         "batch_size", 12, 24, step=4
     )
-    IMG_CHANNEL = trial.suggest_categorical("img_channel", [3])
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
-    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 5, 10)
+    IMG_CHANNEL = 3
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.1, step=0.1)
+    GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 6, 10)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-2, 1e-1, log=True)
-    FILTERS_DEPTH = trial.suggest_int("filters_depth", 5, 6)
+    FILTERS_DEPTH = 6
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
-    OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad"]
-    )
     ACTIVATION = trial.suggest_categorical("activation", ["leaky_relu", "elu"])
     
-    if OPTIMIZER == "sgd":
-        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
-    elif OPTIMIZER == "adagrad":
-        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
+    optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
 
     filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
     discriminator_filters = filters_list[:FILTERS_DEPTH]
@@ -139,10 +133,11 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         for image_batch, mask_batch in dataset:
             predictions = generator(image_batch, training=False)
 
+            # Segmentation loss
             dice_loss_value = dice_loss(mask_batch, predictions)
 
             val_loss += dice_loss_value.numpy()
-            
+
             metrics["dice"].update_state(
                 dice_coefficient(mask_batch, predictions)
             )

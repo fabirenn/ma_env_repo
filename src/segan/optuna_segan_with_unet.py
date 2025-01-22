@@ -43,6 +43,7 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
 
+
 EPOCHS = 100
 PATIENCE = 30
 BEST_IOU = 0
@@ -51,12 +52,12 @@ WAIT = 0
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 24, step=4
+        "batch_size", 4, 16, step=4
     )
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 5, 10)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
     OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
+        "optimizer", ["sgd", "adagrad"]
     )
 
     if OPTIMIZER == "sgd":
@@ -68,7 +69,6 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     elif OPTIMIZER == "adam":
         optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
     
-    filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
 
     #current_epoch = 0
 
@@ -77,7 +77,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         train_masks,
         val_images,
         val_masks,
-        3,
+        8,
         BATCH_SIZE
     )
     print("Created the datasets..")
@@ -85,10 +85,10 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     generator_model = unet(
         512,
         512,
-        3,
-        0.0,
+        8,
+        0.1,
         [16, 32, 64, 128, 256, 512],
-        kernel_size=(5, 5),
+        kernel_size=(3, 3),
         activation="elu",
         use_batchnorm=True,
         initializer_function="he_normal",
@@ -96,7 +96,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     )
 
     discriminator_model = discriminator(
-        (IMG_WIDTH, IMG_HEIGHT, 3),
+        (IMG_WIDTH, IMG_HEIGHT, 8),
         (IMG_WIDTH, IMG_HEIGHT, 5),
         [16, 32, 64, 128, 256, 512],
     )
@@ -138,7 +138,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             # Segmentation loss
             dice_loss_value = dice_loss(mask_batch, predictions)
 
-            val_loss += dice_loss_value.numpy()
+            val_loss += dice_loss_value.numpy()            
             
             metrics["dice"].update_state(
                 dice_coefficient(mask_batch, predictions)
