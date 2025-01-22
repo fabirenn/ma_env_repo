@@ -42,8 +42,8 @@ IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.0
-BATCH_SIZE = 16
-EPOCHS = 100
+BATCH_SIZE = 8
+EPOCHS = 150
 PATIENCE = 30
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
@@ -75,15 +75,15 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
-semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
+#semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+#semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
-model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
-
+#model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
+model = build_ynet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
 # Set the optimizer parameters
-momentum = 0.9
-weight_decay = 0.0001
-learning_rate = 0.001
+momentum = 0.98567
+weight_decay = 0.0004
+learning_rate = 0.00144
 
 # Create the SGD optimizer
 optimizer = keras.optimizers.SGD(
@@ -125,6 +125,7 @@ model.fit(
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
+            log_wandb=True
         ),
         keras.callbacks.EarlyStopping(
             monitor="val_loss",

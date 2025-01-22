@@ -114,26 +114,20 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 model_paths = [
-    #"artifacts/models/unet/unet_checkpoint.keras",
-    #"artifacts/models/segnet/segnet_checkpoint.keras",
-<<<<<<< HEAD
-    #"artifacts/models/deeplab/deeplab_checkpoint.keras",
-=======
+    "artifacts/models/unet/unet_checkpoint.keras",
+    "artifacts/models/segnet/segnet_checkpoint.keras",
     "artifacts/models/deeplab/deeplab_checkpoint.keras",
->>>>>>> 1de200b835df0723144cc0e2c5b6a9e940d65e9c
-    #"artifacts/models/segan/segan_checkpoint.keras",
-    #"artifacts/models/ynet/ynet_checkpoint.keras",
+    "artifacts/models/segan/segan_checkpoint.keras",
+    "artifacts/models/segan/segan_predefined_checkpoint.keras",
+    "artifacts/models/ynet/ynet_checkpoint.keras",
 ]
 model_names = [
-    #"unet",
-   #"segnet",
-<<<<<<< HEAD
-   #"deeplab",
-=======
-   "deeplab",
->>>>>>> 1de200b835df0723144cc0e2c5b6a9e940d65e9c
-    #"segan",
-    #"ynet"
+    "unet",
+    "segnet",
+    "deeplab",
+    "segan",
+    "segan",
+    "ynet"
     ]
 
 '''
@@ -271,3 +265,4 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     print("Saved predictions in data/predictions/" + model_name)
 
 wandb.finish()
+

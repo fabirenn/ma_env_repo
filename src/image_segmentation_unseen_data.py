@@ -12,7 +12,7 @@ from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally, apply_crf_to_pred
 from segnet.custom_layers import custom_objects
 
-PATCH_SIZE = 256
+PATCH_SIZES = [256, 512]
 
 
 def create_patches(image, patch_size, overlap):
@@ -115,18 +115,20 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 model_paths = [
-    #"artifacts/models/unet/unet_checkpoint.keras",
-    #"artifacts/models/segnet/segnet_checkpoint.keras",
+    "artifacts/models/unet/unet_checkpoint.keras",
+    "artifacts/models/segnet/segnet_checkpoint.keras",
     "artifacts/models/deeplab/deeplab_checkpoint.keras",
-    #"artifacts/models/segan/segan_checkpoint.keras",
-    #"artifacts/models/ynet/ynet_checkpoint.keras",
+    "artifacts/models/segan/segan_checkpoint.keras",
+    "artifacts/models/segan/segan_predefined_checkpoint.keras",
+    "artifacts/models/ynet/ynet_checkpoint.keras",
 ]
 model_names = [
-    #"unet",
-   #"segnet",
-   "deeplab",
-    #"segan",
-    #"ynet"
+    "unet",
+    "segnet",
+    "deeplab",
+    "segan",
+    "segan"
+    "ynet"
     ]
 
 '''
@@ -193,52 +195,41 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     for original_image, preprocessed_image, original_mask, i in zip(
         original_images, preprocessed_images, original_masks, range(11)
     ):
-        #original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+        best_dice = -1
+        best_segmented_image = None
 
-        if model_name not in ("unet", "segan", "ynet"):
-            # print("no preprocessed images")
-            segmented_image = segment_image(
-                original_image, model, patch_size=PATCH_SIZE, overlap=50, apply_crf=False
-            )
-        elif model_name == "deeplab":
-            segmented_image = segment_image(
-                original_image, model, patch_size=PATCH_SIZE, overlap=50, apply_crf=True
-            )
-        else:
-            segmented_image = segment_image(
-                original_image, model, patch_size=PATCH_SIZE, overlap=50, apply_crf=False
-            )
-        
-        # Convert original_mask from one-hot encoding to class labels
-        original_mask_labels = np.argmax(original_mask, axis=-1)                    
-
-        if segmented_image.shape != original_mask_labels.shape:
-            raise ValueError(f"Shape mismatch: Original mask has shape {original_mask_labels.shape} but segmented mask has shape {segmented_image.shape}")
+        for patch_size in PATCH_SIZES:
+            segmented_image = segment_image(original_image, model, patch_size=patch_size, overlap=50, apply_crf=False)
+            original_mask_labels = np.argmax(original_mask, axis=-1)
+            
+            if segmented_image.shape != original_mask_labels.shape:
+                raise ValueError(f"Shape mismatch: Original mask has shape {original_mask_labels.shape} but segmented mask has shape {segmented_image.shape}")
+            
+            original_mask_labels_float = tf.cast(original_mask_labels, tf.float32)
+            segmented_image_float = tf.cast(segmented_image, tf.float32)
+            dice = dice_coefficient(original_mask_labels_float, segmented_image_float).numpy()
+            if dice > best_dice:
+                best_dice = dice
+                best_segmented_image = segmented_image
         
         # Calculate metrics
         iou_per_class = []
         dice_per_class = []
 
         for class_index in range(5):
-            iou = calculate_class_iou(original_mask_labels, segmented_image, class_index).numpy()
+            iou = calculate_class_iou(original_mask_labels, best_segmented_image, class_index).numpy()
             if not np.isnan(iou):  # Avoid NaN values in the log
                 metrics_log[f"iou_class_{class_index}"].append(iou)
+        pixel_acc = pixel_accuracy(original_mask_labels, best_segmented_image).numpy()
 
-        # Ensure both the original mask and the segmented image are in the same type before passing to the dice_coefficient
-        original_mask_labels_float = tf.cast(original_mask_labels, tf.float32)
-        segmented_image_float = tf.cast(segmented_image, tf.float32)
-         
-        dice = dice_coefficient(original_mask_labels_float, segmented_image_float).numpy()
-        pixel_acc = pixel_accuracy(original_mask_labels, segmented_image).numpy()
-
-        metrics_log["dice"].append(dice)
+        metrics_log["dice"].append(best_dice)
         metrics_log["pixel_accuracy"].append(pixel_acc)
 
         safe_predictions_locally(
             range=None,
             iterator=i,
             test_images=original_image,
-            predictions=segmented_image,
+            predictions=best_segmented_image,
             test_masks=original_mask,
             pred_img_path="data/predictions/" + model_name,
             val=True,
@@ -264,3 +255,4 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     print("Saved predictions in data/predictions/" + model_name)
 
 wandb.finish()
+

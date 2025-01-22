@@ -38,12 +38,12 @@ VAL_MASK_PATH = "data/local/val/labels"'''
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-IMG_CHANNEL = 3
+IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.0
-LEARNING_RATE = 0.0032
+LEARNING_RATE = 0.0010591722685292172
 
-BATCH_SIZE = 24
+BATCH_SIZE = 12
 EPOCHS = 200
 PATIENCE = 50
 
@@ -75,7 +75,7 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
-filters_list = [16, 32, 64, 128, 256, 512, 1024]
+filters_list = [16, 32, 64, 128, 256, 512]
 
 # create model & start training it
 model = unet(
@@ -84,7 +84,7 @@ model = unet(
     IMG_CHANNEL,
     DROPOUT_RATE,
     filters_list,
-    kernel_size=(5, 5),
+    kernel_size=(3, 3),
     activation="elu",
     use_batchnorm=True,
     initializer_function="he_normal",
