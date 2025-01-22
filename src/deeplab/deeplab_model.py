@@ -62,7 +62,7 @@ def DeepLab(input_shape, dropout_rate, filters, dilation_rates, use_batchnorm, k
     elif initializer_function == "he_uniform":
         initializer1 = keras.initializers.HeUniform()
         initializer2 = keras.initializers.HeUniform()
-        initializer3 = keras.initializers.HeNormal()
+        initializer3 = keras.initializers.HeUniform()
 
     base_model = ResNet50(
         weights="imagenet", include_top=False, input_tensor=inputs

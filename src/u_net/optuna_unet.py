@@ -38,46 +38,20 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         "batch_size", 4, 16, step=4
     )
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
-    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
-    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-1, log=True)
-    NUM_FILTERS = trial.suggest_categorical(
-        "num_filters_index",
-        [   
-            "[16, 32, 128]",
-            "[32, 64, 128]",
-            "[64, 128, 256]",
-            "[128, 256, 512]",
-            "[16, 32, 128, 256]",
-            "[32, 64, 128, 256]",
-            "[64, 128, 256, 512]",
-            "[16, 32, 64, 128, 256]",
-            "[32, 64, 128, 256, 512]",
-            "[16, 32, 64, 128, 256, 512]",
-        ]
-    )
+    DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
+    LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
+    
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
-    OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad", "rmsprop", "adam"]
-    )
-    ACTIVATION = trial.suggest_categorical("activation", ["relu", "leaky_relu", "elu", "prelu"])
-    USE_BATCHNORM = trial.suggest_categorical("use_batchnorm", [True, False])
+    ACTIVATION = trial.suggest_categorical("activation", ["relu", "elu"])
+    USE_BATCHNORM = True
     INITIALIZER = trial.suggest_categorical(
             "weight_initializer", ["he_normal", "he_uniform"]
         )
     
-    if OPTIMIZER == "sgd":
-        optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
-    elif OPTIMIZER == "adagrad":
-        optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
-    elif OPTIMIZER == "rmsprop":
-        optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
-    elif OPTIMIZER == "adam":
-        optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
+    optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
+    
 
     try:
-        current_epoch = 0
-        val_loss = 1
-
         train_dataset, val_dataset = create_dataset_for_unet_tuning(
             train_images,
             train_masks,
@@ -88,14 +62,13 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         )
 
         print("Created the datasets..")
-        num_filters = ast.literal_eval(NUM_FILTERS)
 
         model = unet(
             IMG_WIDTH,
             IMG_HEIGHT,
             IMG_CHANNEL,
             DROPOUT_RATE,
-            num_filters,
+            [16, 32, 64, 128, 256, 512],
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
             use_batchnorm=USE_BATCHNORM,
@@ -130,29 +103,18 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             ],
         )
         val_loss = min(history.history["val_loss"])
-        current_epoch = len(history.history["loss"])
-        print(f"Training completed. Final Validation Loss: {val_loss}")
-
-        trial.report(val_loss, step=current_epoch)
-        print("Reported to Optuna.")
-
-        if trial.should_prune():
-            print("Trial is pruned.")
-            raise optuna.TrialPruned()
-        
         return val_loss
     except tf.errors.ResourceExhaustedError as e:
-        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
-        return float("inf")
+        handle_errors_during_tuning(e)
+    except Exception as e:
+        handle_errors_during_tuning(e)
     finally:
         # Clear GPU memory
         keras.backend.clear_session()
         print("Cleared GPU memory after trial.")
 
-
 def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
     print(f"The following error occured: {e}")
-    trial.report(best_loss, step=current_epoch)
     raise optuna.TrialPruned()
 
 
@@ -185,3 +147,4 @@ if __name__ == "__main__":
     print("Params:")
     for key, value in trial.params.items():
         print(f"  {key}: {value}")
+

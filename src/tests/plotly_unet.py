@@ -6,23 +6,20 @@ from optuna.trial import create_trial
 from optuna.visualization import plot_param_importances
 
 # Load CSV into a DataFrame
-file_path = 'src/tests/unet_tuning_first.csv'  # Replace with your actual file path
+file_path = 'src/tests/unet_tuning.csv'  # Replace with your actual file path
 df = pd.read_csv(file_path)
 
 # Create a study and manually add trials from CSV data
 study = optuna.create_study(direction="minimize")  # or "maximize" based on your objective
 
 distributions = {
-    "learning_rate": FloatDistribution(1e-4, 1e-1),           # Adjust the range if needed
-    "batch_size": IntDistribution(4, 24),                # Example range
-    "dropout_rate": FloatDistribution(0.0, 0.5),              # Example range for dropout rate
-    "num_blocks": IntDistribution(3, 6),          # Example range for generator training steps
+    "learning_rate": FloatDistribution(1e-4, 1e-2),           # Adjust the range if needed
+    "batch_size": IntDistribution(4, 16),                # Example range
+    "dropout_rate": FloatDistribution(0.0, 0.3),              # Example range for dropout rate
     "img_channel": IntDistribution(3, 8),                # Example range for image channels
-    "kernel_size": IntDistribution(3, 5),                # Typical kernel sizes
-    "optimizer": CategoricalDistribution(["adam", "sgd", "rmsprop", "adagrad"]),  # Possible optimizers
-    "use_batchnorm": CategoricalDistribution([True, False]),    # Boolean values for batch normalization
+    "kernel_size": IntDistribution(3, 5),            # Boolean values for batch normalization
     "weight_initializer": CategoricalDistribution(["he_normal", "he_uniform"]),
-    "activation": CategoricalDistribution(["relu", "prelu", "elu", "leaky_relu"])
+    "activation": CategoricalDistribution(["relu", "elu"])
 }
 
 for _, row in df.iterrows():
@@ -37,11 +34,8 @@ for _, row in df.iterrows():
             "learning_rate": float(row["Param learning_rate"]),
             "batch_size": int(row["Param batch_size"]),
             "dropout_rate": float(row["Param dropout_rate"]),
-            "num_blocks": int(row["Param num_blocks"]),
             "img_channel": int(row["Param img_channel"]),
             "kernel_size": int(row["Param kernel_size"]),
-            "optimizer": row["Param optimizer"],
-            "use_batchnorm": bool(row["Param use_batchnorm"]),
             "weight_initializer": row["Param weight_initializer"],
             "activation": row["Param activation"]
         },
@@ -53,7 +47,7 @@ for _, row in df.iterrows():
     # Add the trial to the study
     study.add_trial(trial)
 
-manual_params = ["learning_rate", "optimizer", "use_batchnorm", "kernel_size", "dropout_rate"]
+manual_params = ["learning_rate", "dropout_rate", "batch_size"]
 
 # Plot
 fig = optuna.visualization.plot_rank(study, params=manual_params[:5])

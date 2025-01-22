@@ -85,6 +85,7 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
+keras.backend.set_image_data_format("channels_last")
 
 filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
 discriminator_filters = filters_list[:5]

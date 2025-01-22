@@ -644,6 +644,17 @@ def create_dataset_for_image_segmentation(img_dir, mask_dir):
 
     return images, preprocessed_images, masks
 
+def create_dataset_for_mask_prediction(img_dir):
+    global test_class_frequencies
+    images = []
+    preprocessed_images = []
+    images = load_images_from_directory(img_dir)
+    images = resize_images(images, 1500, 1000)
+    images = normalize_image_data(images)
+    preprocessed_images = preprocess_images(images)
+
+    return images, preprocessed_images
+
 
 def create_dataset_for_mask_prediction(img_dir):
     images = []
