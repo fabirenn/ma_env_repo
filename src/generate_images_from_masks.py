@@ -10,9 +10,9 @@ from data_loader import (
     resize_images,
 )
 
-ORIGINAL_IMAGES_PATH = "data/backgrounds/background/"
-FENCE_IMAGES_PATH = "data/greenscreen/greenscreen"
-#FENCE_IMAGES_PATH_SEGMENTED = "data/new/segmented/"
+ORIGINAL_IMAGES_PATH = "data/backgrounds/background_new/"
+FENCE_IMAGES_PATH = "data/greenscreen/greenscreen_new/"
+FENCE_IMAGES_PATH_SEGMENTED = "data/new/segmented/"
 FENCE_MASKS_PATH = "data/labels_new/"
 DESTINATION_PATH = "data/new/generated/"
 
