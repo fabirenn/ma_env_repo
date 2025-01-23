@@ -1,7 +1,11 @@
 import optuna
 import pandas as pd
+from optuna.distributions import (
+    CategoricalDistribution,
+    FloatDistribution,
+    IntDistribution,
+)
 from optuna.importance import get_param_importances
-from optuna.distributions import FloatDistribution, IntDistribution, CategoricalDistribution
 from optuna.trial import create_trial
 from optuna.visualization import plot_param_importances
 

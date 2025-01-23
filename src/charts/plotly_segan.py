@@ -1,10 +1,14 @@
 import optuna
 import pandas as pd
+import plotly.express as px
+from optuna.distributions import (
+    CategoricalDistribution,
+    FloatDistribution,
+    IntDistribution,
+)
 from optuna.importance import get_param_importances
-from optuna.distributions import FloatDistribution, IntDistribution, CategoricalDistribution
 from optuna.trial import create_trial
 from optuna.visualization import plot_param_importances
-import plotly.express as px
 
 # Load CSV into a DataFrame
 file_path = 'src/tests/segan_tuning_simple.csv'  # Replace with your actual file path

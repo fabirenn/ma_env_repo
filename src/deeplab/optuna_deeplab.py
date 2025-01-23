@@ -1,16 +1,16 @@
 import ast
+import gc
 import os
 import sys
-import gc
-from numba import cuda
 
 import keras.metrics
 import optuna
 import tensorflow as tf
 from deeplab_model import DeepLab
+from numba import cuda
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from data_loader import load_images_for_tuning, create_dataset_for_unet_tuning
+from data_loader import create_dataset_for_unet_tuning, load_images_for_tuning
 from loss_functions import dice_loss
 from metrics_calculation import (
     dice_coefficient,

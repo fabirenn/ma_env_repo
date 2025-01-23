@@ -1,8 +1,8 @@
+import keras
+import tensorflow as tf
 from custom_layers import MaxPoolingWithIndices, MaxUnpooling2D
 from keras.layers import Activation, BatchNormalization, Conv2D, Dropout, Input
 from keras.models import Model
-import keras
-import tensorflow as tf
 
 
 def segnet(input_size, dropout_rate, num_filters, kernel_size, activation, use_batchnorm, initializer_function):

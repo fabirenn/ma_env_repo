@@ -2,6 +2,7 @@ import keras
 import tensorflow as tf
 from keras.layers import BatchNormalization
 
+
 def unet(
     img_width,
     img_height,

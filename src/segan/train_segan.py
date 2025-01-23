@@ -20,9 +20,9 @@ from data_loader import create_datasets_for_unet_training
 from loss_functions import (
     combined_discriminator_loss,
     combined_generator_loss,
+    dice_loss,
     discriminator_loss,
     generator_loss,
-    dice_loss,
 )
 from metrics_calculation import (
     accuracy,

@@ -1,10 +1,10 @@
 import sqlite3
-import pandas as pd
-from scipy.stats import f_oneway
+
 import matplotlib.pyplot as plt
-from scipy.stats import spearmanr
-import seaborn as sns
 import numpy as np
+import pandas as pd
+import seaborn as sns
+from scipy.stats import f_oneway, spearmanr
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 

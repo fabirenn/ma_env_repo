@@ -1,6 +1,6 @@
+import keras
 import tensorflow as tf
 from keras import backend as K
-import keras
 from keras.applications import ResNet50
 from keras.layers import (
     Activation,

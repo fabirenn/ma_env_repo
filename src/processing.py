@@ -1,8 +1,8 @@
 import os
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 import pydensecrf.densecrf as dcrf
 import tensorflow as tf
 from keras.utils import array_to_img

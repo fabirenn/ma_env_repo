@@ -1,7 +1,12 @@
 import keras
 import numpy as np
 import tensorflow as tf
-from data_loader import train_class_frequencies, val_class_frequencies, test_class_frequencies
+
+from data_loader import (
+    test_class_frequencies,
+    train_class_frequencies,
+    val_class_frequencies,
+)
 
 num_classes = 5
 

@@ -1,15 +1,20 @@
 import os
 
+import cv2
 import keras
 import numpy as np
-from keras.models import load_model
 import tensorflow as tf
-import cv2
+from keras.models import load_model
+
 import wandb
-from metrics_calculation import dice_coefficient, calculate_class_iou, pixel_accuracy
 from data_loader import create_dataset_for_image_segmentation
 from loss_functions import combined_loss, dice_loss, iou_loss
-from processing import safe_predictions_locally, apply_crf_to_pred
+from metrics_calculation import (
+    calculate_class_iou,
+    dice_coefficient,
+    pixel_accuracy,
+)
+from processing import apply_crf_to_pred, safe_predictions_locally
 from segnet.custom_layers import custom_objects
 
 model_paths = [

@@ -1,8 +1,19 @@
 import os
 import sys
+
 import tensorflow as tf
 from keras import layers, models
-from keras.layers import Conv2D, Dropout, Input, Concatenate, BatchNormalization, MaxPooling2D, Conv2DTranspose, Cropping2D, Add
+from keras.layers import (
+    Add,
+    BatchNormalization,
+    Concatenate,
+    Conv2D,
+    Conv2DTranspose,
+    Cropping2D,
+    Dropout,
+    Input,
+    MaxPooling2D,
+)
 from keras.models import Model
 
 sys.path.append(
