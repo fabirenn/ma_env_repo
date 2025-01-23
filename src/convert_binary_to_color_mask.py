@@ -3,6 +3,10 @@ import os
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
+# Example usage
+input_folder = "data/training_test/labels_git"
+output_folder = "data/training_test/labels_git"
+
 
 def convert_binary_masks(
     input_folder, output_folder, wire_color=(255, 221, 51)
@@ -39,8 +43,5 @@ def convert_binary_masks(
         new_mask.save(os.path.join(output_folder, mask_file))
         print(f"Saved converted mask: {mask_file}")
 
-
-# Example usage
-input_folder = "data/training_test/labels_git"
-output_folder = "data/training_test/labels_git"
 convert_binary_masks(input_folder, output_folder, wire_color=(51, 221, 255))
+

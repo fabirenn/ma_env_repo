@@ -12,6 +12,30 @@ from loss_functions import combined_loss, dice_loss, iou_loss
 from processing import safe_predictions_locally, apply_crf_to_pred
 from segnet.custom_layers import custom_objects
 
+model_paths = [
+    "artifacts/models/unet/unet_checkpoint.keras",
+    "artifacts/models/segnet/segnet_checkpoint.keras",
+    "artifacts/models/deeplab/deeplab_checkpoint.keras",
+    "artifacts/models/segan/segan_checkpoint.keras",
+    "artifacts/models/segan/segan_predefined_checkpoint.keras",
+    "artifacts/models/ynet/ynet_checkpoint.keras",
+]
+model_names = [
+    "unet",
+    "segnet",
+    "deeplab",
+    "segan",
+    "segan",
+    "ynet"
+    ]
+
+'''
+IMG_PATH = "data/generated"
+MASK_PATH = "data/segmented/mask"'''
+
+IMG_PATH = "data/originals/images"
+MASK_PATH = "data/originals/masks"
+
 
 def create_patches(image, patch_size, overlap):
     """
@@ -113,31 +137,7 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-model_paths = [
-    "artifacts/models/unet/unet_checkpoint.keras",
-    "artifacts/models/segnet/segnet_checkpoint.keras",
-    "artifacts/models/deeplab/deeplab_checkpoint.keras",
-    "artifacts/models/segan/segan_checkpoint.keras",
-    "artifacts/models/segan/segan_predefined_checkpoint.keras",
-    "artifacts/models/ynet/ynet_checkpoint.keras",
-]
-model_names = [
-    "unet",
-    "segnet",
-    "deeplab",
-    "segan",
-    "segan",
-    "ynet"
-    ]
-
-'''
-IMG_PATH = "data/generated"
-MASK_PATH = "data/segmented/mask"'''
-
-IMG_PATH = "data/originals/images"
-MASK_PATH = "data/originals/masks"
-
-os.environ["WANDB_DIR"] = "wandb/testing_models"
+os.environ["WANDB_DIR"] = "wandb/models_on_seen_data"
 
 wandb.init(
     project="image-segmentation",
