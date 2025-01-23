@@ -46,7 +46,7 @@ In context of this repo `make` enables you to define aliases for more complex co
     ```
 2. Extract the data provided via the link in the ./data folder.
 3. The repo is ready to use now
-4. If you want to use the HPC of the University Leipzig, it's enough to activate the virtual environment and load a Python Module (3.10.4) & corresponding TensorFlow Module.
+4. If you want to use the HPC of the University Leipzig, it's enough to activate the virtual environment and load a Python Module (3.10.4) & corresponding TensorFlow Module (for more information see last section)
 
 ### Model-Scripts
 
@@ -122,6 +122,10 @@ this files contains all the functions that didn't fit in other scripts
 
 
 ### HCP - Script - Template
+```
+  hcp_script_template.sh
+```
+This file helps in understunding how my scripts for executing the python script worked. Depending on the task of the script (training, tuning or testing) the .sh script could be provided with according CPU/RAM/TIME capacity. The provided script is the example of the tunining script for segan looked like. 
 
 
 
