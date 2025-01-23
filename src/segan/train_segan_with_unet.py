@@ -59,11 +59,16 @@ IMG_CHANNEL = 8
 DROPOUT_RATE = 0.1
 LEARNING_RATE = 0.009371
 BATCH_SIZE = 8
-EPOCHS = 300
+KERNELSIZE = 3
+FILTER_LIST = [16, 32, 64, 128, 256, 512]
+ACTIVATION = "elu"
+INITIALIZER = "he_normal"
+USE_BATCHNORM = True
 
 GENERATOR_TRAINING_STEPS = 9
 
-PATIENCE = 50
+EPOCHS = 200
+PATIENCE = 70
 BEST_IOU = 0
 WAIT = 0
 
@@ -86,29 +91,24 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
-
-filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-discriminator_filters = filters_list[:5]
-
 generator_model = unet(
     IMG_WIDTH,
     IMG_HEIGHT,
     IMG_CHANNEL,
     DROPOUT_RATE,
-    [16, 32, 64, 128, 256, 512],
-    kernel_size=(3, 3),
-    activation="elu",
-    use_batchnorm=True,
-    initializer_function="he_normal",
+    FILTER_LIST,
+    kernel_size=(KERNELSIZE, KERNELSIZE),
+    activation=ACTIVATION,
+    use_batchnorm=USE_BATCHNORM,
+    initializer_function=INITIALIZER,
     training=True,
 
 )
 
-
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
     (IMG_WIDTH, IMG_HEIGHT, 5),
-    [16, 32, 64, 128, 256, 512],
+    FILTER_LIST,
 )
 
 # Create the intermediate model

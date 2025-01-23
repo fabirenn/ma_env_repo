@@ -33,11 +33,16 @@ IMG_WIDTH = 512
 IMG_HEIGHT = 512
 IMG_CHANNEL = 3
 LEARNING_RATE = 0.000257
+FILTERS = [32, 64, 128, 256]
+KERNELSIZE = 3
+ACTIVATION = "elu"
+INITIALIZER = "he_uniform"
+USE_BATCHNORM = True
 
 DROPOUT_RATE = 0.1
 BATCH_SIZE = 8
 EPOCHS = 200
-PATIENCE = 50
+PATIENCE = 70
 
 train_dataset, val_dataset = create_datasets_for_segnet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -70,11 +75,11 @@ config = wandb.config
 model = segnet(
     input_size=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
     dropout_rate=DROPOUT_RATE,
-    num_filters=[32, 64, 128, 256],
-    kernel_size=(3, 3),
-    activation="elu",
-    use_batchnorm=True,
-    initializer_function="he_uniform"
+    num_filters=FILTERS,
+    kernel_size=(KERNELSIZE, KERNELSIZE),
+    activation=ACTIVATION,
+    use_batchnorm=USE_BATCHNORM,
+    initializer_function=INITIALIZER
 )
 
 optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)

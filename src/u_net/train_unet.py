@@ -42,10 +42,15 @@ IMG_CHANNEL = 8
 
 DROPOUT_RATE = 0.0
 LEARNING_RATE = 0.0010591722685292172
+KERNELSIZE = 3
+ACTIVATION = "elu"
+INITIALIZER = "he_normal"
+USE_BATCHNORM = True
+FILTERS_LIST = [16, 32, 64, 128, 256, 512]
 
 BATCH_SIZE = 12
 EPOCHS = 200
-PATIENCE = 50
+PATIENCE = 70
 
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
@@ -75,7 +80,6 @@ wandb.init(
 # [optional] use wandb.config as your config
 config = wandb.config
 
-filters_list = [16, 32, 64, 128, 256, 512]
 
 # create model & start training it
 model = unet(
@@ -83,11 +87,11 @@ model = unet(
     IMG_HEIGHT,
     IMG_CHANNEL,
     DROPOUT_RATE,
-    filters_list,
-    kernel_size=(3, 3),
-    activation="elu",
-    use_batchnorm=True,
-    initializer_function="he_normal",
+    FILTERS_LIST,
+    kernel_size=(KERNELSIZE, KERNELSIZE),
+    activation=ACTIVATION,
+    use_batchnorm=USE_BATCHNORM,
+    initializer_function=INITIALIZER,
     training=True,
 )
 

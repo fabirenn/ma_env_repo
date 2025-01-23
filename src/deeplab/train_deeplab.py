@@ -42,6 +42,12 @@ IMG_CHANNEL = 3
 
 DROPOUT_RATE = 0.3
 LEARNING_RATE = 0.0834699
+FILTERS = 1024
+DILATION_RATES = [3, 6, 9, 18]
+USE_BATCHNORM = True
+KERNEL_SIZE = 3
+INITIALIZER = "he_uniform"
+ACTIVATION = "elu"
 
 BATCH_SIZE = 4
 EPOCHS = 200
@@ -81,12 +87,12 @@ config = wandb.config
 model = DeepLab(
             input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
             dropout_rate=DROPOUT_RATE,
-            filters=1024,
-            dilation_rates=[3, 6, 9, 18],
-            use_batchnorm=True,
-            kernel_size=(3, 3),
-            initializer_function="he_uniform",
-            activation="elu"
+            filters=FILTERS,
+            dilation_rates=DILATION_RATES,
+            use_batchnorm=USE_BATCHNORM,
+            kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
+            initializer_function=INITIALIZER,
+            activation=ACTIVATION
         )
 
 optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)

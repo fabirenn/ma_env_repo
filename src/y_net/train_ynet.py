@@ -46,6 +46,10 @@ BATCH_SIZE = 8
 EPOCHS = 150
 PATIENCE = 30
 
+MOMENTUM = 0.98567
+WEIGHT_DECAY = 0.0004
+LEARNING_RATE = 0.00144
+
 train_dataset, val_dataset = create_datasets_for_unet_training(
     directory_train_images=TRAIN_IMG_PATH,
     directory_train_masks=TRAIN_MASK_PATH,
@@ -81,15 +85,13 @@ config = wandb.config
 #model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 model = build_ynet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
 # Set the optimizer parameters
-momentum = 0.98567
-weight_decay = 0.0004
-learning_rate = 0.00144
+
 
 # Create the SGD optimizer
 optimizer = keras.optimizers.SGD(
-    learning_rate=learning_rate,
-    momentum=momentum,
-    decay=weight_decay,
+    learning_rate=LEARNING_RATE,
+    momentum=MOMENTUM,
+    decay=WEIGHT_DECAY,
     nesterov=False  # You can set this to True if you want to use Nesterov momentum
 )
 

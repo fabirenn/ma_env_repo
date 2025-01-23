@@ -59,11 +59,17 @@ IMG_CHANNEL = 3
 DROPOUT_RATE = 0.0
 LEARNING_RATE = 0.02446071789
 BATCH_SIZE = 16
-EPOCHS = 300
+FILTERS_LIST = [16, 32, 64, 128, 256, 512]
+KERNELSIZE = 5
+ACTIVATION = "elu"
+INITIALIZER = "he_uniform"
+USE_BATCHNORM = True
+
 
 GENERATOR_TRAINING_STEPS = 9
 
-PATIENCE = 50
+EPOCHS = 200
+PATIENCE = 70
 BEST_IOU = 0
 WAIT = 0
 
@@ -88,19 +94,17 @@ config = wandb.config
 
 #keras.backend.set_image_data_format("channels_last")
 
-filters_list = [16, 32, 64, 128, 256, 512, 1024]  # Base list of filters
-discriminator_filters = filters_list[:6]
 
 generator_model = unet(
     IMG_WIDTH,
     IMG_HEIGHT,
     IMG_CHANNEL,
     DROPOUT_RATE,
-    discriminator_filters,
-    kernel_size=(5, 5),
-    activation="elu",
-    use_batchnorm=True,
-    initializer_function="he_uniform",
+    FILTERS_LIST,
+    kernel_size=(KERNELSIZE, KERNELSIZE),
+    activation=ACTIVATION,
+    use_batchnorm=USE_BATCHNORM,
+    initializer_function=INITIALIZER,
     training=True,
 
 )
@@ -109,7 +113,7 @@ generator_model = unet(
 discriminator_model = discriminator(
     (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
     (IMG_WIDTH, IMG_HEIGHT, 5),
-    discriminator_filters,
+    FILTERS_LIST,
 )
 
 # Create the intermediate model
