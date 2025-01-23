@@ -115,6 +115,11 @@ this files contains the functions of how my loss functions are calculated, they 
 ```
 this files contains all the functions for calculating the metrics in all the scripts
 
+```
+  src/processing.py
+```
+this files contains all the functions that didn't fit in other scripts
+
 
 
 
