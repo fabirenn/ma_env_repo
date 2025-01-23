@@ -2,9 +2,7 @@ import os
 import sys
 
 import keras
-import numpy as np
 import optuna
-import segmentation_models as sm
 import tensorflow as tf
 from segan_model import discriminator
 
@@ -14,7 +12,6 @@ sys.path.append(
 from unet_model import unet
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from custom_callbacks import ValidationCallback
 from data_loader import create_dataset_for_unet_tuning, load_images_for_tuning
 from loss_functions import (
     combined_discriminator_loss,
@@ -24,14 +21,12 @@ from loss_functions import (
     generator_loss,
 )
 from metrics_calculation import (
-    accuracy,
     dice_coefficient,
     mean_iou,
     pixel_accuracy,
     precision,
     recall,
 )
-from processing import safe_predictions_locally
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -61,14 +56,10 @@ TRIALS = 200
 
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
-    BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 16, step=4
-    )
+    BATCH_SIZE = trial.suggest_int("batch_size", 4, 16, step=4)
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 5, 10)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
-    OPTIMIZER = trial.suggest_categorical(
-        "optimizer", ["sgd", "adagrad"]
-    )
+    OPTIMIZER = trial.suggest_categorical("optimizer", ["sgd", "adagrad"])
 
     filters_list = [16, 32, 64, 128, 256, 512]
 
@@ -80,9 +71,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
     elif OPTIMIZER == "adam":
         optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-    
 
-    #current_epoch = 0
+    # current_epoch = 0
 
     train_dataset, val_dataset = create_dataset_for_unet_tuning(
         train_images,
@@ -90,7 +80,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         val_images,
         val_masks,
         IMG_CHANNEL,
-        BATCH_SIZE
+        BATCH_SIZE,
     )
     print("Created the datasets..")
 
@@ -115,14 +105,18 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     # Create the intermediate model
     intermediate_layer_model = keras.Model(
         inputs=discriminator_model.input,
-        outputs=[layer.output for layer in discriminator_model.layers if 'conv' in layer.name or 'bn' in layer.name]
+        outputs=[
+            layer.output
+            for layer in discriminator_model.layers
+            if "conv" in layer.name or "bn" in layer.name
+        ],
     )
 
     gen_optimizer = optimizer
     disc_optimizer = optimizer
 
-    #generator_model.summary()
-    #discriminator_model.summary()
+    # generator_model.summary()
+    # discriminator_model.summary()
 
     generator_model.compile(
         optimizer=gen_optimizer, loss=generator_loss, metrics=["accuracy"]
@@ -150,8 +144,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             # Segmentation loss
             dice_loss_value = dice_loss(mask_batch, predictions)
 
-            val_loss += dice_loss_value.numpy()            
-            
+            val_loss += dice_loss_value.numpy()
+
             metrics["dice"].update_state(
                 dice_coefficient(mask_batch, predictions)
             )
@@ -164,7 +158,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             )
             metrics["recall"].update_state(recall(mask_batch, predictions))
             total_batches += 1
-        
+
         val_loss /= total_batches
         results = {
             "val_loss": val_loss,
@@ -180,7 +174,13 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     def train_step_generator(images, masks):
         with tf.GradientTape() as gen_tape:
             generated_masks = generator_model(images, training=True)
-            gen_loss, segmentation_loss = combined_generator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
+            gen_loss, segmentation_loss = combined_generator_loss(
+                discriminator_model,
+                intermediate_layer_model,
+                images,
+                masks,
+                generated_masks,
+            )
         gradients_of_generator = gen_tape.gradient(
             gen_loss, generator_model.trainable_variables
         )
@@ -193,7 +193,13 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     def train_step_discriminator(images, masks):
         with tf.GradientTape() as disc_tape:
             generated_masks = generator_model(images, training=True)
-            disc_loss = combined_discriminator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
+            disc_loss = combined_discriminator_loss(
+                discriminator_model,
+                intermediate_layer_model,
+                images,
+                masks,
+                generated_masks,
+            )
         gradients_of_discriminator = disc_tape.gradient(
             disc_loss, discriminator_model.trainable_variables
         )
@@ -214,7 +220,9 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
                 for image_batch, mask_batch in train_dataset:
                     for _ in range(trainingsteps):
                         gen_loss = train_step_generator(image_batch, mask_batch)
-                    disc_loss = train_step_discriminator(image_batch, mask_batch)
+                    disc_loss = train_step_discriminator(
+                        image_batch, mask_batch
+                    )
                 val_metrics = evaluate_generator(generator_model, val_dataset)
                 val_loss = val_metrics["val_loss"]
                 print(
@@ -231,10 +239,10 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
                     if WAIT >= PATIENCE:
                         print("Early stopping triggered\n")
                         return best_val_loss
-            
+
             print(f"Training completed. Final Validation Loss: {val_loss}")
             return best_val_loss
-            
+
         except tf.errors.ResourceExhaustedError as e:
             handle_errors_during_tuning(e)
         except Exception as e:
@@ -261,7 +269,7 @@ def handle_errors_during_tuning(e):
 
 if __name__ == "__main__":
     tf.config.optimizer.set_experimental_options({"layout_optimizer": False})
-    
+
     print("Going to load the data...")
     train_images, train_masks, val_images, val_masks = load_images_for_tuning(
         directory_train_images=TRAIN_IMG_PATH,
@@ -280,7 +288,12 @@ if __name__ == "__main__":
         load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
+    study.optimize(
+        lambda trial: objective(
+            trial, train_images, train_masks, val_images, val_masks
+        ),
+        n_trials=TRIALS,
+    )
 
     print("Best trial:")
     trial = study.best_trial

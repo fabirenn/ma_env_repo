@@ -1,5 +1,4 @@
 import keras
-import numpy as np
 import tensorflow as tf
 
 from data_loader import (
@@ -13,13 +12,15 @@ num_classes = 5
 
 def calculate_class_weights(class_counts, num_classes):
     total_pixels = sum(class_counts)
-    class_weights = [total_pixels / (num_classes * count) for count in class_counts]
+    class_weights = [
+        total_pixels / (num_classes * count) for count in class_counts
+    ]
     return tf.constant(class_weights, dtype=tf.float32)
 
 
 def pixel_accuracy(y_true, y_pred):
-    #y_pred = tf.argmax(y_pred, axis=-1)
-    #y_true = tf.argmax(y_true, axis=-1)
+    # y_pred = tf.argmax(y_pred, axis=-1)
+    # y_true = tf.argmax(y_true, axis=-1)
     correct_pixels = tf.reduce_sum(
         tf.cast(tf.equal(y_true, y_pred), tf.float32)
     )
@@ -87,33 +88,41 @@ def recall(y_true, y_pred, num_classes=5):
 
 
 def calculate_class_iou(y_true, y_pred, class_index):
-    #y_pred = tf.argmax(y_pred, axis=-1)
-    #y_true = tf.argmax(y_true, axis=-1)
-    
+    # y_pred = tf.argmax(y_pred, axis=-1)
+    # y_true = tf.argmax(y_true, axis=-1)
+
     y_true_class = tf.cast(y_true == class_index, tf.float32)
     y_pred_class = tf.cast(y_pred == class_index, tf.float32)
-    
+
     intersection = tf.reduce_sum(y_true_class * y_pred_class)
     union = tf.reduce_sum(y_true_class + y_pred_class) - intersection
-    
-    return tf.cond(union > 0, lambda: intersection / union, lambda: tf.constant(0.0))
+
+    return tf.cond(
+        union > 0, lambda: intersection / union, lambda: tf.constant(0.0)
+    )
 
 
 def calculate_class_precision(y_true, y_pred, class_index):
     y_pred = tf.argmax(y_pred, axis=-1)
     y_true = tf.argmax(y_true, axis=-1)
 
-    true_positives = tf.reduce_sum(tf.cast((y_pred == class_index) & (y_true == class_index), tf.float32))
-    predicted_positives = tf.reduce_sum(tf.cast(y_pred == class_index, tf.float32))
-    
+    true_positives = tf.reduce_sum(
+        tf.cast((y_pred == class_index) & (y_true == class_index), tf.float32)
+    )
+    predicted_positives = tf.reduce_sum(
+        tf.cast(y_pred == class_index, tf.float32)
+    )
+
     return true_positives / (predicted_positives + keras.backend.epsilon())
 
 
 def calculate_class_recall(y_true, y_pred, class_index):
     y_pred = tf.argmax(y_pred, axis=-1)
     y_true = tf.argmax(y_true, axis=-1)
-    
-    true_positives = tf.reduce_sum(tf.cast((y_pred == class_index) & (y_true == class_index), tf.float32))
+
+    true_positives = tf.reduce_sum(
+        tf.cast((y_pred == class_index) & (y_true == class_index), tf.float32)
+    )
     actual_positives = tf.reduce_sum(tf.cast(y_true == class_index, tf.float32))
-    
+
     return true_positives / (actual_positives + keras.backend.epsilon())

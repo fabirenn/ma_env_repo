@@ -4,7 +4,6 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pydensecrf.densecrf as dcrf
-import tensorflow as tf
 from keras.utils import array_to_img
 from pydensecrf.utils import (
     create_pairwise_bilateral,
@@ -50,8 +49,12 @@ def safe_predictions_locally(
         test_masks_colored = map_class_to_color(test_masks)
 
         # Save the colored predicted mask as a separate image file
-        pred_mask_path = os.path.join(pred_img_path, f"predicted_mask_epoch{iterator+1}.png")
-        cv2.imwrite(pred_mask_path, cv2.cvtColor(predictions_colored, cv2.COLOR_RGB2BGR))
+        pred_mask_path = os.path.join(
+            pred_img_path, f"predicted_mask_epoch{iterator+1}.png"
+        )
+        cv2.imwrite(
+            pred_mask_path, cv2.cvtColor(predictions_colored, cv2.COLOR_RGB2BGR)
+        )
 
         plt.figure(figsize=(45, 15))
 
@@ -90,8 +93,13 @@ def safe_predictions_locally(
             test_masks_colored = map_class_to_color(test_masks)
 
             # Save the colored predicted mask as a separate image file
-            pred_mask_path = os.path.join(pred_img_path, f"predicted_mask_{i+1}.png")
-            cv2.imwrite(pred_mask_path, cv2.cvtColor(predictions_colored, cv2.COLOR_RGB2BGR))
+            pred_mask_path = os.path.join(
+                pred_img_path, f"predicted_mask_{i+1}.png"
+            )
+            cv2.imwrite(
+                pred_mask_path,
+                cv2.cvtColor(predictions_colored, cv2.COLOR_RGB2BGR),
+            )
 
             plt.figure(figsize=(45, 15))
 
@@ -139,7 +147,7 @@ def apply_crf_to_pred(image, prediction):
     """
     Apply CRF post-processing to the model outputs.
     :param image: Original image (H, W, 3).
-    :param output_probs: Probability map output by the model (H, W, num_classes).
+    :param output_probs: Probability map output by the model (H, W, num_classes)
     :return: Refined segmentation map.
     """
     h, w = image.shape[:2]
@@ -156,9 +164,11 @@ def apply_crf_to_pred(image, prediction):
     gaussian_pairwise = create_pairwise_gaussian(sdims=(3, 3), shape=(w, h))
     d.addPairwiseEnergy(gaussian_pairwise, compat=3)
 
-    bilateral_pairwise = create_pairwise_bilateral(sdims=(50, 50), schan=(13, 13, 13), img=image, chdim=2)
+    bilateral_pairwise = create_pairwise_bilateral(
+        sdims=(50, 50), schan=(13, 13, 13), img=image, chdim=2
+    )
     d.addPairwiseEnergy(bilateral_pairwise, compat=10)
-    
+
     # Perform inference
     Q = d.inference(5)
     return np.argmax(Q, axis=0).reshape((h, w))

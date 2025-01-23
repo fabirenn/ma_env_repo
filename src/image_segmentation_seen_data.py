@@ -1,7 +1,5 @@
 import os
 
-import cv2
-import keras
 import numpy as np
 import tensorflow as tf
 from keras.models import load_model
@@ -25,14 +23,7 @@ model_paths = [
     "artifacts/models/segan/segan_predefined_checkpoint.keras",
     "artifacts/models/ynet/ynet_checkpoint.keras",
 ]
-model_names = [
-    "unet",
-    "segnet",
-    "deeplab",
-    "segan",
-    "segan",
-    "ynet"
-    ]
+model_names = ["unet", "segnet", "deeplab", "segan", "segan", "ynet"]
 
 '''
 IMG_PATH = "data/generated"
@@ -86,18 +77,26 @@ def reconstruct_image(patches, img_height, img_width, patch_size):
     reconstructed_image: The reconstructed image
     """
     # Initialize arrays to store class probabilities
-    num_classes = patches[0][2].shape[-1]  # Assuming the number of classes from the first patch
-    reconstructed_image = np.zeros((img_height, img_width, num_classes), dtype=np.float32)
-    patch_count = np.zeros((img_height, img_width, num_classes), dtype=np.float32)
+    num_classes = patches[0][2].shape[
+        -1
+    ]  # Assuming the number of classes from the first patch
+    reconstructed_image = np.zeros(
+        (img_height, img_width, num_classes), dtype=np.float32
+    )
+    patch_count = np.zeros(
+        (img_height, img_width, num_classes), dtype=np.float32
+    )
 
     for x, y, patch in patches:
         y_end = min(y + patch_size, img_height)
         x_end = min(x + patch_size, img_width)
-        
+
         # Sum the class probabilities for overlapping patches
-        reconstructed_image[y:y_end, x:x_end, :] += patch[: y_end - y, : x_end - x, :]
+        reconstructed_image[y:y_end, x:x_end, :] += patch[
+            : y_end - y, : x_end - x, :
+        ]
         patch_count[y:y_end, x:x_end, :] += 1
-    
+
     # Avoid division by zero and normalize the patches
     reconstructed_image /= np.maximum(patch_count, 1)
 
@@ -130,7 +129,7 @@ def segment_image(image, model, patch_size, overlap, apply_crf):
         )  # Predict segmentation for the patch
         if apply_crf:
             prediction = apply_crf_to_pred(patch, prediction)
-        
+
         segmented_patches.append((x, y, prediction[0]))
 
     # Reconstruct the full image from the segmented patches
@@ -193,49 +192,67 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
         "iou_class_2": [],
         "iou_class_3": [],
         "iou_class_4": [],
-        
     }
 
     for original_image, preprocessed_image, original_mask, i in zip(
         original_images, preprocessed_images, original_masks, range(11)
     ):
-        #original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+        # original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
 
         if model_name not in ("unet", "segan", "ynet"):
             # print("no preprocessed images")
             segmented_image = segment_image(
-                original_image, model, patch_size=512, overlap=50, apply_crf=False
+                original_image,
+                model,
+                patch_size=512,
+                overlap=50,
+                apply_crf=False,
             )
         elif model_name == "deeplab":
             segmented_image = segment_image(
-                original_image, model, patch_size=512, overlap=50, apply_crf=True
+                original_image,
+                model,
+                patch_size=512,
+                overlap=50,
+                apply_crf=True,
             )
         else:
             segmented_image = segment_image(
-                preprocessed_image, model, patch_size=512, overlap=50, apply_crf=False
+                preprocessed_image,
+                model,
+                patch_size=512,
+                overlap=50,
+                apply_crf=False,
             )
-        
+
         # Convert original_mask from one-hot encoding to class labels
-        original_mask_labels = np.argmax(original_mask, axis=-1)                    
+        original_mask_labels = np.argmax(original_mask, axis=-1)
 
         if segmented_image.shape != original_mask_labels.shape:
-            raise ValueError(f"Shape mismatch: Original mask has shape {original_mask_labels.shape} but segmented mask has shape {segmented_image.shape}")
-        
+            raise ValueError(
+                f"Shape mismatch: Original mask has shape {original_mask_labels.shape} but segmented mask has shape {segmented_image.shape}"
+            )
+
         # Calculate metrics
         iou_per_class = []
         dice_per_class = []
 
         for class_index in range(5):
-            iou = calculate_class_iou(original_mask_labels, segmented_image, class_index).numpy()
+            iou = calculate_class_iou(
+                original_mask_labels, segmented_image, class_index
+            ).numpy()
             if not np.isnan(iou):  # Avoid NaN values in the log
                 metrics_log[f"iou_class_{class_index}"].append(iou)
 
-        # Ensure both the original mask and the segmented image are in the same type before passing to the dice_coefficient
         original_mask_labels_float = tf.cast(original_mask_labels, tf.float32)
         segmented_image_float = tf.cast(segmented_image, tf.float32)
-         
-        dice = dice_coefficient(original_mask_labels_float, segmented_image_float).numpy()
-        pixel_acc = pixel_accuracy(original_mask_labels, segmented_image).numpy()
+
+        dice = dice_coefficient(
+            original_mask_labels_float, segmented_image_float
+        ).numpy()
+        pixel_acc = pixel_accuracy(
+            original_mask_labels, segmented_image
+        ).numpy()
 
         metrics_log["dice"].append(dice)
         metrics_log["pixel_accuracy"].append(pixel_acc)
@@ -254,20 +271,29 @@ for i, model_path, model_name in zip(range(6), model_paths, model_names):
     # Calculate average metrics for the model
     # Log alle IoU-Werte dynamisch für die Anzahl der Klassen
     for class_index in range(5):
-        iou_list = metrics_log[f"iou_class_{class_index}"]  # Get the list for each IoU class
-        if iou_list:  # Check if the list is not empty before calculating the mean
-            log_data[f"{model_name}_iou_class_{class_index}"] = np.mean(iou_list)
+        iou_list = metrics_log[
+            f"iou_class_{class_index}"
+        ]  # Get the list for each IoU class
+        if (
+            iou_list
+        ):  # Check if the list is not empty before calculating the mean
+            log_data[f"{model_name}_iou_class_{class_index}"] = np.mean(
+                iou_list
+            )
         else:
             log_data[f"{model_name}_iou_class_{class_index}"] = None
 
     # Logge auch die durchschnittlichen Dice- und Genauigkeitswerte
-    log_data.update({
+    log_data.update(
+        {
             f"{model_name}_average_dice": np.mean(metrics_log["dice"]),
-            f"{model_name}_average_pixel_accuracy": np.mean(metrics_log["pixel_accuracy"]),
-        })
+            f"{model_name}_average_pixel_accuracy": np.mean(
+                metrics_log["pixel_accuracy"]
+            ),
+        }
+    )
     wandb.log(log_data)
 
     print("Saved predictions in data/predictions/" + model_name)
 
 wandb.finish()
-

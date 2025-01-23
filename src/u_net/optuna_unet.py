@@ -1,4 +1,3 @@
-import ast
 import os
 import sys
 
@@ -41,9 +40,7 @@ TRIALS = 200
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 16, step=4
-    )
+    BATCH_SIZE = trial.suggest_int("batch_size", 4, 16, step=4)
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
@@ -52,11 +49,10 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     ACTIVATION = trial.suggest_categorical("activation", ["relu", "elu"])
     USE_BATCHNORM = True
     INITIALIZER = trial.suggest_categorical(
-            "weight_initializer", ["he_normal", "he_uniform"]
-        )
-    
+        "weight_initializer", ["he_normal", "he_uniform"]
+    )
+
     optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
-    
 
     try:
         train_dataset, val_dataset = create_dataset_for_unet_tuning(
@@ -65,7 +61,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             val_images,
             val_masks,
             IMG_CHANNEL,
-            BATCH_SIZE
+            BATCH_SIZE,
         )
 
         print("Created the datasets..")
@@ -120,6 +116,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         keras.backend.clear_session()
         print("Cleared GPU memory after trial.")
 
+
 def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
     print(f"The following error occured: {e}")
     raise optuna.TrialPruned()
@@ -145,7 +142,12 @@ if __name__ == "__main__":
         load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
+    study.optimize(
+        lambda trial: objective(
+            trial, train_images, train_masks, val_images, val_masks
+        ),
+        n_trials=TRIALS,
+    )
 
     print("Best trial:")
     trial = study.best_trial
@@ -154,4 +156,3 @@ if __name__ == "__main__":
     print("Params:")
     for key, value in trial.params.items():
         print(f"  {key}: {value}")
-

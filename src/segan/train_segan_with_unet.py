@@ -3,8 +3,6 @@ import sys
 
 import keras
 import keras.backend
-import numpy as np
-import segmentation_models as sm
 import tensorflow as tf
 from segan_model import discriminator
 
@@ -102,7 +100,6 @@ generator_model = unet(
     use_batchnorm=USE_BATCHNORM,
     initializer_function=INITIALIZER,
     training=True,
-
 )
 
 discriminator_model = discriminator(
@@ -114,7 +111,11 @@ discriminator_model = discriminator(
 # Create the intermediate model
 intermediate_layer_model = keras.Model(
     inputs=discriminator_model.input,
-    outputs=[layer.output for layer in discriminator_model.layers if 'conv' in layer.name or 'bn' in layer.name]
+    outputs=[
+        layer.output
+        for layer in discriminator_model.layers
+        if "conv" in layer.name or "bn" in layer.name
+    ],
 )
 
 # loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
@@ -155,12 +156,12 @@ def evaluate_generator(generator, dataset):
         predictions = generator(image_batch, training=False)
 
         # Segmentation loss
-        #cce = keras.losses.CategoricalCrossentropy(from_logits=False)
-        #segmentation_loss = cce(mask_batch, predictions)
+        # cce = keras.losses.CategoricalCrossentropy(from_logits=False)
+        # segmentation_loss = cce(mask_batch, predictions)
 
-        #val_loss += segmentation_loss.numpy()
-	#cce = keras.losses.CategoricalCrossentropy(from_logits=False)
-        #segmentation_loss = cce(mask_batch, predictions)
+        # val_loss += segmentation_loss.numpy()
+        # cce = keras.losses.CategoricalCrossentropy(from_logits=False)
+        # segmentation_loss = cce(mask_batch, predictions)
         dice_loss_value = dice_loss(mask_batch, predictions)
 
         val_loss += dice_loss_value.numpy()
@@ -192,11 +193,16 @@ def train_step_generator(images, masks):
 
     with tf.GradientTape() as gen_tape:
         generated_masks = generator_model(images, training=True)
-        gen_loss, segmentation_loss = combined_generator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
+        gen_loss, segmentation_loss = combined_generator_loss(
+            discriminator_model,
+            intermediate_layer_model,
+            images,
+            masks,
+            generated_masks,
+        )
     gradients_of_generator = gen_tape.gradient(
         gen_loss, generator_model.trainable_variables
     )
-    # gradients_of_generator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_generator]
     gen_optimizer.apply_gradients(
         zip(gradients_of_generator, generator_model.trainable_variables)
     )
@@ -208,11 +214,16 @@ def train_step_discriminator(images, masks):
 
     with tf.GradientTape() as disc_tape:
         generated_masks = generator_model(images, training=True)
-        disc_loss = combined_discriminator_loss(discriminator_model, intermediate_layer_model, images, masks, generated_masks)
+        disc_loss = combined_discriminator_loss(
+            discriminator_model,
+            intermediate_layer_model,
+            images,
+            masks,
+            generated_masks,
+        )
     gradients_of_discriminator = disc_tape.gradient(
         disc_loss, discriminator_model.trainable_variables
     )
-    # gradients_of_discriminator = [tf.clip_by_value(grad, -1.0, 1.0) for grad in gradients_of_discriminator]
     disc_optimizer.apply_gradients(
         zip(gradients_of_discriminator, discriminator_model.trainable_variables)
     )

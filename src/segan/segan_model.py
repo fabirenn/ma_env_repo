@@ -1,9 +1,4 @@
-import os
-import sys
-
 from keras import layers, models
-from keras.applications import VGG16
-from keras.models import Model
 
 
 def discriminator(input_shape, mask_shape, filters):

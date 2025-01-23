@@ -2,7 +2,7 @@ import os
 import sys
 
 import keras
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+from wandb.integration.keras import WandbMetricsLogger
 
 import wandb
 
@@ -129,7 +129,7 @@ model.fit(
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
-            log_wandb=True
+            log_wandb=True,
         ),
         keras.callbacks.EarlyStopping(
             monitor="val_loss",

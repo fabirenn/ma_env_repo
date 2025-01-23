@@ -39,7 +39,6 @@ class ValidationCallback(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         random_sample = self.validation_data.take(1)
         x_batch, y_true_batch = next(iter(random_sample))
-        # print(f"Validation sample batch shape: {x_batch.shape}, {y_true_batch.shape}")
         x = x_batch[0]
         y_true = y_true_batch[0]
 
@@ -74,8 +73,6 @@ class ValidationCallback(keras.callbacks.Callback):
                 )
         except Exception as e:
             print(f"Error during prediction in on_epoch_end: {e}")
-        
-        
 
 
 def log_images_wandb(epoch, x, y_true, y_pred):

@@ -1,6 +1,5 @@
 import keras
 import tensorflow as tf
-from keras import backend as K
 from keras.applications import ResNet50
 from keras.layers import (
     Activation,
@@ -14,7 +13,9 @@ from keras.layers import (
 from keras.models import Model
 
 
-def atrous_spatial_pyramid_pooling(inputs, filters, dilation_rates, kernel_size):
+def atrous_spatial_pyramid_pooling(
+    inputs, filters, dilation_rates, kernel_size
+):
     # Define atrous convolutions with different rates
     # Define atrous convolutions with different rates
     conv_1x1 = Conv2D(
@@ -53,7 +54,16 @@ def atrous_spatial_pyramid_pooling(inputs, filters, dilation_rates, kernel_size)
     return outputs
 
 
-def DeepLab(input_shape, dropout_rate, filters, dilation_rates, use_batchnorm, kernel_size, initializer_function, activation):
+def DeepLab(
+    input_shape,
+    dropout_rate,
+    filters,
+    dilation_rates,
+    use_batchnorm,
+    kernel_size,
+    initializer_function,
+    activation,
+):
     inputs = Input(shape=input_shape)
     if initializer_function == "he_normal":
         initializer1 = keras.initializers.HeNormal()
@@ -73,11 +83,16 @@ def DeepLab(input_shape, dropout_rate, filters, dilation_rates, use_batchnorm, k
 
     # Atrous Spatial Pyramid Pooling
     x = atrous_spatial_pyramid_pooling(
-        x, filters=filters, dilation_rates=dilation_rates, kernel_size=kernel_size
+        x,
+        filters=filters,
+        dilation_rates=dilation_rates,
+        kernel_size=kernel_size,
     )
 
     # Decoder
-    x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer1)(x)
+    x = Conv2D(
+        filters, kernel_size, padding="same", kernel_initializer=initializer1
+    )(x)
     if use_batchnorm:
         x = BatchNormalization()(x)
     if activation == "prelu":
@@ -86,7 +101,9 @@ def DeepLab(input_shape, dropout_rate, filters, dilation_rates, use_batchnorm, k
         x = Activation(activation)(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((4, 4), interpolation="bilinear")(x)
-    x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer2)(x)
+    x = Conv2D(
+        filters, kernel_size, padding="same", kernel_initializer=initializer2
+    )(x)
     if use_batchnorm:
         x = BatchNormalization()(x)
     if activation == "prelu":
@@ -95,7 +112,9 @@ def DeepLab(input_shape, dropout_rate, filters, dilation_rates, use_batchnorm, k
         x = Activation(activation)(x)
     x = Dropout(dropout_rate)(x)
     x = UpSampling2D((2, 2), interpolation="bilinear")(x)
-    x = Conv2D(filters, kernel_size, padding="same", kernel_initializer=initializer3)(x)
+    x = Conv2D(
+        filters, kernel_size, padding="same", kernel_initializer=initializer3
+    )(x)
     if use_batchnorm:
         x = BatchNormalization()(x)
     if activation == "prelu":

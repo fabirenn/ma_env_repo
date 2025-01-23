@@ -1,11 +1,9 @@
-import gc
 import os
 
 import albumentations as A
 import cv2
 import numpy as np
 import tensorflow as tf
-from numba import cuda
 
 cls2bgr = {
     1: (255, 221, 51),  # wire
@@ -18,16 +16,19 @@ train_class_frequencies = []
 val_class_frequencies = []
 test_class_frequencies = []
 
+
 def count_class_pixels(masks_list, num_classes):
     """
     Count the number of pixels for each class in a list of masks.
-    
+
     Args:
-    masks_list (list of np.ndarray): List of masks where each mask is a one-hot encoded np.ndarray.
+    masks_list (list of np.ndarray): List of masks where each mask is a one-hot
+    encoded np.ndarray.
     num_classes (int): Number of classes including background.
 
     Returns:
-    class_pixel_counts (np.ndarray): Array containing the pixel counts for each class.
+    class_pixel_counts (np.ndarray): Array containing the pixel counts for each
+    class.
     """
     class_pixel_counts = np.zeros(num_classes, dtype=np.int64)
 
@@ -36,6 +37,7 @@ def count_class_pixels(masks_list, num_classes):
         class_pixel_counts += np.sum(mask, axis=(0, 1)).astype(np.int64)
 
     return class_pixel_counts.tolist()
+
 
 def bgr_mask2cls_mask(bgr_mask, cls2bgr) -> np.ndarray:
     """Convert BGR mask to class mask."""
@@ -372,7 +374,9 @@ def load_images_for_tuning(
     return train_images, train_masks, val_images, val_masks
 
 
-def create_dataset_for_unet_tuning(train_images, train_masks, val_images, val_masks, channel_size, batch_size):
+def create_dataset_for_unet_tuning(
+    train_images, train_masks, val_images, val_masks, channel_size, batch_size
+):
     # normalizing the values of the images and binarizing the image masks
     train_images = normalize_image_data(train_images)
     print("Train-Images normalized..")
@@ -418,7 +422,9 @@ def create_dataset_for_unet_tuning(train_images, train_masks, val_images, val_ma
     return train_dataset, val_dataset
 
 
-def create_dataset_for_tuning(train_images, train_masks, val_images, val_masks, batch_size):
+def create_dataset_for_tuning(
+    train_images, train_masks, val_images, val_masks, batch_size
+):
     # normalizing the values of the images and binarizing the image masks
     train_images = normalize_image_data(train_images)
     print("Train-Images normalized..")
@@ -640,9 +646,10 @@ def create_dataset_for_image_segmentation(img_dir, mask_dir):
     masks = load_masks_from_directory(mask_dir, cls2bgr)
     masks = resize_images(masks, 1500, 1000)
     test_class_frequencies = count_class_pixels(masks, 5)
-    #masks = make_binary_masks(masks, threshold=30)
+    # masks = make_binary_masks(masks, threshold=30)
 
     return images, preprocessed_images, masks
+
 
 def create_dataset_for_mask_prediction(img_dir):
     global test_class_frequencies

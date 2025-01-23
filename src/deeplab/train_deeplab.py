@@ -85,15 +85,15 @@ config = wandb.config
 
 # create model & start training it
 model = DeepLab(
-            input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
-            dropout_rate=DROPOUT_RATE,
-            filters=FILTERS,
-            dilation_rates=DILATION_RATES,
-            use_batchnorm=USE_BATCHNORM,
-            kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
-            initializer_function=INITIALIZER,
-            activation=ACTIVATION
-        )
+    input_shape=(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
+    dropout_rate=DROPOUT_RATE,
+    filters=FILTERS,
+    dilation_rates=DILATION_RATES,
+    use_batchnorm=USE_BATCHNORM,
+    kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
+    initializer_function=INITIALIZER,
+    activation=ACTIVATION,
+)
 
 optimizer = keras.optimizers.Adagrad(learning_rate=LEARNING_RATE)
 
@@ -129,7 +129,7 @@ model.fit(
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=APPLY_CRF,
-            log_wandb=True
+            log_wandb=True,
         ),
         keras.callbacks.EarlyStopping(
             monitor="val_loss",

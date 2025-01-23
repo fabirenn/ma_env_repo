@@ -3,7 +3,7 @@ import sys
 
 import keras
 from segnet_model import segnet
-from wandb.integration.keras import WandbCallback, WandbMetricsLogger
+from wandb.integration.keras import WandbMetricsLogger
 
 import wandb
 
@@ -79,7 +79,7 @@ model = segnet(
     kernel_size=(KERNELSIZE, KERNELSIZE),
     activation=ACTIVATION,
     use_batchnorm=USE_BATCHNORM,
-    initializer_function=INITIALIZER
+    initializer_function=INITIALIZER,
 )
 
 optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
@@ -116,7 +116,7 @@ model.fit(
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
-            log_wandb=False
+            log_wandb=False,
         ),
         keras.callbacks.EarlyStopping(
             monitor="val_loss",
@@ -128,4 +128,3 @@ model.fit(
 )
 
 wandb.finish()
-

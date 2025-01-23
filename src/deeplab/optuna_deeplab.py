@@ -1,5 +1,4 @@
 import ast
-import gc
 import os
 import sys
 
@@ -7,7 +6,6 @@ import keras.metrics
 import optuna
 import tensorflow as tf
 from deeplab_model import DeepLab
-from numba import cuda
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from data_loader import create_dataset_for_unet_tuning, load_images_for_tuning
@@ -41,18 +39,18 @@ STUDY_NAME = "deeplab_tuning"
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 20, step=4
-    )
+    BATCH_SIZE = trial.suggest_int("batch_size", 4, 20, step=4)
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.1, 0.4, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
     FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512, 1024])
-    ACTIVATION = trial.suggest_categorical("activation", ["leaky_relu", "elu", "prelu"])
+    ACTIVATION = trial.suggest_categorical(
+        "activation", ["leaky_relu", "elu", "prelu"]
+    )
     KERNEL_SIZE = 3
     BATCH_NORMALIZATION = True
     INITIALIZER = trial.suggest_categorical(
-            "weight_initializer", ["he_normal", "he_uniform"]
-        )
+        "weight_initializer", ["he_normal", "he_uniform"]
+    )
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad", "rmsprop"]
     )
@@ -110,7 +108,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             use_batchnorm=BATCH_NORMALIZATION,
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             initializer_function=INITIALIZER,
-            activation=ACTIVATION
+            activation=ACTIVATION,
         )
 
         model.compile(
@@ -177,8 +175,13 @@ if __name__ == "__main__":
         study_name=STUDY_NAME,
         load_if_exists=False,
     )
-    
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
+
+    study.optimize(
+        lambda trial: objective(
+            trial, train_images, train_masks, val_images, val_masks
+        ),
+        n_trials=TRIALS,
+    )
 
     print("Best trial:")
     trial = study.best_trial

@@ -30,7 +30,9 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
-CHECKPOINT_PATH_PRETRAINED = "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
+CHECKPOINT_PATH_PRETRAINED = (
+    "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
+)
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
@@ -47,9 +49,7 @@ TRIALS = 200
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 24, step=4
-    )
+    BATCH_SIZE = trial.suggest_int("batch_size", 4, 24, step=4)
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
 
     # Set the optimizer parameters
@@ -60,7 +60,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         learning_rate=learning_rate,
         momentum=momentum,
         decay=weight_decay,
-        nesterov=False
+        nesterov=False,
     )
 
     try:
@@ -68,11 +68,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         val_loss = 1000
 
         train_dataset, val_dataset = create_dataset_for_tuning(
-            train_images,
-            train_masks,
-            val_images,
-            val_masks,
-            BATCH_SIZE
+            train_images, train_masks, val_images, val_masks, BATCH_SIZE
         )
 
         print("Created the datasets..")
@@ -84,9 +80,10 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             IMG_CHANNEL,
             DROPOUT_RATE,
         )
-        #semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
+        # semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
-        #model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
+        # model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH,
+        # IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
         semantic_extractor_model.compile(
             optimizer=optimizer,
@@ -129,12 +126,15 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
         return val_loss
     except tf.errors.ResourceExhaustedError as e:
-        handle_errors_during_tuning(trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch)
+        handle_errors_during_tuning(
+            trial=trial, best_loss=val_loss, e=e, current_epoch=current_epoch
+        )
         return float("inf")
     finally:
         # Clear GPU memory
         keras.backend.clear_session()
         print("Cleared GPU memory after trial.")
+
 
 def handle_errors_during_tuning(trial, best_loss, e, current_epoch):
     print(f"The following error occured: {e}")
@@ -162,8 +162,13 @@ if __name__ == "__main__":
         study_name=STUDY_NAME,
         load_if_exists=False,
     )
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
-    
+    study.optimize(
+        lambda trial: objective(
+            trial, train_images, train_masks, val_images, val_masks
+        ),
+        n_trials=TRIALS,
+    )
+
     print("Best trial:")
     trial = study.best_trial
 

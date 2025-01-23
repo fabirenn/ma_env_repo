@@ -2,7 +2,7 @@ import os
 import sys
 
 import keras
-from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
+from wandb.integration.keras import WandbMetricsLogger
 
 import wandb
 
@@ -32,7 +32,9 @@ VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 LOG_VAL_PRED = "data/predictions/ynet"
-CHECKPOINT_PATH_PRETRAINED = "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
+CHECKPOINT_PATH_PRETRAINED = (
+    "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
+)
 CHECKPOINT_PATH_YNET = "artifacts/models/ynet/ynet_checkpoint.keras"
 
 '''
@@ -83,10 +85,12 @@ wandb.init(
 config = wandb.config
 
 # create model & start training it
-model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
-#semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
+model = build_feature_extractor_for_pretraining(
+    IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE
+)
+# semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
-#model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
+# model = build_ynet_with_pretrained_semantic_extractor(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE, semantic_extractor_model)
 
 
 # Create the SGD optimizer
@@ -94,7 +98,7 @@ optimizer = keras.optimizers.SGD(
     learning_rate=LEARNING_RATE,
     momentum=MOMENTUM,
     decay=WEIGHT_DECAY,
-    nesterov=False  # You can set this to True if you want to use Nesterov momentum
+    nesterov=False,  # You can set this to True if you want to use Nesterov momentum
 )
 
 model.compile(
@@ -129,7 +133,7 @@ model.fit(
             validation_data=val_dataset,
             log_dir=LOG_VAL_PRED,
             apply_crf=False,
-            log_wandb=True
+            log_wandb=True,
         ),
         keras.callbacks.EarlyStopping(
             monitor="val_loss",

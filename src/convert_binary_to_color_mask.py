@@ -43,5 +43,5 @@ def convert_binary_masks(
         new_mask.save(os.path.join(output_folder, mask_file))
         print(f"Saved converted mask: {mask_file}")
 
-convert_binary_masks(input_folder, output_folder, wire_color=(51, 221, 255))
 
+convert_binary_masks(input_folder, output_folder, wire_color=(51, 221, 255))

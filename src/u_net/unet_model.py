@@ -1,6 +1,4 @@
 import keras
-import tensorflow as tf
-from keras.layers import BatchNormalization
 
 
 def unet(
@@ -9,9 +7,9 @@ def unet(
     img_channels,
     dropout_rate,
     filters_list,
-    kernel_size, 
-    activation, 
-    use_batchnorm, 
+    kernel_size,
+    activation,
+    use_batchnorm,
     initializer_function,
     pretrained_weights=None,
     training=True,
@@ -33,7 +31,7 @@ def unet(
             kernel_size=kernel_size,
             activation=activation,
             use_batchnorm=use_batchnorm,
-            initializer_function=initializer_function
+            initializer_function=initializer_function,
         )
         c.append(c_layer)
         p.append(p_layer)
@@ -49,7 +47,7 @@ def unet(
             kernel_size=kernel_size,
             activation=activation,
             use_batchnorm=use_batchnorm,
-            initializer_function=initializer_function
+            initializer_function=initializer_function,
         )
 
     outputs = keras.layers.Conv2D(5, kernel_size=(1, 1), activation="softmax")(
@@ -61,7 +59,16 @@ def unet(
     model.summary()
     return model
 
-def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function):
+
+def conv_block_down(
+    input_tensor,
+    num_filters,
+    dropout_rate,
+    kernel_size,
+    activation,
+    use_batchnorm,
+    initializer_function,
+):
     """
     Creates a convolutional block for U-Net architecture.
 
@@ -117,13 +124,18 @@ def conv_block_down(input_tensor, num_filters, dropout_rate, kernel_size, activa
     # Max pooling layer
     pool = keras.layers.MaxPooling2D((2, 2))(conv)
 
-    # print(f"conv_block_down output shape: {conv.shape}, pool shape: {pool.shape}")
-
     return conv, pool
 
 
 def conv_block_up(
-    input_tensor, skip_tensor, num_filters, dropout_rate, kernel_size, activation, use_batchnorm, initializer_function
+    input_tensor,
+    skip_tensor,
+    num_filters,
+    dropout_rate,
+    kernel_size,
+    activation,
+    use_batchnorm,
+    initializer_function,
 ):
     """
     Creates a upsampling convolutional block for U-Net architecture.
@@ -145,7 +157,6 @@ def conv_block_up(
     elif initializer_function == "he_uniform":
         initializer1 = keras.initializers.HeUniform()
         initializer2 = keras.initializers.HeUniform()
-
 
     # First upconvolution
     u = keras.layers.Conv2DTranspose(

@@ -36,7 +36,8 @@ TRAIN_MASK_PATH = "data/training_train/labels_mixed"
 VAL_IMG_PATH = "data/training_val/images_mixed"
 VAL_MASK_PATH = "data/training_val/labels_mixed"
 
-#CHECKPOINT_PATH_PRETRAINED = "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
+# CHECKPOINT_PATH_PRETRAINED =
+# "artifacts/models/ynet/ynet_checkpoint_pretrained.keras"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
@@ -52,23 +53,21 @@ TRIALS = 200
 
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
-    print("Starting objective function...") 
+    print("Starting objective function...")
     # Hyperparameter tuning
-    BATCH_SIZE = trial.suggest_int(
-        "batch_size", 4, 16, step=4
-    )
+    BATCH_SIZE = trial.suggest_int("batch_size", 4, 16, step=4)
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.5, step=0.1)
 
     # Set the optimizer parameters
     momentum = trial.suggest_float("momentum", 0.8, 0.99)
     weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
     learning_rate = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
-    
+
     optimizer = keras.optimizers.SGD(
         learning_rate=learning_rate,
         momentum=momentum,
         decay=weight_decay,
-        nesterov=False
+        nesterov=False,
     )
 
     try:
@@ -79,15 +78,15 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             val_images,
             val_masks,
             IMG_CHANNEL,
-            BATCH_SIZE
+            BATCH_SIZE,
         )
 
         print("Created the datasets..")
 
         # create model & start training it
-        #semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
-        #semantic_extractor_model = build_feature_extractor_without_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
-        #semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
+        # semantic_extractor_model = build_feature_extractor_for_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+        # semantic_extractor_model = build_feature_extractor_without_pretraining(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
+        # semantic_extractor_model.load_weights(CHECKPOINT_PATH_PRETRAINED)
 
         model = build_ynet(IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL, DROPOUT_RATE)
 
@@ -132,7 +131,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
 
 def handle_errors_during_tuning(e):
     print(f"The following error occured: {e}")
-    traceback.print_exc() 
+    traceback.print_exc()
     raise optuna.TrialPruned()
 
 
@@ -157,8 +156,13 @@ if __name__ == "__main__":
         load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
-    
+    study.optimize(
+        lambda trial: objective(
+            trial, train_images, train_masks, val_images, val_masks
+        ),
+        n_trials=TRIALS,
+    )
+
     print("Best trial:")
     trial = study.best_trial
 
