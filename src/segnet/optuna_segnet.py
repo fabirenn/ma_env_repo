@@ -34,6 +34,11 @@ IMG_CHANNEL = 3
 EPOCHS = 100
 PATIENCE = 30
 
+STORAGE = "sqlite:///artifacts/models/segnet/optuna_segnet.db"
+STUDY_NAME = "segnet_tuning"
+
+TRIALS = 200
+
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
@@ -62,7 +67,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     INITIALIZER = trial.suggest_categorical(
             "weight_initializer", ["he_normal", "he_uniform"]
         )
-    
+    USE_BATCHNORM = True
     num_filters = ast.literal_eval(NUM_FILTERS)
     
     optimizer = keras.optimizers.RMSprop(learning_rate=LEARNING_RATE, clipnorm=1.0)
@@ -86,7 +91,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             num_filters=num_filters,
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
-            use_batchnorm=True,
+            use_batchnorm=USE_BATCHNORM,
             initializer_function=INITIALIZER
         )
 
@@ -151,12 +156,12 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_segnet.db",  # Save the study in a SQLite database file
-        study_name="segnet_tuning",
-        load_if_exists=True,
+        storage=STORAGE,  # Save the study in a SQLite database file
+        study_name=STUDY_NAME,
+        load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=50)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
 
     print("Best trial:")
     trial = study.best_trial

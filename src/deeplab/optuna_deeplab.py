@@ -33,6 +33,10 @@ IMG_CHANNEL = 3
 
 EPOCHS = 100
 PATIENCE = 30
+TRIALS = 200
+
+STORAGE = "sqlite:///artifacts/models/deeplab/optuna_deeplab.db"
+STUDY_NAME = "deeplab_tuning"
 
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
@@ -44,6 +48,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
     FILTERS = trial.suggest_categorical("filters", [64, 128, 256, 512, 1024])
     ACTIVATION = trial.suggest_categorical("activation", ["leaky_relu", "elu", "prelu"])
+    KERNEL_SIZE = 3
+    BATCH_NORMALIZATION = True
     INITIALIZER = trial.suggest_categorical(
             "weight_initializer", ["he_normal", "he_uniform"]
         )
@@ -101,8 +107,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             dropout_rate=DROPOUT_RATE,
             filters=FILTERS,
             dilation_rates=dilation_rates,
-            use_batchnorm=True,
-            kernel_size=(3, 3),
+            use_batchnorm=BATCH_NORMALIZATION,
+            kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             initializer_function=INITIALIZER,
             activation=ACTIVATION
         )
@@ -167,12 +173,12 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_deeplab.db",  # Save the study in a SQLite database file
-        study_name="deeplab_tuning",
-        load_if_exists=True,
+        storage=STORAGE,  # Save the study in a SQLite database file
+        study_name=STUDY_NAME,
+        load_if_exists=False,
     )
     
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
 
     print("Best trial:")
     trial = study.best_trial

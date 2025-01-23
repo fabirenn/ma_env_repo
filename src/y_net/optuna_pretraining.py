@@ -35,6 +35,11 @@ IMG_CHANNEL = 3
 EPOCHS = 100
 PATIENCE = 30
 
+STORAGE = "sqlite:///artifacts/models/ynet/optuna_ynet_pretraining.db"
+STUDY_NAME = "ynet_pretraining_tuning"
+
+TRIALS = 200
+
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
@@ -149,11 +154,11 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_ynet.db",  # Save the study in a SQLite database file
-        study_name="ynet_pretraining",
+        storage=STORAGE,  # Save the study in a SQLite database file
+        study_name=STUDY_NAME,
         load_if_exists=False,
     )
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
     
     print("Best trial:")
     trial = study.best_trial

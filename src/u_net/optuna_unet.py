@@ -31,6 +31,11 @@ IMG_HEIGHT = 512
 EPOCHS = 100
 PATIENCE = 30
 
+STORAGE = "sqlite:///artifacts/models/unet/optuna_unet.db"
+STUDY_NAME = "unet_tuning"
+
+TRIALS = 200
+
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     # Hyperparameter tuning
@@ -40,7 +45,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     IMG_CHANNEL = trial.suggest_categorical("img_channel", [3, 8])
     DROPOUT_RATE = trial.suggest_float("dropout_rate", 0.0, 0.3, step=0.1)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
-    
+    filters_list = [16, 32, 64, 128, 256, 512]
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     ACTIVATION = trial.suggest_categorical("activation", ["relu", "elu"])
     USE_BATCHNORM = True
@@ -68,7 +73,7 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
             IMG_HEIGHT,
             IMG_CHANNEL,
             DROPOUT_RATE,
-            [16, 32, 64, 128, 256, 512],
+            filters_list,
             kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
             activation=ACTIVATION,
             use_batchnorm=USE_BATCHNORM,
@@ -133,12 +138,12 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_unet.db",  # Save the study in a SQLite database file
-        study_name="unet_tuning",
-        load_if_exists=True,
+        storage=STORAGE,  # Save the study in a SQLite database file
+        study_name=STUDY_NAME,
+        load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=200)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
 
     print("Best trial:")
     trial = study.best_trial

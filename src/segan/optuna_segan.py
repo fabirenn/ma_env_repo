@@ -49,6 +49,11 @@ PATIENCE = 30
 BEST_IOU = 0
 WAIT = 0
 
+STORAGE = "sqlite:///artifacts/models/segan/optuna_segan_simple.db"
+STUDY_NAME = "segan_tuning"
+
+TRIALS = 200
+
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
     print("Starting objective function...") 
@@ -60,6 +65,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     GENERATOR_TRAINING_STEPS = trial.suggest_int("g_training_steps", 6, 10)
     LEARNING_RATE = trial.suggest_float("learning_rate", 1e-2, 1e-1, log=True)
     FILTERS_DEPTH = 6
+    USE_BATCHNOM = True
+    INITIALIZER = "he_uniform"
     KERNEL_SIZE = trial.suggest_categorical("kernel_size", [3, 5])
     ACTIVATION = trial.suggest_categorical("activation", ["leaky_relu", "elu"])
     
@@ -88,8 +95,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         discriminator_filters,
         kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
         activation=ACTIVATION,
-        use_batchnorm=True,
-        initializer_function="he_uniform",
+        use_batchnorm=USE_BATCHNOM,
+        initializer_function=INITIALIZER,
         training=True,
     )
 
@@ -262,12 +269,12 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_segan_simple.db",  # Save the study in a SQLite database file
-        study_name="segan_tuning",
+        storage=STORAGE,  # Save the study in a SQLite database file
+        study_name=STUDY_NAME,
         load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=50)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
 
     print("Best trial:")
     trial = study.best_trial

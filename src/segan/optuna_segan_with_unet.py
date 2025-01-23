@@ -42,12 +42,22 @@ VAL_MASK_PATH = "data/training_val/labels_mixed"
 
 IMG_WIDTH = 512
 IMG_HEIGHT = 512
-
+IMG_CHANNEL = 8
+DROPOUT_RATE = 0.1
+KERNEL_SIZE = 3
+ACTIVATION = "elu"
+USE_BATCHNORM = True
+INITIALIZER = "he_normal"
 
 EPOCHS = 100
 PATIENCE = 30
 BEST_IOU = 0
 WAIT = 0
+
+STORAGE = "sqlite:///artifacts/models/segan/optuna_segan_predefined.db"
+STUDY_NAME = "segan_predefined_tuning"
+
+TRIALS = 200
 
 
 def objective(trial, train_images, train_masks, val_images, val_masks):
@@ -59,6 +69,8 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
     OPTIMIZER = trial.suggest_categorical(
         "optimizer", ["sgd", "adagrad"]
     )
+
+    filters_list = [16, 32, 64, 128, 256, 512]
 
     if OPTIMIZER == "sgd":
         optimizer = keras.optimizers.SGD(learning_rate=LEARNING_RATE)
@@ -77,28 +89,28 @@ def objective(trial, train_images, train_masks, val_images, val_masks):
         train_masks,
         val_images,
         val_masks,
-        8,
+        IMG_CHANNEL,
         BATCH_SIZE
     )
     print("Created the datasets..")
 
     generator_model = unet(
-        512,
-        512,
-        8,
-        0.1,
-        [16, 32, 64, 128, 256, 512],
-        kernel_size=(3, 3),
-        activation="elu",
-        use_batchnorm=True,
-        initializer_function="he_normal",
+        IMG_WIDTH,
+        IMG_HEIGHT,
+        IMG_CHANNEL,
+        DROPOUT_RATE,
+        filters_list,
+        kernel_size=(KERNEL_SIZE, KERNEL_SIZE),
+        activation=ACTIVATION,
+        use_batchnorm=USE_BATCHNORM,
+        initializer_function=INITIALIZER,
         training=True,
     )
 
     discriminator_model = discriminator(
-        (IMG_WIDTH, IMG_HEIGHT, 8),
+        (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNEL),
         (IMG_WIDTH, IMG_HEIGHT, 5),
-        [16, 32, 64, 128, 256, 512],
+        filters_list,
     )
     # Create the intermediate model
     intermediate_layer_model = keras.Model(
@@ -263,12 +275,12 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         direction="minimize",
-        storage="sqlite:///optuna_segan.db",  # Save the study in a SQLite database file
-        study_name="segan_unet_tuning",
+        storage=STORAGE,  # Save the study in a SQLite database file
+        study_name=STUDY_NAME,
         load_if_exists=False,
     )
 
-    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=50)
+    study.optimize(lambda trial: objective(trial, train_images, train_masks, val_images, val_masks), n_trials=TRIALS)
 
     print("Best trial:")
     trial = study.best_trial
